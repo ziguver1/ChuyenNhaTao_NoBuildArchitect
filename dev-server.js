@@ -9,6 +9,21 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// Tự nạp file .env nếu có ở local (không cần cài thêm dotenv)
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    fs.readFileSync(envPath, 'utf8').split(/\r?\n/).forEach((line) => {
+      const m = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (m && !m[1].startsWith('#')) {
+        let val = (m[2] || '').trim();
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) val = val.slice(1, -1);
+        if (!process.env[m[1]]) process.env[m[1]] = val;
+      }
+    });
+  }
+} catch (e) { /* bỏ qua */ }
+
 const PORT = Number(process.env.PORT || 5174);
 const ROOT = __dirname;
 process.env.ADMIN_KEY = process.env.ADMIN_KEY || 'admin123';

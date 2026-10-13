@@ -4,8 +4,25 @@
 // Tên file bắt đầu bằng "_" nên Vercel không coi đây là một đường dẫn API.
 const crypto = require('crypto');
 
-const getUrl = () => process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const getToken = () => process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+const getUrl = () => {
+  if (process.env.UPSTASH_REDIS_KV_REST_API_URL) return process.env.UPSTASH_REDIS_KV_REST_API_URL;
+  if (process.env.KV_REST_API_URL) return process.env.KV_REST_API_URL;
+  if (process.env.UPSTASH_REDIS_REST_URL) return process.env.UPSTASH_REDIS_REST_URL;
+  for (const [k, v] of Object.entries(process.env)) {
+    if (v && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_URL') || k.endsWith('_REST_URL'))) return v;
+  }
+  return '';
+};
+
+const getToken = () => {
+  if (process.env.UPSTASH_REDIS_KV_REST_API_TOKEN) return process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
+  if (process.env.KV_REST_API_TOKEN) return process.env.KV_REST_API_TOKEN;
+  if (process.env.UPSTASH_REDIS_REST_TOKEN) return process.env.UPSTASH_REDIS_REST_TOKEN;
+  for (const [k, v] of Object.entries(process.env)) {
+    if (v && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_TOKEN') || k.endsWith('_REST_TOKEN'))) return v;
+  }
+  return '';
+};
 
 const configured = () => Boolean(getUrl() && getToken());
 

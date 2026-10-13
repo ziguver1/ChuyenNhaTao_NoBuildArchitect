@@ -14,3 +14,5 @@ dev-server.js
 test_*.png
 live_user_view.png
 passport_section_view.png
+.env
+.env*.local
