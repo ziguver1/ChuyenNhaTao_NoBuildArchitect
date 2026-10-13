@@ -1,0 +1,16 @@
+# Không đưa lên Vercel (giống .gitignore)
+*.pdf
+*.zip
+*.rar
+*.docx
+.claude/
+.agents/
+.vscode/
+.idea/
+node_modules/
+docs/
+chay-du-an.bat
+dev-server.js
+test_*.png
+live_user_view.png
+passport_section_view.png
