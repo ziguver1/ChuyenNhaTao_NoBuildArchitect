@@ -1542,11 +1542,67 @@ body::after {
    ========================================================================= */
 #la-so {
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Cho phép dải mây vươn lên che đường ranh giới */
   background: radial-gradient(ellipse 120% 75% at 50% 12%, #2d101a 0%, #1a1228 38%, #0d0c18 70%, #06050d 100%);
   color: #f7ede2;
   padding: clamp(70px, 9vw, 110px) 0;
 }
+
+/* Dải mây cuộn cổ truyền Đông Hồ nối giữa Làng quê và Trời đêm */
+.la-so-clouds-transition {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: clamp(80px, 11vw, 150px);
+  transform: translateY(-94%);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.cloud-scallop-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 16px rgba(10, 5, 12, 0.45));
+}
+
+.cloud-float-art {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: contain;
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 8px 18px rgba(35, 15, 8, 0.4));
+  animation: cloud-sway 4.8s ease-in-out infinite alternate;
+}
+
+.cloud-float-left {
+  left: clamp(-15px, 2vw, 50px);
+  bottom: 8px;
+  width: clamp(140px, 22vw, 320px);
+  aspect-ratio: 387 / 230;
+  background-image: url("images/nen/may-trai.webp");
+}
+
+.cloud-float-right {
+  right: clamp(-15px, 2vw, 50px);
+  bottom: 16px;
+  width: clamp(130px, 20vw, 290px);
+  aspect-ratio: 327 / 153;
+  background-image: url("images/nen/may-phai.webp");
+  animation-delay: -2.4s;
+}
+
+@keyframes cloud-sway {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-9px) scale(1.02); }
+}
+
+.motion-reduced .cloud-float-art {
+  animation: none !important;
+}
+
 .la-so-bg-canvas {
   position: absolute;
   inset: 0;
