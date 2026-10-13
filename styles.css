@@ -844,8 +844,10 @@ body::after {
   min-height: 520px;
   display: flex;
   align-items: center;
-  background: radial-gradient(120% 85% at 50% 25%, #240f08 0%, #130805 55%, #080302 100%);
-  border-top: 1px solid rgba(245, 215, 127, 0.25);
+  background:
+    linear-gradient(180deg, #1B0E0A 0%, transparent 140px),
+    radial-gradient(120% 85% at 50% 25%, #240f08 0%, #130805 55%, #080302 100%);
+  border-top: none;
   color: var(--text);
   padding: clamp(64px, 9vw, 100px) 0 clamp(40px, 6vw, 64px);
 }
@@ -946,11 +948,19 @@ body::after {
 
 #tram-trai-nghiem { background: var(--bg-2); }
 
-/* Section Dữ liệu của bạn: Tông đêm huyền ảo #0D0B17 */
+/* Section Dữ liệu của bạn: Tông đêm #0D0B17 chuyển dần về #1B0E0A ở đáy */
 #du-lieu {
-  background-color: #0D0B17 !important;
+  background: linear-gradient(180deg,
+    #0D0B17 0%,
+    #0D0B17 55%,
+    #120B13 72%,
+    #170D0E 88%,
+    #1B0E0A 100%
+  ) !important;
   color: #f4ece1;
   border-top: none;
+  border-bottom: none;
+  margin-bottom: -1px;
 }
 #du-lieu .section-head h2 {
   color: #fff4e0;
