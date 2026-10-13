@@ -1327,6 +1327,11 @@ body::after {
 .motion-reduced .listen-ring { animation: none !important; }
 .motion-reduced .listen-obj.is-playing .listen-ring:first-child { opacity: .8; transform: scale(1.12); }
 .listen-teller { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 600; font-size: 15px; color: var(--cinnabar); display: inline-flex; gap: 6px; align-items: center; }
+.listen:not(.is-done):not(.is-active) { margin: auto 0; gap: 12px; }
+.listen:not(.is-done):not(.is-active) .listen-lines,
+.listen:not(.is-done):not(.is-active) .listen-take { display: none !important; }
+.listen:not(.is-done):not(.is-active) .listen-all { margin-top: 10px; }
+
 .listen-lines {
   list-style: none; margin: 12px 0; padding: 0; display: flex; flex-direction: column; gap: 12px; text-align: left; width: 100%;
 }
@@ -1354,21 +1359,21 @@ body::after {
 }
 .listen-take.is-on { opacity: 1; transform: scale(1); }
 .listen-all { font-size: 14.5px; color: var(--cinnabar); text-decoration: underline; text-underline-offset: 3px; font-style: italic; margin-top: 4px; }
-.listen.is-done .listen-obj, .listen.is-active .listen-obj { width: 60px; height: 60px; margin: 0; }
-.listen.is-done .listen-obj i, .listen.is-active .listen-obj i { font-size: 28px; }
-.listen.is-done .listen-lines, .listen.is-active .listen-lines { margin: 8px 0; gap: 8px; }
-.listen.is-done .listen-lines li, .listen.is-active .listen-lines li { font-size: 18px; line-height: 1.6; }
-.listen.is-done .listen-take, .listen.is-active .listen-take { margin-top: 6px; padding: 8px 12px; font-size: 17px; }
+.listen.is-done .listen-obj, .listen.is-active .listen-obj { width: 56px; height: 56px; margin: 0; }
+.listen.is-done .listen-obj i, .listen.is-active .listen-obj i { font-size: 26px; }
+.listen.is-done .listen-lines, .listen.is-active .listen-lines { display: flex; margin: 6px 0; gap: 6px; }
+.listen.is-done .listen-lines li, .listen.is-active .listen-lines li { font-size: 17px; line-height: 1.5; }
+.listen.is-done .listen-take, .listen.is-active .listen-take { display: block; margin-top: 4px; padding: 6px 10px; font-size: 16px; }
 .listen.is-done .listen-prompt, .listen.is-active .listen-prompt, .listen.is-active .listen-all { display: none; }
 @media (max-width: 560px) {
   .listen { gap: 8px; }
   .listen-obj { width: 80px; height: 80px; }
   .listen-obj i { font-size: 38px; }
-  .listen.is-done .listen-obj, .listen.is-active .listen-obj { width: 52px; height: 52px; }
-  .listen.is-done .listen-obj i, .listen.is-active .listen-obj i { font-size: 26px; }
-  .listen-lines { gap: 8px; margin: 8px 0; }
-  .listen-lines li { font-size: 17px; line-height: 1.55; }
-  .listen-take { font-size: 16px; padding: 8px 10px; }
+  .listen.is-done .listen-obj, .listen.is-active .listen-obj { width: 48px; height: 48px; }
+  .listen.is-done .listen-obj i, .listen.is-active .listen-obj i { font-size: 22px; }
+  .listen.is-done .listen-lines, .listen.is-active .listen-lines { gap: 6px; margin: 6px 0; }
+  .listen.is-done .listen-lines li, .listen.is-active .listen-lines li { font-size: 15.5px; line-height: 1.45; }
+  .listen.is-done .listen-take, .listen.is-active .listen-take { font-size: 15px; padding: 6px 8px; }
 }
 
 /* Độ dày sách: mép giấy xếp lớp phía ngoài */
