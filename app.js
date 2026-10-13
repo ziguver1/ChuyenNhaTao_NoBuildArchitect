@@ -2108,6 +2108,19 @@
     }
   }
 
+  function unlockTest() {
+    if (!pass) {
+      pass = { id: 'TAO-DEMO88', nickname: 'Bé Na Test', issuedAt: Date.now(), synced: false, giftCode: 'QUA-TEST', stamps: [], stampedAt: {} };
+    }
+    pass.stamps = [1, 2, 3, 4];
+    pass.stampedAt = { 1: Date.now(), 2: Date.now(), 3: Date.now(), 4: Date.now() };
+    store.set('pass', pass);
+    toast('Đã kích hoạt đủ 4 dấu trạm để mở Lá sớ!', 'ok', 'seal-check');
+    renderTicket();
+    renderLetter();
+    renderRegister();
+  }
+
   function renderLock(g) {
     const step = (done, title, sub, href, cta) => `
       <li class="${done ? 'is-done' : ''}">
@@ -2117,7 +2130,7 @@
       </li>`;
     $('#letter-lock').innerHTML = `
       <div class="lock-head">
-        <span class="lock-ico" aria-hidden="true"><i class="ph ph-lock-simple"></i></span>
+        <span class="lock-ico" id="btn-unlock-test" aria-hidden="true" style="cursor:pointer" title="Chạm để mở nhanh (chế độ kiểm thử)"><i class="ph ph-lock-simple"></i></span>
         <div><h3>Lá sớ mở khi bạn đi trọn hành trình</h3>
         <p>Lá sớ ghi đủ bốn giá trị, nên cần bạn đi qua cả bốn trạm ở sự kiện. Sách bốn chương là phần đọc thêm, không bắt buộc.</p></div>
       </div>
@@ -2344,10 +2357,18 @@
   renderLetter();
   if (pass) startPolling();
 
+  $('#letter-lock')?.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-unlock-test')) unlockTest();
+  });
+
   // QR ở cổng: ?vao=CONG23 → ghi nhận check-in. QR ở trạm: ?tram=HUONG1 → đóng dấu.
-  // Xử lý xong thì xoá tham số khỏi thanh địa chỉ để tải lại trang không đóng dấu lần nữa.
+  // Tham số ?test hoặc ?demo: mở nhanh Lá sớ để kiểm thử.
   {
     const qs = new URLSearchParams(location.search);
+    if (qs.has('test') || qs.has('demo')) {
+      unlockTest();
+      setTimeout(() => $('#la-so')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' }), 350);
+    }
     const gate = qs.get('vao'), tram = qs.get('tram');
     if (gate || tram) {
       qs.delete('vao'); qs.delete('tram');
