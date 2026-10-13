@@ -944,8 +944,55 @@ body::after {
 /* Hiện dần khi cuộn: trạng thái mặc định hiển thị, JS mới ẩn trước khi animate */
 .no-js .reveal { opacity: 1 !important; transform: none !important; }
 
-/* ---------------------------------------------------------------- Tông sáng: nhịp nền giữa các section */
-#tram-trai-nghiem, #du-lieu { background: var(--bg-2); }
+#tram-trai-nghiem { background: var(--bg-2); }
+
+/* Section Dữ liệu của bạn: Tông đêm huyền ảo #0D0B17 */
+#du-lieu {
+  background-color: #0D0B17 !important;
+  color: #f4ece1;
+  border-top: none;
+}
+#du-lieu .section-head h2 {
+  color: #fff4e0;
+}
+#du-lieu .section-head p {
+  color: #c4b5a2;
+}
+#du-lieu .faq details {
+  background: rgba(24, 20, 36, 0.7);
+  border: 1px solid rgba(255, 226, 196, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+#du-lieu .faq details:hover {
+  border-color: rgba(240, 184, 71, 0.28);
+  background: rgba(30, 25, 46, 0.85);
+}
+#du-lieu .faq summary {
+  color: #f4ece1;
+}
+#du-lieu .faq summary i {
+  color: #9c8a78;
+}
+#du-lieu .faq .faq-body {
+  color: #c4b5a2;
+}
+#du-lieu .faq details[open] {
+  border-color: rgba(240, 184, 71, 0.35);
+  background: rgba(26, 21, 40, 0.9);
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.6);
+}
+#du-lieu .faq details[open] summary i {
+  color: #f0b847;
+}
+#du-lieu .pending {
+  color: #ffd666;
+}
+#du-lieu #btn-clear-local {
+  color: #ff8a6b;
+}
+
 .section + .section { border-top-color: transparent; }
 .dist-row.top .bar { background: var(--gold); }
 .ticket.theme-dark { color: var(--text); }
