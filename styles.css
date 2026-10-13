@@ -1543,6 +1543,8 @@ body::after {
 #la-so {
   position: relative;
   overflow: hidden;
+  border-top: none !important; /* Xóa bỏ đường viền 1px trên .section gây vệt đen */
+  margin-top: -2px; /* Khớp liền 2px với phần Thẻ thông hành ở trên */
   background:
     radial-gradient(ellipse 110% 65% at 50% 45%, #2a122e 0%, #150d24 45%, #080612 100%);
   color: #f7ede2;
@@ -1898,10 +1900,10 @@ body::after {
    ========================================================================= */
 .nightfall-bridge {
   position: absolute;
-  top: 0;
+  top: -2px; /* Tràn lên 2px che khít mép nối, triệt tiêu khe hở subpixel */
   left: 0;
   right: 0;
-  height: clamp(210px, 24vw, 270px);
+  height: calc(clamp(210px, 24vw, 270px) + 4px);
   pointer-events: none;
   z-index: 0;
   /* Chuyển tiếp mượt từ tông nền giấy làng quê The_2 (#f7ead0) sang cõi trời đêm (#160f26) */
