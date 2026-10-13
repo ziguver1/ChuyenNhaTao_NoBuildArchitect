@@ -299,7 +299,7 @@
       alt: 'Người phụ nữ quét dọn gian bếp bên bếp lửa đỏ ngày 23 tháng Chạp',
       seed: 'Một năm qua, điều gì khiến bạn muốn làm lại tốt hơn?',
       story: 'Gian bếp là nơi kín đáo nhất trong nhà, nhưng cũng là nơi thấy rõ lòng người nhất. Bát cơm dẻo hay khê, bếp lửa đượm hay nguội, đều kể lại sự chăm chút của từng người. Ngày 23 tháng Chạp, ông Táo cưỡi cá chép về trời. Tự soi xét không phải để tự trách, mà để nhẹ lòng buông điều chưa tốt, gieo một hạt thiện cho năm mới.',
-      badge: { name: 'Huy hiệu Hướng Thiện', desc: 'Dám nhìn thật lòng mình để sống tốt hơn.' },
+      badge: { name: 'Huy hiệu Hướng Thiện', desc: 'Dám nhìn thật lòng mình để sống tốt hơn.', img: 'images/huychuong/huychuong1.png' },
       listen: {
         object: 'bếp lửa', icon: 'fire', teller: 'Bà kể',
         lines: [
@@ -321,7 +321,7 @@
       alt: 'Gia đình ba thế hệ quây quần bên mâm cơm chiều cuối năm',
       seed: 'Lần gần nhất cả nhà ngồi ăn cơm cùng nhau là khi nào?',
       story: 'Ba vị Táo, hai ông một bà, như ba chân kiềng đỡ nồi cơm của cả nhà. Ngoài kia có giông gió đến đâu, về bên bếp lửa thì mọi bất đồng đều nhường chỗ cho thấu hiểu. Giữ lửa không chỉ là giữ than hồng, mà là giữ lời nói nhẹ nhàng và sự bao dung cho người thương dưới một mái nhà.',
-      badge: { name: 'Huy hiệu Mái Ấm', desc: 'Giữ lửa bằng sự lắng nghe và bao dung.' },
+      badge: { name: 'Huy hiệu Mái Ấm', desc: 'Giữ lửa bằng sự lắng nghe và bao dung.', img: 'images/huychuong/huychuong2.png' },
       listen: {
         object: 'mâm cơm', icon: 'bowl-food', teller: 'Mẹ kể',
         lines: [
@@ -342,7 +342,7 @@
       alt: 'Ông dạy cháu thắp hương trước bàn thờ có mũ áo giấy ông Táo',
       seed: 'Nhà bạn đang giữ lại một nếp nào từ ông bà?',
       story: 'Mỗi nhà có một mạch nguồn riêng: chiếc kiềng của bà, thúng gạo nếp của mẹ, nén hương ông thắp mỗi chiều cuối năm. Nếp nhà là những điều giản dị được trao qua nhiều thế hệ: kính trọng tổ tiên, biết ơn từng giọt mồ hôi. Ngày tiễn ông Táo, mùi hương trầm nhắc ta nhớ mình từ đâu đến.',
-      badge: { name: 'Huy hiệu Nếp Nhà', desc: 'Trân trọng cội nguồn và những điều được trao lại.' },
+      badge: { name: 'Huy hiệu Nếp Nhà', desc: 'Trân trọng cội nguồn và những điều được trao lại.', img: 'images/huychuong/huychuong3.png' },
       listen: {
         object: 'nén hương', icon: 'flower-lotus', teller: 'Ông kể',
         lines: [
@@ -363,7 +363,7 @@
       alt: 'Mẹ và con thả cá chép đỏ xuống hồ lúc bình minh',
       seed: 'Bạn muốn mang điều tốt lành nào sang năm mới?',
       story: 'Cá chép vượt vũ môn hóa rồng là hình ảnh của ý chí bền bỉ, dám vượt khó để vươn lên. Thả cá chép ngày 23 tháng Chạp không chỉ là một nghi lễ, mà là gửi theo ước mong được tự do, được tiến bước, và niềm tin vào một năm mới tốt đẹp hơn cho mình và cho gia đình.',
-      badge: { name: 'Huy hiệu Tốt Lành', desc: 'Mang ước mong tốt đẹp đi tiếp sang năm mới.' },
+      badge: { name: 'Huy hiệu Tốt Lành', desc: 'Mang ước mong tốt đẹp đi tiếp sang năm mới.', img: 'images/huychuong/huychuong4.png' },
       listen: {
         object: 'cá chép', icon: 'fish', teller: 'Mẹ kể cho con',
         lines: [
@@ -862,16 +862,21 @@
   function renderBadgePage(i, animate) {
     const c = CHAPTERS[i], on = book.done.has(i), last = i === CHAPTERS.length - 1;
     const pg = $('#badge-page-' + i);
+    const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.png`;
     pg.innerHTML = `
       <p class="pg-kicker">Huy hiệu chương ${i + 1}</p>
-      <div class="pg-medal ${on ? 'is-on' : ''}"><i class="ph${on ? '-fill' : ''} ph-${on ? 'medal' : 'lock-simple'}" aria-hidden="true"></i></div>
+      <div class="pg-medal ${on ? 'is-on' : 'is-locked'}">
+        <div class="pg-medal-aura" aria-hidden="true"></div>
+        <img class="pg-medal-img" src="${medalImg}" alt="${c.badge.name}" width="160" height="160" loading="lazy">
+        ${!on ? '<span class="pg-medal-lock-badge" title="Chưa mở" aria-label="Chưa mở"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i></span>' : ''}
+      </div>
       <h3 class="pg-title">${c.badge.name}</h3>
       <p class="pg-prose">${on ? c.badge.desc : 'Nghe câu chuyện ở trang bên để mở huy hiệu này.'}</p>
       ${on ? (last
         ? `<button class="btn btn-primary" type="button" data-goto="${P.summary}">Xem bộ huy hiệu <i class="ph ph-arrow-right" aria-hidden="true"></i></button>`
         : `<button class="btn btn-primary" type="button" data-goto="${P.art(i + 1)}">Sang chương ${i + 2} <i class="ph ph-arrow-right" aria-hidden="true"></i></button>`)
         : `<button class="btn btn-ghost" type="button" data-goto="${P.game(i)}"><i class="ph ph-arrow-left" aria-hidden="true"></i> Về câu chuyện</button>`}`;
-    if (animate && hasGsap && !reduceMotion) gsap.from($('.pg-medal', pg), { scale: 0.3, rotation: -40, duration: 0.7, ease: 'back.out(2)', delay: 0.2 });
+    if (animate && hasGsap && !reduceMotion) gsap.from($('.pg-medal', pg), { scale: 0.3, rotation: -20, duration: 0.7, ease: 'back.out(2)', delay: 0.2 });
   }
 
   function completeChapter(i) {
@@ -899,8 +904,12 @@
   function renderBadges() {
     $('#badges').innerHTML = CHAPTERS.map((c, i) => {
       const on = book.done.has(i);
+      const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.png`;
       return `<button type="button" class="badge ${on ? 'is-unlocked' : ''}" data-badge="${i}" data-goto="${on ? P.badge(i) : P.art(i)}">
-        <span class="disc"><i class="ph${on ? '-fill' : ''} ph-${on ? 'medal' : 'lock-simple'}" aria-hidden="true"></i></span>
+        <span class="disc ${on ? 'is-on' : 'is-locked'}">
+          <img src="${medalImg}" alt="${c.badge.name}" class="badge-thumb-img" loading="lazy">
+          ${!on ? '<span class="badge-lock-ico" aria-hidden="true"><i class="ph-fill ph-lock-simple"></i></span>' : ''}
+        </span>
         <h4>${c.badge.name}</h4>
         <p>${on ? c.badge.desc : 'Đọc chương ' + (i + 1) + ' để mở'}</p>
       </button>`;

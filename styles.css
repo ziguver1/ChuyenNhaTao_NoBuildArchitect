@@ -510,18 +510,163 @@ body::after {
 /* Trang huy hiệu chương */
 .pg-badge-page { align-items: center; justify-content: center; text-align: center; }
 .pg-medal {
-  width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center; font-size: 52px;
-  background: var(--ghost-bg); color: var(--text-dim); border: 2px dashed var(--line-strong); margin: 8px 0;
+  position: relative;
+  width: min(260px, 82%);
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px auto 8px;
 }
-.pg-medal.is-on { background: radial-gradient(circle at 35% 30%, #ffe08a, var(--gold) 60%, #c98a12); color: #4a2a04; border: 0; box-shadow: 0 0 0 10px rgba(240,184,71,.22), 0 12px 30px -8px rgba(180,110,10,.6); }
-.pg-badge-page .pg-prose { max-width: 30ch; }
+.pg-medal-aura {
+  position: absolute;
+  width: 290px;
+  height: 290px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+.pg-medal.is-on .pg-medal-aura {
+  background: radial-gradient(circle, rgba(243, 210, 122, 0.48) 0%, rgba(207, 159, 56, 0.2) 50%, rgba(207, 159, 56, 0) 72%);
+  filter: blur(12px);
+  animation: medalGlowPulse 3s ease-in-out infinite alternate;
+}
+.pg-medal.is-locked .pg-medal-aura {
+  background: radial-gradient(circle, rgba(80, 50, 20, 0.06) 0%, transparent 68%);
+}
+@keyframes medalGlowPulse {
+  0% { transform: translate(-50%, -50%) scale(0.94); opacity: 0.75; }
+  100% { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+}
+.pg-medal-img {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+}
+.pg-medal.is-on .pg-medal-img {
+  filter: drop-shadow(0 10px 18px rgba(150, 85, 20, 0.32)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+}
+.pg-medal.is-locked .pg-medal-img {
+  filter: grayscale(1) opacity(0.3) contrast(0.85);
+}
+.pg-medal-lock-badge {
+  position: absolute;
+  z-index: 3;
+  top: 58%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(38, 20, 14, 0.92);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 2px solid rgba(243, 210, 122, 0.85);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f6e2a0;
+  font-size: 26px;
+}
+.pg-badge-page .pg-kicker { margin-bottom: 2px; }
+.pg-badge-page .pg-title { margin-top: 4px; margin-bottom: 4px; }
+.pg-badge-page .pg-prose { max-width: 32ch; margin-bottom: 12px; }
 
 /* Trang tổng kết: 4 huy hiệu gọn trong 1 trang */
-.pg-badges { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
-.pg-badges .badge { min-height: 0; padding: 12px; gap: 6px; text-align: left; cursor: pointer; font: inherit; color: inherit; }
-.pg-badges .badge .disc { width: 40px; height: 40px; font-size: 20px; }
-.pg-badges .badge h4 { font-size: 13px; }
-.pg-badges .badge p { font-size: 12px; }
+.pg-badges { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px; }
+.pg-badges .badge {
+  position: relative;
+  min-height: 168px;
+  padding: 10px 6px 12px;
+  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  border-radius: 6px;
+  background: rgba(255, 250, 238, 0.65);
+  border: 1px dashed rgba(110, 62, 25, 0.28);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.pg-badges .badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(110, 62, 25, 0.12);
+}
+.pg-badges .badge.is-unlocked {
+  background: linear-gradient(170deg, rgba(255, 252, 243, 0.95), rgba(248, 233, 192, 0.45));
+  border: 1.5px solid rgba(212, 160, 48, 0.75);
+  box-shadow: 0 4px 14px rgba(180, 110, 20, 0.12);
+}
+.pg-badges .badge .disc {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 2px;
+}
+.pg-badges .badge .badge-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+}
+.pg-badges .badge.is-unlocked .badge-thumb-img {
+  filter: drop-shadow(0 6px 12px rgba(160, 90, 15, 0.35));
+}
+.pg-badges .badge:not(.is-unlocked) .badge-thumb-img {
+  filter: grayscale(1) opacity(0.3) contrast(0.85);
+}
+.pg-badges .badge .badge-lock-ico {
+  position: absolute;
+  top: 58%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(36, 18, 12, 0.9);
+  border: 1.5px solid rgba(243, 210, 122, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f6e2a0;
+  font-size: 15px;
+}
+.pg-badges .badge h4 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+  color: #3b1d0e;
+}
+.pg-badges .badge p {
+  font-size: 11.5px;
+  line-height: 1.35;
+  margin: 0;
+  font-style: italic;
+  color: rgba(110, 62, 25, 0.75);
+}
+.pg-badges .badge.is-unlocked p {
+  color: #5d3516;
+}
 
 /* Trong trang sách, khối game gọn hơn */
 .pg .game { border-top: 0; padding-top: 0; gap: 10px; }
@@ -547,7 +692,11 @@ body::after {
   .pg-title { font-size: 19px; }
   .pg-art-icon { font-size: 72px; }
   .pg-seed { font-size: 15px; }
-  .pg-medal { width: 92px; height: 92px; font-size: 42px; }
+  .pg-medal { width: min(230px, 76vw); height: 230px; margin: 4px auto 6px; }
+  .pg-badges .badge { padding: 8px 4px 10px; min-height: 155px; }
+  .pg-badges .badge .disc { width: 84px; height: 84px; }
+  .pg-badges .badge h4 { font-size: 12px; }
+  .pg-badges .badge p { font-size: 10.5px; }
   .flip-status { min-width: 160px; font-size: 13px; }
 }
 
@@ -1176,18 +1325,13 @@ body::after {
 .pg .event-meta dd { font-size: 17px; }
 .pg .soon { border-radius: 2px; background: rgba(155, 42, 23, .08); color: var(--cinnabar); font-style: italic; }
 
-/* Huy hiệu: huy chương đồng cổ */
-.pg-medal { border-radius: 50%; background: rgba(110, 62, 25, .06); border: 1px dashed var(--ink-faint); }
-.pg-medal.is-on {
-  background: radial-gradient(circle at 34% 28%, #f6e2a0 0%, #d6a947 38%, #9c6f1f 72%, #6d4a10 100%);
-  box-shadow: 0 0 0 6px #f4e6c6, 0 0 0 7px rgba(140, 95, 30, .55), 0 12px 24px -10px rgba(90, 55, 10, .7);
-  color: #3b2405;
-}
-.pg-badges .badge { border-radius: 3px; background: rgba(255, 250, 236, .55); border-color: rgba(110, 62, 25, .3); font-family: inherit; }
-.pg-badges .badge h4 { font-family: 'Playfair Display', Georgia, serif; font-size: 14px; }
-.pg-badges .badge p { font-style: italic; font-size: 13.5px; }
-.pg-badges .badge.is-unlocked { background: rgba(240, 184, 71, .16); border-color: rgba(160, 110, 30, .55); }
-.pg-badges .badge.is-unlocked .disc { background: radial-gradient(circle at 34% 28%, #f6e2a0, #c99a3b 60%, #7c5514); box-shadow: none; }
+/* Huy hiệu: UI huy chương vẽ thực tế */
+.pg-medal { border: none; background: transparent; border-radius: 0; }
+.pg-medal.is-on { background: transparent; box-shadow: none; }
+.pg-badges .badge { border-radius: 6px; font-family: inherit; }
+.pg-badges .badge h4 { font-family: 'Playfair Display', Georgia, serif; }
+.pg-badges .badge .disc { background: transparent !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; }
+.pg-badges .badge.is-unlocked .disc { background: transparent !important; box-shadow: none !important; }
 
 /* Bìa: da sơn mài cũ, nhũ vàng, góc bọc đồng */
 .pg-hard, .pg-hard.--left, .pg-hard.--right, .pg-hard.--portrait {
