@@ -264,35 +264,22 @@
     </section>
 
     <!-- =================================================================
+         ĐOẠN CHUYỂN TIẾP 200PX (NIGHTFALL BRIDGE): LÀNG QUÊ -> ĐÊM 23 THÁNG CHẠP
+         Không đè lên tranh làng quê bên trên; cầu nối hoạt họa êm ái
+         ================================================================= -->
+    <div class="nightfall-bridge" aria-hidden="true">
+      <div class="nightfall-bridge-glow"></div>
+      <canvas class="nightfall-bridge-canvas" id="nightfall-bridge-canvas"></canvas>
+      <div class="nightfall-bridge-stars"></div>
+      <div class="nightfall-bridge-mist"></div>
+    </div>
+
+    <!-- =================================================================
          S07–S08 · LÁ SỚ GỬI TÁO (UGC "Year in Values")
          Góp ý của cô: không biến giá trị thành tính cách. Lá sớ ghi đủ cả 4 giá trị,
          chỉ mở khi đã nghe đủ 4 chương và đóng đủ 4 dấu trạm.
          ================================================================= -->
     <section class="section" id="la-so" aria-labelledby="letter-title">
-      <!-- Dải mây cuộn cổ truyền Đông Hồ nối giữa Làng quê và Cõi trời Lá sớ -->
-      <div class="la-so-clouds-transition" aria-hidden="true">
-        <div class="cloud-float-art cloud-float-left"></div>
-        <div class="cloud-float-art cloud-float-right"></div>
-        <svg viewBox="0 0 1440 140" preserveAspectRatio="none" class="cloud-scallop-svg">
-          <defs>
-            <linearGradient id="cloudGradBack" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#dfcaa9" stop-opacity="0.88"/>
-              <stop offset="100%" stop-color="#2d101a"/>
-            </linearGradient>
-            <linearGradient id="cloudGradFront" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#f7ead0" stop-opacity="0.98"/>
-              <stop offset="60%" stop-color="#ecd5b4" stop-opacity="0.95"/>
-              <stop offset="100%" stop-color="#2d101a"/>
-            </linearGradient>
-          </defs>
-          <!-- Lớp mây tầng sau -->
-          <path fill="url(#cloudGradBack)" d="M0,140 L0,70 Q90,30 180,65 Q290,15 400,60 Q520,25 640,65 Q760,15 880,55 Q1000,20 1120,60 Q1240,15 1350,55 Q1400,45 1440,60 L1440,140 Z"/>
-          <!-- Lớp mây tầng trước uốn lượn bồng bềnh -->
-          <path fill="url(#cloudGradFront)" d="M0,140 L0,85 C60,50 140,55 200,80 C270,40 370,45 440,75 C520,35 620,30 700,70 C780,35 880,40 960,75 C1040,40 1140,45 1220,80 C1300,55 1380,60 1440,85 L1440,140 Z"/>
-          <!-- Viền nét mây son truyền thống -->
-          <path fill="none" stroke="rgba(155, 42, 23, 0.4)" stroke-width="2.5" stroke-linecap="round" d="M0,85 C60,50 140,55 200,80 C270,40 370,45 440,75 C520,35 620,30 700,70 C780,35 880,40 960,75 C1040,40 1140,45 1220,80 C1300,55 1380,60 1440,85"/>
-        </svg>
-      </div>
       <canvas class="la-so-bg-canvas" id="la-so-bg-canvas" aria-hidden="true"></canvas>
       <div class="container">
         <div class="section-head reveal">

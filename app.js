@@ -2613,6 +2613,117 @@
     resize();
   }
 
+  /* =========================================================================
+   * CẦU CHUYỂN TIẾP 200PX (NIGHTFALL BRIDGE CANVAS)
+   * - Tàn lửa vàng ấm bốc lên từ bếp lửa làng quê sang bầu trời đêm
+   * - Tự động tạm ngắt khi ngoài tầm mắt (0% CPU)
+   * ========================================================================= */
+  function initNightfallBridgeCanvas() {
+    const canvas = $('#nightfall-bridge-canvas');
+    const bridge = $('.nightfall-bridge');
+    if (!canvas || !bridge) return;
+
+    const ctx = canvas.getContext('2d');
+    let width = 0, height = 0;
+    let particles = [];
+    let isVisible = false;
+    let animId = null;
+
+    const EMBER_COLORS = ['#ffcc66', '#ff9933', '#ff6633', '#ffe082', '#fff3d1'];
+
+    function resize() {
+      const rect = bridge.getBoundingClientRect();
+      width = canvas.width = rect.width;
+      height = canvas.height = rect.height;
+      createParticles();
+    }
+
+    function createParticles() {
+      particles = [];
+      const count = width < 600 ? 24 : 45;
+      const speedMult = reduceMotion ? 0.3 : 1;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: 1.2 + Math.random() * 2.4,
+          color: EMBER_COLORS[Math.floor(Math.random() * EMBER_COLORS.length)],
+          vx: (Math.random() - 0.5) * 0.35 * speedMult,
+          vy: -(0.35 + Math.random() * 0.7) * speedMult,
+          alpha: 0.3 + Math.random() * 0.6,
+          baseAlpha: 0.3 + Math.random() * 0.6,
+          twinkleSpeed: 0.03 + Math.random() * 0.05,
+          twinklePhase: Math.random() * Math.PI * 2,
+          wobbleSpeed: 0.02 + Math.random() * 0.03,
+          wobbleAmp: 0.4 + Math.random() * 0.7,
+          wobblePhase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function render() {
+      if (!isVisible) return;
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.wobblePhase += p.wobbleSpeed;
+        p.x += p.vx + Math.sin(p.wobblePhase) * p.wobbleAmp;
+        p.y += p.vy;
+
+        p.twinklePhase += p.twinkleSpeed;
+        p.alpha = p.baseAlpha + Math.sin(p.twinklePhase) * 0.3;
+        if (p.alpha < 0.1) p.alpha = 0.1;
+        if (p.alpha > 0.95) p.alpha = 0.95;
+
+        if (p.y < -15) {
+          p.y = height + 10;
+          p.x = Math.random() * width;
+        }
+        if (p.x < -10) p.x = width + 5;
+        if (p.x > width + 10) p.x = -5;
+
+        ctx.save();
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      animId = requestAnimationFrame(render);
+    }
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (!isVisible) {
+              isVisible = true;
+              animId = requestAnimationFrame(render);
+            }
+          } else {
+            isVisible = false;
+            if (animId) cancelAnimationFrame(animId);
+          }
+        });
+      }, { threshold: 0.05 });
+      observer.observe(bridge);
+    } else {
+      isVisible = true;
+      animId = requestAnimationFrame(render);
+    }
+
+    window.addEventListener('resize', () => {
+      if (isVisible) resize();
+    }, { passive: true });
+
+    resize();
+  }
+
   /* ======================================================================
    * Khởi tạo nội dung
    * ==================================================================== */
@@ -2630,6 +2741,7 @@
   renderRegister();
   renderLetter();
   initLaSoBackground();
+  initNightfallBridgeCanvas();
   if (pass) startPolling();
 
   $('#letter-lock')?.addEventListener('click', (e) => {
