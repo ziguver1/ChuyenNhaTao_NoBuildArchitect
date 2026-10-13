@@ -2375,31 +2375,50 @@
       createParticles();
     }
 
+    let lanterns = [];
+
     function createParticles() {
       particles = [];
-      const count = width < 600 ? 36 : (width < 1024 ? 60 : 88);
+      lanterns = [];
+      const count = width < 600 ? 42 : (width < 1024 ? 75 : 110);
       const speedMult = reduceMotion ? 0.25 : 1;
       for (let i = 0; i < count; i++) {
-        const isSparkle = Math.random() < 0.22;
-        const isGlow = !isSparkle && Math.random() < 0.28;
+        const isSparkle = Math.random() < 0.25;
+        const isGlow = !isSparkle && Math.random() < 0.3;
         particles.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          size: isGlow ? (3.5 + Math.random() * 3.5) : (isSparkle ? (4 + Math.random() * 4.5) : (1 + Math.random() * 2.2)),
+          size: isGlow ? (3.5 + Math.random() * 4) : (isSparkle ? (4.5 + Math.random() * 5) : (1.2 + Math.random() * 2.6)),
           color: GOLD_COLORS[Math.floor(Math.random() * GOLD_COLORS.length)],
-          vx: (Math.random() - 0.5) * 0.35 * speedMult,
-          vy: -(0.25 + Math.random() * 0.55) * speedMult,
-          alpha: Math.random() * 0.6 + 0.2,
-          baseAlpha: Math.random() * 0.5 + 0.3,
-          twinkleSpeed: 0.02 + Math.random() * 0.04,
+          vx: (Math.random() - 0.5) * 0.4 * speedMult,
+          vy: -(0.3 + Math.random() * 0.65) * speedMult,
+          alpha: Math.random() * 0.6 + 0.35,
+          baseAlpha: Math.random() * 0.5 + 0.4,
+          twinkleSpeed: 0.025 + Math.random() * 0.045,
           twinklePhase: Math.random() * Math.PI * 2,
-          wobbleSpeed: 0.015 + Math.random() * 0.02,
-          wobbleAmp: 0.4 + Math.random() * 0.8,
+          wobbleSpeed: 0.015 + Math.random() * 0.025,
+          wobbleAmp: 0.5 + Math.random() * 0.9,
           wobblePhase: Math.random() * Math.PI * 2,
           isSparkle,
           isGlow,
           rotation: Math.random() * Math.PI,
-          rotSpeed: (Math.random() - 0.5) * 0.02 * speedMult
+          rotSpeed: (Math.random() - 0.5) * 0.025 * speedMult
+        });
+      }
+
+      // Tạo đàn đèn trời xa xăm bay chậm rãi (5-8 chiếc)
+      const lanternCount = width < 600 ? 5 : 8;
+      for (let j = 0; j < lanternCount; j++) {
+        lanterns.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: 6 + Math.random() * 7,
+          vy: -(0.18 + Math.random() * 0.25) * speedMult,
+          wobbleSpeed: 0.01 + Math.random() * 0.015,
+          wobbleAmp: 0.3 + Math.random() * 0.5,
+          wobblePhase: Math.random() * Math.PI * 2,
+          flicker: Math.random() * Math.PI * 2,
+          alpha: 0.45 + Math.random() * 0.4
         });
       }
     }
@@ -2410,6 +2429,8 @@
       ctx.rotate(rotation);
       ctx.fillStyle = color;
       ctx.globalAlpha = alpha;
+      ctx.shadowColor = '#ffe082';
+      ctx.shadowBlur = 10;
 
       ctx.beginPath();
       const arm = size;
@@ -2422,9 +2443,41 @@
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
-      ctx.globalAlpha = Math.min(1, alpha * 1.3);
+      ctx.globalAlpha = Math.min(1, alpha * 1.4);
       ctx.beginPath();
-      ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
+      ctx.arc(0, 0, size * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawLantern(ctx, x, y, size, alpha, flicker) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.globalAlpha = alpha;
+
+      const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 2.6);
+      glow.addColorStop(0, 'rgba(255, 190, 60, 0.55)');
+      glow.addColorStop(0.5, 'rgba(255, 110, 30, 0.18)');
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 2.6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgba(255, 135, 35, 0.82)';
+      ctx.beginPath();
+      const w = size * 0.9, h = size * 1.35;
+      ctx.moveTo(-w / 2, -h / 2);
+      ctx.lineTo(w / 2, -h / 2);
+      ctx.lineTo(w * 0.35, h / 2);
+      ctx.lineTo(-w * 0.35, h / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      const fl = Math.min(1, 0.75 + Math.sin(flicker) * 0.25);
+      ctx.fillStyle = `rgba(255, 250, 190, ${fl})`;
+      ctx.beginPath();
+      ctx.arc(0, h * 0.1, size * 0.3, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
@@ -2433,6 +2486,31 @@
       if (!isVisible) return;
       ctx.clearRect(0, 0, width, height);
 
+      // 1. Vầng trăng huyền ảo đêm 23
+      const moonX = width * 0.82, moonY = height * 0.12;
+      const moonGrad = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, Math.min(width * 0.45, 380));
+      moonGrad.addColorStop(0, 'rgba(255, 240, 190, 0.22)');
+      moonGrad.addColorStop(0.35, 'rgba(240, 184, 71, 0.08)');
+      moonGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = moonGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Đèn trời lững lờ trôi lên trời
+      for (let k = 0; k < lanterns.length; k++) {
+        const l = lanterns[k];
+        l.wobblePhase += l.wobbleSpeed;
+        l.x += Math.sin(l.wobblePhase) * l.wobbleAmp;
+        l.y += l.vy;
+        l.flicker += 0.06;
+
+        if (l.y < -30) {
+          l.y = height + 25;
+          l.x = Math.random() * width;
+        }
+        drawLantern(ctx, l.x, l.y, l.size, l.alpha, l.flicker);
+      }
+
+      // 3. Hạt bụi vàng & Ngôi sao lấp lánh
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
@@ -2443,18 +2521,18 @@
 
         p.twinklePhase += p.twinkleSpeed;
         p.alpha = p.baseAlpha + Math.sin(p.twinklePhase) * 0.35;
-        if (p.alpha < 0.05) p.alpha = 0.05;
-        if (p.alpha > 0.95) p.alpha = 0.95;
+        if (p.alpha < 0.1) p.alpha = 0.1;
+        if (p.alpha > 0.98) p.alpha = 0.98;
 
         if (mouse.active) {
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 130 && dist > 0) {
-            const force = (130 - dist) / 130;
-            p.x -= (dx / dist) * force * 1.8;
-            p.y -= (dy / dist) * force * 1.8;
-            p.alpha = Math.min(1, p.alpha + force * 0.45);
+          if (dist < 140 && dist > 0) {
+            const force = (140 - dist) / 140;
+            p.x -= (dx / dist) * force * 2;
+            p.y -= (dy / dist) * force * 2;
+            p.alpha = Math.min(1, p.alpha + force * 0.5);
           }
         }
 
@@ -2469,20 +2547,24 @@
           drawSparkle(ctx, p.x, p.y, p.size, p.alpha, p.color, p.rotation);
         } else if (p.isGlow) {
           ctx.save();
-          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2);
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2.2);
           grad.addColorStop(0, p.color);
-          grad.addColorStop(0.4, p.color);
+          grad.addColorStop(0.45, p.color);
           grad.addColorStop(1, 'transparent');
           ctx.fillStyle = grad;
-          ctx.globalAlpha = p.alpha * 0.55;
+          ctx.globalAlpha = p.alpha * 0.65;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 8;
           ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         } else {
           ctx.save();
           ctx.fillStyle = p.color;
           ctx.globalAlpha = p.alpha;
+          ctx.shadowColor = p.color;
+          ctx.shadowBlur = 4;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
           ctx.fill();

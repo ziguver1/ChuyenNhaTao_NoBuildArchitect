@@ -1538,12 +1538,14 @@ body::after {
 .pp-photo-add:hover { background: rgba(46, 125, 79, .1); }
 
 /* =========================================================================
-   LÁ SỚ GỬI TÁO (S07–S08) - HIỆU ỨNG NỀN BỤI VÀNG KIM TUYẾN (GOLDEN DUST & SHIMMER)
+   LÁ SỚ GỬI TÁO (S07–S08) - CÕI TRỜI ĐÊM 23 THÁNG CHẠP (CELESTIAL NIGHT SKY)
    ========================================================================= */
 #la-so {
   position: relative;
   overflow: hidden;
-  background: radial-gradient(ellipse 90% 65% at 50% 25%, rgba(240, 184, 71, 0.14) 0%, rgba(155, 42, 23, 0.04) 55%, transparent 85%), var(--bg);
+  background: radial-gradient(ellipse 120% 75% at 50% 12%, #2d101a 0%, #1a1228 38%, #0d0c18 70%, #06050d 100%);
+  color: #f7ede2;
+  padding: clamp(70px, 9vw, 110px) 0;
 }
 .la-so-bg-canvas {
   position: absolute;
@@ -1552,20 +1554,73 @@ body::after {
   height: 100%;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.95;
+  opacity: 1;
 }
 #la-so .container {
   position: relative;
   z-index: 1;
 }
 
-.ugc-preview {
-  position: relative;
-  box-shadow: 0 16px 40px -16px rgba(155, 42, 23, 0.22), 0 0 28px -6px rgba(240, 184, 71, 0.25);
-  transition: box-shadow .4s ease;
+#la-so .tag-phase {
+  background: rgba(240, 184, 71, 0.16);
+  border-color: rgba(240, 184, 71, 0.5);
+  color: #ffd666;
 }
-.ugc-preview:hover {
-  box-shadow: 0 20px 48px -14px rgba(155, 42, 23, 0.28), 0 0 36px -4px rgba(240, 184, 71, 0.4);
+
+#la-so #letter-title {
+  color: #fff6e0;
+  text-shadow: 0 2px 20px rgba(240, 184, 71, 0.45), 0 0 50px rgba(240, 184, 71, 0.25);
+}
+
+#la-so .section-head p {
+  color: #dfd4c0;
+}
+
+/* Các card trên nền trời đêm: giữ chất giấy dó cổ truyền, nổi bật như bảo vật */
+#la-so .card {
+  background: rgba(255, 252, 244, 0.97);
+  color: #3b2415;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 20px 48px -14px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Khung khóa điều kiện: thiết kế dạng hộp bảo ngọc đêm huyền bí */
+#la-so .letter-lock {
+  background: rgba(18, 17, 28, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #f5ebdc;
+  border: 1.5px solid rgba(240, 184, 71, 0.4);
+  box-shadow: 0 24px 60px -16px rgba(0, 0, 0, 0.8), 0 0 40px -6px rgba(240, 184, 71, 0.25);
+}
+#la-so .letter-lock h3 {
+  color: #fff3dc;
+}
+#la-so .letter-lock .lock-head p {
+  color: #cfc2ad;
+}
+#la-so .letter-lock .lock-steps li {
+  background: rgba(28, 26, 44, 0.8);
+  border-color: rgba(240, 184, 71, 0.25);
+  color: #f3e9db;
+}
+#la-so .letter-lock .lock-steps small {
+  color: #bfae97;
+}
+#la-so .letter-lock .lock-values li {
+  border-color: rgba(240, 184, 71, 0.28);
+  color: #cfc0aa;
+  background: rgba(28, 26, 44, 0.55);
+}
+
+/* Thẻ xem trước Lá sớ rực sáng uy nghi giữa trời đêm */
+#la-so .ugc-preview {
+  background: rgba(255, 252, 244, 0.98);
+  box-shadow: 0 24px 65px -16px rgba(0, 0, 0, 0.85), 0 0 50px -2px rgba(240, 184, 71, 0.5);
+  border: 2px solid rgba(240, 184, 71, 0.65);
+}
+#la-so .ugc-preview:hover {
+  box-shadow: 0 28px 75px -14px rgba(0, 0, 0, 0.9), 0 0 65px 0 rgba(240, 184, 71, 0.65);
 }
 
 .letter-lock { display: grid; gap: 18px; max-width: 760px; margin: 0 auto; padding: clamp(20px, 4vw, 32px); }
