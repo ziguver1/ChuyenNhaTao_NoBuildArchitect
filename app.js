@@ -2339,6 +2339,198 @@
   $('#btn-share-fb').addEventListener('click', () => share('facebook'));
   $('#btn-share-tt').addEventListener('click', () => share('tiktok'));
 
+  /* =========================================================================
+   * Hiệu ứng nền Bụi vàng kim tuyến & Ánh hào quang lấp lánh (Golden Dust & Shimmer)
+   * cho khu vực Lá sớ gửi Táo (#la-so).
+   * - Hạt bụi vàng lơ lửng bồng bềnh từ dưới lên
+   * - Các ngôi sao 4 cánh lấp lánh (sparkle stars)
+   * - Hào quang vàng kim phản ứng nhẹ theo con trỏ chuột
+   * - Tối ưu 60fps: IntersectionObserver tự ngắt khi ngoài màn hình (0% CPU)
+   * ========================================================================= */
+  function initLaSoBackground() {
+    const canvas = $('#la-so-bg-canvas');
+    const section = $('#la-so');
+    if (!canvas || !section) return;
+
+    const ctx = canvas.getContext('2d');
+    let width = 0, height = 0;
+    let particles = [];
+    let isVisible = false;
+    let animId = null;
+    let mouse = { x: -999, y: -999, active: false };
+
+    const GOLD_COLORS = [
+      '#ffe082', // Vàng kim sáng
+      '#ffd54f', // Vàng hoàng gia
+      '#f0b847', // Vàng nghệ truyền thống
+      '#ffca28', // Hổ phách sáng
+      '#fff8e1', // Ánh kim lấp lánh
+      '#e6b800'  // Vàng đậm
+    ];
+
+    function resize() {
+      const rect = section.getBoundingClientRect();
+      width = canvas.width = rect.width;
+      height = canvas.height = rect.height;
+      createParticles();
+    }
+
+    function createParticles() {
+      particles = [];
+      const count = width < 600 ? 36 : (width < 1024 ? 60 : 88);
+      const speedMult = reduceMotion ? 0.25 : 1;
+      for (let i = 0; i < count; i++) {
+        const isSparkle = Math.random() < 0.22;
+        const isGlow = !isSparkle && Math.random() < 0.28;
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          size: isGlow ? (3.5 + Math.random() * 3.5) : (isSparkle ? (4 + Math.random() * 4.5) : (1 + Math.random() * 2.2)),
+          color: GOLD_COLORS[Math.floor(Math.random() * GOLD_COLORS.length)],
+          vx: (Math.random() - 0.5) * 0.35 * speedMult,
+          vy: -(0.25 + Math.random() * 0.55) * speedMult,
+          alpha: Math.random() * 0.6 + 0.2,
+          baseAlpha: Math.random() * 0.5 + 0.3,
+          twinkleSpeed: 0.02 + Math.random() * 0.04,
+          twinklePhase: Math.random() * Math.PI * 2,
+          wobbleSpeed: 0.015 + Math.random() * 0.02,
+          wobbleAmp: 0.4 + Math.random() * 0.8,
+          wobblePhase: Math.random() * Math.PI * 2,
+          isSparkle,
+          isGlow,
+          rotation: Math.random() * Math.PI,
+          rotSpeed: (Math.random() - 0.5) * 0.02 * speedMult
+        });
+      }
+    }
+
+    function drawSparkle(ctx, x, y, size, alpha, color, rotation) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
+
+      ctx.beginPath();
+      const arm = size;
+      const inner = size * 0.18;
+      ctx.moveTo(0, -arm);
+      ctx.quadraticCurveTo(0, -inner, inner, 0);
+      ctx.quadraticCurveTo(0, inner, 0, arm);
+      ctx.quadraticCurveTo(0, inner, -inner, 0);
+      ctx.quadraticCurveTo(0, -inner, 0, -arm);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.globalAlpha = Math.min(1, alpha * 1.3);
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function render() {
+      if (!isVisible) return;
+      ctx.clearRect(0, 0, width, height);
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+
+        p.wobblePhase += p.wobbleSpeed;
+        p.x += p.vx + Math.sin(p.wobblePhase) * p.wobbleAmp;
+        p.y += p.vy;
+        p.rotation += p.rotSpeed;
+
+        p.twinklePhase += p.twinkleSpeed;
+        p.alpha = p.baseAlpha + Math.sin(p.twinklePhase) * 0.35;
+        if (p.alpha < 0.05) p.alpha = 0.05;
+        if (p.alpha > 0.95) p.alpha = 0.95;
+
+        if (mouse.active) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 130 && dist > 0) {
+            const force = (130 - dist) / 130;
+            p.x -= (dx / dist) * force * 1.8;
+            p.y -= (dy / dist) * force * 1.8;
+            p.alpha = Math.min(1, p.alpha + force * 0.45);
+          }
+        }
+
+        if (p.y < -20) {
+          p.y = height + 15;
+          p.x = Math.random() * width;
+        }
+        if (p.x < -20) p.x = width + 10;
+        if (p.x > width + 20) p.x = -10;
+
+        if (p.isSparkle) {
+          drawSparkle(ctx, p.x, p.y, p.size, p.alpha, p.color, p.rotation);
+        } else if (p.isGlow) {
+          ctx.save();
+          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2);
+          grad.addColorStop(0, p.color);
+          grad.addColorStop(0.4, p.color);
+          grad.addColorStop(1, 'transparent');
+          ctx.fillStyle = grad;
+          ctx.globalAlpha = p.alpha * 0.55;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        } else {
+          ctx.save();
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.alpha;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      animId = requestAnimationFrame(render);
+    }
+
+    section.addEventListener('mousemove', (e) => {
+      const rect = section.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.active = true;
+    }, { passive: true });
+
+    section.addEventListener('mouseleave', () => {
+      mouse.active = false;
+    }, { passive: true });
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            if (!isVisible) {
+              isVisible = true;
+              animId = requestAnimationFrame(render);
+            }
+          } else {
+            isVisible = false;
+            if (animId) cancelAnimationFrame(animId);
+          }
+        });
+      }, { threshold: 0.05 });
+      observer.observe(section);
+    } else {
+      isVisible = true;
+      animId = requestAnimationFrame(render);
+    }
+
+    window.addEventListener('resize', () => {
+      if (isVisible) resize();
+    }, { passive: true });
+
+    resize();
+  }
+
   /* ======================================================================
    * Khởi tạo nội dung
    * ==================================================================== */
@@ -2355,6 +2547,7 @@
   renderTicket();
   renderRegister();
   renderLetter();
+  initLaSoBackground();
   if (pass) startPolling();
 
   $('#letter-lock')?.addEventListener('click', (e) => {
