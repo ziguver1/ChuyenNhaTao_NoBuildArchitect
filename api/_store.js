@@ -4,22 +4,24 @@
 // Tên file bắt đầu bằng "_" nên Vercel không coi đây là một đường dẫn API.
 const crypto = require('crypto');
 
+const isRealVal = (s) => Boolean(s && !s.includes('your-upstash-redis') && !s.includes('example') && s !== 'your-upstash-redis-token');
+
 const getUrl = () => {
-  if (process.env.UPSTASH_REDIS_KV_REST_API_URL) return process.env.UPSTASH_REDIS_KV_REST_API_URL;
-  if (process.env.KV_REST_API_URL) return process.env.KV_REST_API_URL;
-  if (process.env.UPSTASH_REDIS_REST_URL) return process.env.UPSTASH_REDIS_REST_URL;
+  if (isRealVal(process.env.UPSTASH_REDIS_KV_REST_API_URL)) return process.env.UPSTASH_REDIS_KV_REST_API_URL;
+  if (isRealVal(process.env.UPSTASH_REDIS_REST_URL)) return process.env.UPSTASH_REDIS_REST_URL;
+  if (isRealVal(process.env.KV_REST_API_URL)) return process.env.KV_REST_API_URL;
   for (const [k, v] of Object.entries(process.env)) {
-    if (v && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_URL') || k.endsWith('_REST_URL'))) return v;
+    if (isRealVal(v) && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_URL') || k.endsWith('_REST_URL'))) return v;
   }
   return '';
 };
 
 const getToken = () => {
-  if (process.env.UPSTASH_REDIS_KV_REST_API_TOKEN) return process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
-  if (process.env.KV_REST_API_TOKEN) return process.env.KV_REST_API_TOKEN;
-  if (process.env.UPSTASH_REDIS_REST_TOKEN) return process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (isRealVal(process.env.UPSTASH_REDIS_KV_REST_API_TOKEN)) return process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
+  if (isRealVal(process.env.UPSTASH_REDIS_REST_TOKEN)) return process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (isRealVal(process.env.KV_REST_API_TOKEN)) return process.env.KV_REST_API_TOKEN;
   for (const [k, v] of Object.entries(process.env)) {
-    if (v && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_TOKEN') || k.endsWith('_REST_TOKEN'))) return v;
+    if (isRealVal(v) && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_TOKEN') || k.endsWith('_REST_TOKEN'))) return v;
   }
   return '';
 };

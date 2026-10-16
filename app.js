@@ -202,7 +202,7 @@
       return this.on;
     },
     flip() { if (this.ctx && this.on) this.noise(0.18, 900, 0.35); },
-    stamp() { if (this.ctx && this.on) { this.noise(0.09, 160, 1.1); this.noise(0.05, 1200, 0.25); } },
+    stamp(force) { if (this.init() && (this.on || force)) { this.noise(0.09, 160, 1.3); this.noise(0.05, 1200, 0.35); } },
     // Âm thanh vòng quay: phát sau khi người chơi bấm Quay (đã có thao tác) nên không phụ thuộc nút tiếng lửa bếp
     tick() { if (this.ctx) this.noise(0.014, 3400, 0.45); },
     pop(big) {
@@ -403,7 +403,7 @@
   const ROMAN = ['I', 'II', 'III', 'IV'];
   const pageHTML = [];
   const folio = (n) => `<span class="pg-folio" aria-hidden="true">${n}</span>`;
-    pageHTML[P.cover] = `
+  pageHTML[P.cover] = `
     <div class="pg-cover-img" style="position:relative; width:100%; height:100%; cursor:pointer;" data-goto="${P.intro}">
       <img src="images/sach/bia_sach.png" alt="Bìa sách Chuyện Nhà Táo" style="width:100%; height:100%; object-fit:cover; display:block;">
       <button class="lp-open-icon" type="button" data-goto="${P.intro}" aria-label="Mở sách" title="Mở sách" style="position:absolute; bottom:18px; right:18px; width:40px; height:40px; border-radius:50%; background:rgba(30,18,12,0.85); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); border:1.5px solid rgba(243,210,122,0.8); color:#f3d27a; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.4); padding:0;">
@@ -569,10 +569,12 @@
   function goPage(p) {
     p = Math.max(0, Math.min(P.count - 1, +p));
     if (book.flip) {
-      if (reduceMotion) book.flip.turnToPage(p);
-      else if (Math.abs(p - book.page) <= 1) book.flip.flip(p);
-      else book.flip.turnToPage(p);
-      if (reduceMotion) onPageChange(p);
+      try {
+        book.flip.turnToPage(p);
+      } catch (err) {
+        try { book.flip.flip(p); } catch (e) { /* bỏ qua */ }
+      }
+      onPageChange(p);
     } else {
       // Dự phòng khi thư viện không tải được: cuộn ngang tới trang
       pageEls[p].scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', inline: 'start', block: 'nearest' });
@@ -613,7 +615,11 @@
     if (book.flip) {
       if (book.page <= 0) return;
       isFlipping = true;
-      book.flip.flipPrev();
+      try {
+        book.flip.flipPrev();
+      } catch (err) {
+        goPage(Math.max(0, book.page - 1));
+      }
       setTimeout(() => { isFlipping = false; }, 650);
     } else {
       goPage(Math.max(0, book.page - 1));
@@ -625,7 +631,11 @@
     if (book.flip) {
       if (book.page >= P.count - 1) return;
       isFlipping = true;
-      book.flip.flipNext();
+      try {
+        book.flip.flipNext();
+      } catch (err) {
+        goPage(Math.min(P.count - 1, book.page + 1));
+      }
       setTimeout(() => { isFlipping = false; }, 650);
     } else {
       goPage(Math.min(P.count - 1, book.page + 1));
@@ -665,7 +675,7 @@
     // khiến việc lật lùi 3D bị kẹt khi sách được căn giữa màn hình.
     const ctrl = book.flip.getFlipController();
     if (ctrl) {
-      ctrl.flipPrev = function(t = "top") {
+      ctrl.flipPrev = function (t = "top") {
         const r = this.render.getRect();
         this.flip({
           x: (r.left || 0) + 12,
@@ -761,8 +771,8 @@
         <ol class="listen-lines" id="lines-${i}">${L.lines.map((t) => `<li class="${done ? 'is-on' : ''}">${t}</li>`).join('')}</ol>
         <p class="listen-take ${done ? 'is-on' : ''}" id="take-${i}">${L.takeaway}</p>
         ${!done
-          ? `<button class="linklike listen-all" type="button" data-tale-all="${i}">Không nghe được? Đọc lời kể</button>`
-          : ''}
+        ? `<button class="linklike listen-all" type="button" data-tale-all="${i}">Không nghe được? Đọc lời kể</button>`
+        : ''}
       </div>`;
   }
 
@@ -883,20 +893,184 @@
     const first = !book.done.has(i);
     book.done.add(i);
     store.set('chapters_done', [...book.done]);
-    sound.chime();
     track('chapter_complete', { chapter: i + 1 });
     if (first) {
       measure('listen', { ch: i + 1 });
       track('badge_unlocked', { badge: CHAPTERS[i].badge.name });
-      toast(`Bạn vừa mở ${CHAPTERS[i].badge.name}.`, 'gold', 'medal');
     }
-    setTimeout(() => {
-      renderListen(i, true);
-      renderBadgePage(i, true);
-      syncTabs();
-      renderBadges();
-    }, 0);
+    renderListen(i, true);
+    renderBadgePage(i, false);
+    syncTabs();
+    renderBadges();
+    showMedalRewardPopup(i);
   }
+
+  function showMedalRewardPopup(i) {
+    const c = CHAPTERS[i];
+    if (!c) return;
+    const modal = $('#medal-modal');
+    if (!modal) return;
+
+    const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.png`;
+    $('#medal-modal-img').src = medalImg;
+    $('#medal-modal-img').alt = c.badge.name;
+    $('#medal-modal-name').textContent = c.badge.name;
+    $('#medal-modal-desc').textContent = c.badge.desc;
+
+    // Thiết lập vị trí mặt tròn chính xác đo từ ảnh cắt viền của 4 Huy Chương
+    const COIN_METRICS = [
+      { cx: '51.5%', cy: '59.5%', dia: '56%' }, // Huy chương 1
+      { cx: '50.3%', cy: '50.7%', dia: '55%' }, // Huy chương 2
+      { cx: '49%', cy: '58%', dia: '58%' }, // Huy chương 3
+      { cx: '49.0%', cy: '60.0%', dia: '58%' }  // Huy chương 4
+    ];
+    const m = COIN_METRICS[i] || { cx: '50%', cy: '55%', dia: '65%' };
+    const stage = $('.medal-modal-stage');
+    if (stage) {
+      stage.style.setProperty('--coin-cx', m.cx);
+      stage.style.setProperty('--coin-cy', m.cy);
+      stage.style.setProperty('--coin-dia', m.dia);
+    }
+
+    modal.hidden = false;
+    sound.init();
+    sound.chime();
+    sound.ting();
+
+    // Hiệu ứng pháo hoa tia lửa lễ hội Tết quanh hộp thoại
+    if (typeof tetFx !== 'undefined' && tetFx.burst) {
+      setTimeout(() => {
+        const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+        tetFx.burst(cx - 90, cy - 80, true);
+        tetFx.burst(cx + 90, cy - 80, true);
+        sound.pop(true);
+      }, 250);
+    }
+
+    if (hasGsap && !reduceMotion) {
+      gsap.fromTo('.medal-modal-body',
+        { scale: 0.35, y: 30, opacity: 0 },
+        { scale: 1, y: 0, opacity: 1, duration: 0.55, ease: 'back.out(1.8)' }
+      );
+      gsap.fromTo('.medal-sunburst',
+        { opacity: 0 },
+        { opacity: 1, duration: 0.7, ease: 'power1.out' }
+      );
+    }
+
+    const btn = $('#medal-modal-stamp-btn');
+    if (btn) btn.focus();
+
+    let stamped = false;
+    const doStamp = () => {
+      if (stamped) return;
+      stamped = true;
+      closeMedalPopup(() => stampMedalIntoBookPage(i));
+    };
+
+    const closeMedalPopup = (cb) => {
+      cleanupListeners();
+      if (hasGsap && !reduceMotion) {
+        gsap.to('.medal-modal-body', {
+          scale: 0.6,
+          opacity: 0,
+          y: -20,
+          duration: 0.28,
+          ease: 'power2.in',
+          onComplete: () => {
+            modal.hidden = true;
+            if (cb) cb();
+          }
+        });
+      } else {
+        modal.hidden = true;
+        if (cb) cb();
+      }
+    };
+
+    const onKey = (e) => {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        e.preventDefault();
+        doStamp();
+      }
+    };
+    const onBackdrop = (e) => {
+      if (e.target === $('#medal-modal-backdrop') || e.target === modal || e.target === $('.medal-modal-card')) {
+        doStamp();
+      }
+    };
+    const onBtn = (e) => {
+      e.preventDefault();
+      doStamp();
+    };
+
+    function cleanupListeners() {
+      document.removeEventListener('keydown', onKey);
+      modal.removeEventListener('click', onBackdrop);
+      btn?.removeEventListener('click', onBtn);
+    }
+
+    cleanupListeners();
+    document.addEventListener('keydown', onKey);
+    modal.addEventListener('click', onBackdrop);
+    btn?.addEventListener('click', onBtn);
+  }
+
+  function stampMedalIntoBookPage(i) {
+    // Lật sách đến trang huy hiệu của chương
+    goPage(P.badge(i));
+
+    // Đợi trang lật tới rồi dập dấu huy chương vào trang giấy với chấn động vàng
+    setTimeout(() => {
+      sound.stamp(true);
+      const pg = $('#badge-page-' + i);
+      if (!pg) return;
+      const medalEl = $('.pg-medal', pg);
+      if (!medalEl) return;
+
+      medalEl.classList.remove('is-stamping');
+      void medalEl.offsetWidth; // trigger reflow
+      medalEl.classList.add('is-stamping');
+
+      // Vòng tròn chấn động vàng khi in vào trang giấy
+      const wave = document.createElement('div');
+      wave.className = 'stamp-shockwave';
+      wave.setAttribute('aria-hidden', 'true');
+      medalEl.appendChild(wave);
+      setTimeout(() => wave.remove(), 1000);
+
+      if (typeof tetFx !== 'undefined' && tetFx.burst) {
+        const r = medalEl.getBoundingClientRect();
+        tetFx.burst(r.left + r.width / 2, r.top + r.height / 2, false);
+      }
+
+      toast(`✦ ${CHAPTERS[i].badge.name} đã được in trang trọng vào sách!`, 'gold', 'medal');
+    }, book.flip ? 380 : 120);
+  }
+
+  // ======================================================================
+  // HÀM TEST TRONG BROWSER CONSOLE (F12)
+  // ======================================================================
+  window.resetMedals = function (ch) {
+    if (typeof ch === 'number') {
+      book.done.delete(ch);
+      toast(`Đã khóa lại Huy chương chương ${ch + 1}!`, 'info');
+    } else {
+      book.done.clear();
+      toast('Đã khóa lại toàn bộ 4 Huy chương để test!', 'info');
+    }
+    store.set('chapters_done', [...book.done]);
+    for (let idx = 0; idx < CHAPTERS.length; idx++) {
+      renderListen(idx, book.done.has(idx));
+      renderBadgePage(idx, false);
+    }
+    syncTabs();
+    renderBadges();
+  };
+
+  window.testMedalPopup = function (ch = 0) {
+    completeChapter(ch);
+  };
 
   /* ======================================================================
    * S03 · Tổng kết 4 huy hiệu (trang 19–20 của sách)
@@ -955,8 +1129,10 @@
   async function pushPass(tries = 0) {
     if (!pass || !pass.synced) return false;
     try {
-      const r = await fetch('/api/pass', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pid: pass.id, name: pass.nickname, vid: meter.vid, gift: pass.giftCode }) });
+      const r = await fetch('/api/pass', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pid: pass.id, name: pass.nickname, vid: meter.vid, gift: pass.giftCode })
+      });
       if (!isJson(r)) return false;
       // Mã trùng với thẻ của người khác (rất hiếm): đổi mã rồi gửi lại
       if (r.status === 409 && tries < 3) { pass.id = 'TAO-' + randCode(6); store.set('pass', pass); renderTicket(); return pushPass(tries + 1); }
@@ -1438,12 +1614,12 @@
         <h4 class="pp-title">Bốn trạm, bốn dấu</h4>
         <p class="pp-note">Mỗi trạm đóng một dấu vào trang visa riêng và được quay thưởng một lần. Đủ bốn dấu thì nhận quà ở bàn check-out.</p>
         <ol class="pp-route">${STATIONS.map((s) => {
-          const on = pass.stamps.includes(s.id);
-          return `<li class="${on ? 'is-on' : ''}"><button type="button" data-ppgo="${PP.visa(s.id)}">
+      const on = pass.stamps.includes(s.id);
+      return `<li class="${on ? 'is-on' : ''}"><button type="button" data-ppgo="${PP.visa(s.id)}">
             <span class="pp-route-n">${ROMAN_ST[s.id - 1]}</span>
             <span class="pp-route-t">${s.name}<small>${on ? 'Đã đóng dấu ' + fmtDate(stampedAt(s.id), true) : 'Chưa đóng dấu'}</small></span>
             <i class="ph${on ? '-fill' : ''} ph-${on ? 'seal-check' : 'circle-dashed'}" aria-hidden="true"></i></button></li>`;
-        }).join('')}</ol>
+    }).join('')}</ol>
         <p class="pp-progress"><strong>${total}/4</strong> trạm đã đóng dấu</p>
       </div>`;
     const id = n - 2;
@@ -1455,8 +1631,8 @@
         <p class="pp-note">${VISA_TEXT[id]}</p>
         <div class="pp-stamp-zone ${on ? 'is-on' : ''} ${on && photo ? 'has-photo' : ''}" data-zone="${id}">
           ${on
-            ? `<div class="pp-stamp" data-stamp="${id}" style="--rot:${st.rot}deg;--dx:${st.x}px;--dy:${st.y}px">${stampSVG(id, stampedAt(id))}</div>`
-            : `<p class="pp-empty"><i class="ph ph-stamp" aria-hidden="true"></i>Chỗ đóng dấu<small>Đến ${s.name} và đưa mã QR cho nhân sự</small></p>`}
+          ? `<div class="pp-stamp" data-stamp="${id}" style="--rot:${st.rot}deg;--dx:${st.x}px;--dy:${st.y}px">${stampSVG(id, stampedAt(id))}</div>`
+          : `<p class="pp-empty"><i class="ph ph-stamp" aria-hidden="true"></i>Chỗ đóng dấu<small>Đến ${s.name} và đưa mã QR cho nhân sự</small></p>`}
           ${on && photo ? `<figure class="pp-polaroid" style="--r:${id % 2 ? 4 : -5}deg"><img src="${photo}" alt="Khoảnh khắc ở ${s.name}"><button class="pp-polaroid-btn" type="button" data-moment="${id}" aria-label="Đổi ảnh khoảnh khắc ở ${s.name}"><i class="ph ph-camera" aria-hidden="true"></i></button></figure>` : ''}
         </div>
         ${on ? `<div class="pp-visa-foot">
@@ -1471,14 +1647,14 @@
         <h4 class="pp-title">${total === 4 ? 'Bạn đã đi đủ bốn trạm' : `Còn ${4 - total} trạm nữa`}</h4>
         <div class="pp-stamp-zone ${total === 4 ? 'is-on' : ''}">
           ${total === 4
-            ? `<div class="pp-stamp pp-gold" data-stamp="gold" style="--rot:-8deg;--dx:0px;--dy:0px">${goldStampSVG(Math.max(...STATIONS.map((s) => stampedAt(s.id) || 0)))}</div>`
-            : `<p class="pp-empty"><i class="ph ph-medal" aria-hidden="true"></i>Dấu hoàn thành<small>Sẽ hiện khi đủ bốn dấu</small></p>`}
+        ? `<div class="pp-stamp pp-gold" data-stamp="gold" style="--rot:-8deg;--dx:0px;--dy:0px">${goldStampSVG(Math.max(...STATIONS.map((s) => stampedAt(s.id) || 0)))}</div>`
+        : `<p class="pp-empty"><i class="ph ph-medal" aria-hidden="true"></i>Dấu hoàn thành<small>Sẽ hiện khi đủ bốn dấu</small></p>`}
         </div>
         <p class="pp-note">${total === 4 ? 'Mời bạn đến bàn check-out, đưa mã nhận quà bên dưới cho nhân sự.' : 'Mỗi trạm chỉ đóng dấu một lần.'}</p>
       </div>`;
     if (n === PP.notes) return `<div class="pp-page pp-notes">
         ${ppHead('GHI CHÚ', 'TRANG 8')}
-        <p class="pp-note">Ở mỗi trang visa, bạn lưu được một ảnh khoảnh khắc của trạm đó. Đủ bốn dấu, các ảnh sẽ được dán vào lá sớ gửi Táo.</p>
+        <p class="pp-note">Ở mỗi trang visa, bạn lưu được một ảnh khoảnh khắc của trạm đó. Đủ bốn dấu, các ảnh sẽ được dán vào Chuyện Nhà Đêm 23 gửi Táo.</p>
         <div class="pp-lines" aria-hidden="true">${'<span></span>'.repeat(9)}</div>
       </div>`;
     return `<div class="pp-cover pp-cover-back"><div class="pp-emblem pp-emblem-sm" aria-hidden="true"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="3"/><text x="60" y="72" text-anchor="middle" font-family="Be Vietnam Pro, Arial" font-size="26" font-weight="800" fill="currentColor">Táo</text></svg></div><p class="pp-cover-sub">#ChuyenNhaTao</p></div>`;
@@ -1574,7 +1750,7 @@
       // khiến việc lật lùi 3D bị kẹt khi sách được căn giữa màn hình.
       const ctrl = pp.flip.getFlipController();
       if (ctrl) {
-        ctrl.flipPrev = function(t = "top") {
+        ctrl.flipPrev = function (t = "top") {
           const r = this.render.getRect();
           this.flip({
             x: (r.left || 0) + 12,
@@ -1754,13 +1930,17 @@
       const sparks = big ? 70 : 18, papers = big ? 46 : 10;
       for (let i = 0; i < sparks; i++) {
         const a = Math.random() * 6.3, sp = (big ? 160 : 90) + Math.random() * (big ? 260 : 140);
-        this.parts.push({ t: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.5 + Math.random() * 0.5, age: 0,
-          color: ['#ffd76a', '#ffb02e', '#fff4c2', '#ff6a3d'][Math.floor(Math.random() * 4)] });
+        this.parts.push({
+          t: 'spark', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.5 + Math.random() * 0.5, age: 0,
+          color: ['#ffd76a', '#ffb02e', '#fff4c2', '#ff6a3d'][Math.floor(Math.random() * 4)]
+        });
       }
       for (let i = 0; i < papers; i++) {
         const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = 80 + Math.random() * (big ? 260 : 150);
-        this.parts.push({ t: 'paper', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, rot: Math.random() * 6.3, vr: (Math.random() - 0.5) * 14,
-          w: 3 + Math.random() * 3, h: 6 + Math.random() * 6, life: 1.6 + Math.random() * 0.8, age: 0, color: Math.random() < 0.8 ? '#d42a1e' : '#f3c64d' });
+        this.parts.push({
+          t: 'paper', x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, rot: Math.random() * 6.3, vr: (Math.random() - 0.5) * 14,
+          w: 3 + Math.random() * 3, h: 6 + Math.random() * 6, life: 1.6 + Math.random() * 0.8, age: 0, color: Math.random() < 0.8 ? '#d42a1e' : '#f3c64d'
+        });
       }
       this.parts.push({ t: 'flash', x, y, r: big ? 70 : 26, life: big ? 0.25 : 0.12, age: 0 });
     },
@@ -1905,8 +2085,10 @@
     if (!el) return;
     if (!hasGsap || reduceMotion) { sound.stamp(); return; }
     gsap.fromTo(el, { scale: 2.6, opacity: 0, rotation: -22, filter: 'blur(3px)' },
-      { scale: 1, opacity: 1, rotation: 0, filter: 'blur(0px)', duration: 0.42, ease: 'power4.in',
-        onComplete: () => { sound.stamp(); gsap.fromTo(wrap.closest('.pp-stamp-zone') || wrap, { x: 0 }, { x: 3, duration: 0.05, yoyo: true, repeat: 3, clearProps: 'x' }); } });
+      {
+        scale: 1, opacity: 1, rotation: 0, filter: 'blur(0px)', duration: 0.42, ease: 'power4.in',
+        onComplete: () => { sound.stamp(); gsap.fromTo(wrap.closest('.pp-stamp-zone') || wrap, { x: 0 }, { x: 3, duration: 0.05, yoyo: true, repeat: 3, clearProps: 'x' }); }
+      });
   }
 
   function addStamp(raw) {
@@ -1984,10 +2166,10 @@
         : '<button class="btn btn-ghost" type="button" id="btn-claim"><i class="ph ph-hand-heart" aria-hidden="true"></i> Nhân sự xác nhận đã trao quà</button>'}
       ${wonList()}
       <div class="optin">
-        <strong>Viết lá sớ gửi Táo</strong>
-        <p style="color:var(--text-muted);font-size:15px">Lá sớ đã mở. Ghi bốn lời gửi ông Táo và dán ảnh khoảnh khắc ở các trạm.</p>
+        <strong>Viết Chuyện Nhà Đêm 23 gửi Táo</strong>
+        <p style="color:var(--text-muted);font-size:15px">Chuyện Nhà Đêm 23 đã mở. Ghi bốn lời gửi ông Táo và dán ảnh khoảnh khắc ở các trạm.</p>
         <div class="optin-actions">
-          <a class="btn btn-primary btn-sm" href="#la-so" id="optin-yes">Viết lá sớ</a>
+          <a class="btn btn-primary btn-sm" href="#la-so" id="optin-yes">Viết Chuyện Nhà Đêm 23</a>
           <button class="btn btn-quiet" type="button" id="optin-no">Để sau</button>
         </div>
       </div>`;
@@ -2001,7 +2183,7 @@
       renderCheckout();
     });
     $('#optin-yes').addEventListener('click', () => track('optin_yes'));
-    $('#optin-no').addEventListener('click', () => { track('optin_no'); toast('Không sao. Lá sớ luôn chờ bạn ở cuối trang.', 'info'); });
+    $('#optin-no').addEventListener('click', () => { track('optin_no'); toast('Không sao. Chuyện Nhà Đêm 23 luôn chờ bạn ở cuối trang.', 'info'); });
     if (hasGsap && !reduceMotion) gsap.from(box, { y: 20, opacity: 0, duration: 0.5, ease: 'power3.out' });
   }
 
@@ -2014,7 +2196,7 @@
     if (book.done.size) lose.push(`${book.done.size}/4 huy hiệu trong sách`);
     const nPhoto = momentCount();
     if (nPhoto) lose.push(`${nPhoto} ảnh khoảnh khắc ở sự kiện`);
-    lose.push('Tiến độ đọc sách và lá sớ đang soạn');
+    lose.push('Tiến độ đọc sách và Chuyện Nhà Đêm 23 đang soạn');
     const p = ask({
       tone: 'danger',
       title: 'Xoá dữ liệu trên máy này?',
@@ -2038,9 +2220,9 @@
   });
 
   /* ======================================================================
-   * S07–S08 · LÁ SỚ GỬI TÁO (UGC "Year in Values")
+   * S07–S08 · CHUYỆN NHÀ ĐÊM 23 (UGC "Year in Values")
    * Góp ý của cô: không gán người dùng vào MỘT giá trị như tính cách ("bạn là Táo X"),
-   * vì sẽ khiến họ bỏ qua ba giá trị còn lại. Lá sớ luôn ghi đủ BỐN giá trị,
+   * vì sẽ khiến họ bỏ qua ba giá trị còn lại. Chuyện Nhà Đêm 23 luôn ghi đủ BỐN giá trị,
    * mỗi giá trị một lời gửi (gợi ý sẵn, sửa tự do, không có đúng sai).
    * Chỉ cần đủ 4 dấu trạm là mở; đọc sách không bắt buộc (nhóm chốt lại).
    * ==================================================================== */
@@ -2097,7 +2279,7 @@
     renderMoments(); drawCard();
   }
 
-  // ---------- Điều kiện mở lá sớ
+  // ---------- Điều kiện mở Chuyện Nhà Đêm 23
   const gate = () => {
     const ch = book.done.size, st = pass ? pass.stamps.length : 0;
     return { ch, st, ok: st === 4 };
@@ -2124,7 +2306,7 @@
     pass.stamps = [1, 2, 3, 4];
     pass.stampedAt = { 1: Date.now(), 2: Date.now(), 3: Date.now(), 4: Date.now() };
     store.set('pass', pass);
-    toast('Đã kích hoạt đủ 4 dấu trạm để mở Lá sớ!', 'ok', 'seal-check');
+    toast('Đã kích hoạt đủ 4 dấu trạm để mở Chuyện Nhà Đêm 23!', 'ok', 'seal-check');
     renderTicket();
     renderLetter();
     renderRegister();
@@ -2140,8 +2322,8 @@
     $('#letter-lock').innerHTML = `
       <div class="lock-head">
         <span class="lock-ico" id="btn-unlock-test" aria-hidden="true" style="cursor:pointer" title="Chạm để mở nhanh (chế độ kiểm thử)"><i class="ph ph-lock-simple"></i></span>
-        <div><h3>Lá sớ mở khi bạn đi trọn hành trình</h3>
-        <p>Lá sớ ghi đủ bốn giá trị, nên cần bạn đi qua cả bốn trạm ở sự kiện. Sách bốn chương là phần đọc thêm, không bắt buộc.</p></div>
+        <div><h3>Chuyện Nhà Đêm 23 mở khi bạn đi trọn hành trình</h3>
+        <p>Chuyện Nhà Đêm 23 ghi đủ bốn giá trị, nên cần bạn đi qua cả bốn trạm ở sự kiện. Sách bốn chương là phần đọc thêm, không bắt buộc.</p></div>
       </div>
       <ol class="lock-steps">
         ${step(g.st === 4, 'Đóng đủ 4 dấu ở 4 trạm sự kiện', pass ? `${g.st}/4 dấu` : 'Chưa có thẻ thông hành', '#tram-trai-nghiem', pass ? 'Xem hộ chiếu' : 'Tạo thẻ thông hành')}
@@ -2149,10 +2331,10 @@
       </ol>
       <ul class="lock-values" aria-label="Tiến độ từng giá trị">
         ${VALUES.map((v, k) => {
-          const read = book.done.has(k), stamped = !!(pass && pass.stamps.includes(k + 1));
-          return `<li class="${stamped ? 'is-done' : ''}"><i class="ph${stamped ? '-fill' : ''} ph-${v.icon}" aria-hidden="true"></i><span>${v.name}</span>
+      const read = book.done.has(k), stamped = !!(pass && pass.stamps.includes(k + 1));
+      return `<li class="${stamped ? 'is-done' : ''}"><i class="ph${stamped ? '-fill' : ''} ph-${v.icon}" aria-hidden="true"></i><span>${v.name}</span>
             <small><i class="ph${read ? '-fill' : ''} ph-book-open" aria-label="${read ? 'Đã nghe chuyện' : 'Chưa nghe chuyện'}"></i><i class="ph${stamped ? '-fill' : ''} ph-seal-check" aria-label="${stamped ? 'Đã đóng dấu' : 'Chưa đóng dấu'}"></i></small></li>`;
-        }).join('')}
+    }).join('')}
       </ul>`;
   }
 
@@ -2201,7 +2383,7 @@
     $$('[data-del]', box).forEach((b) => b.addEventListener('click', () => removeMoment(b.dataset.del)));
   }
 
-  // ---------- Vẽ lá sớ (canvas) theo phong cách sách cổ: giấy dó, mực son, chữ có chân
+  // ---------- Vẽ Chuyện Nhà Đêm 23 (canvas) theo phong cách sách cổ: giấy dó, mực son, chữ có chân
   const loadImg = (src) => new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
   let drawing = 0;
   async function drawCard() {
@@ -2234,7 +2416,7 @@
     let y = tall ? 210 : 128;
     ctx.font = sans(700, 26); ctx.fillText('CHUYỆN NHÀ TÁO  ·  ĐÊM 23 THÁNG CHẠP', W / 2, y);
     y += tall ? 100 : 74;
-    ctx.fillStyle = '#3b1f0e'; ctx.font = disp(800, tall ? 92 : 70); ctx.fillText('Lá sớ gửi Táo', W / 2, y);
+    ctx.fillStyle = '#3b1f0e'; ctx.font = disp(800, tall ? 86 : 66); ctx.fillText('Chuyện Nhà Đêm 23', W / 2, y);
     y += tall ? 66 : 48;
     ctx.fillStyle = INK; ctx.font = serif(400, tall ? 40 : 34, true);
     ctx.fillText(`Nhà của ${(pass && pass.nickname) || 'người giữ lửa'} kính gửi`, W / 2, y);
@@ -2297,9 +2479,9 @@
   function captionsFor() {
     const name = (pass && pass.nickname) || 'nhà mình';
     return [
-      `Lá sớ năm nay của nhà ${name}: hướng thiện, mái ấm, nếp nhà, tốt lành. Nhờ ông Táo mang lên trời giúp nhé! #ChuyenNhaTao #YearInValues`,
-      `Bếp đỏ giữ lửa, nếp nhà đoàn viên. Một năm của nhà mình gói trong bốn giá trị. Còn lá sớ nhà bạn viết gì? #ChuyenNhaTao #YearInValues`,
-      `Đi đủ bốn trạm ở sự kiện Chuyện Nhà Táo, và đây là lá sớ nhà mình gửi ông Táo. #ChuyenNhaTao #YearInValues`
+      `Chuyện Nhà Đêm 23 năm nay của nhà ${name}: hướng thiện, mái ấm, nếp nhà, tốt lành. Nhờ ông Táo mang lên trời giúp nhé! #ChuyenNhaTao #YearInValues`,
+      `Bếp đỏ giữ lửa, nếp nhà đoàn viên. Một năm của nhà mình gói trong bốn giá trị. Còn Chuyện Nhà Đêm 23 nhà bạn viết gì? #ChuyenNhaTao #YearInValues`,
+      `Đi đủ bốn trạm ở sự kiện Chuyện Nhà Táo, và đây là Chuyện Nhà Đêm 23 nhà mình gửi ông Táo. #ChuyenNhaTao #YearInValues`
     ];
   }
   function renderCaptions() {
@@ -2340,9 +2522,9 @@
     try { await navigator.clipboard.writeText(text); } catch (e) { /* bỏ qua */ }
     if (network === 'facebook') {
       window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(location.origin + location.pathname), '_blank', 'noopener,width=640,height=560');
-      toast('Caption đã được sao chép. Tải lá sớ về để đính kèm ảnh vào bài đăng.', 'info', 'facebook-logo');
+      toast('Caption đã được sao chép. Tải Chuyện Nhà Đêm 23 về để đính kèm ảnh vào bài đăng.', 'info', 'facebook-logo');
     } else {
-      toast('Caption đã được sao chép. Tải lá sớ về, mở TikTok và đăng ảnh kèm caption nhé.', 'info', 'tiktok-logo');
+      toast('Caption đã được sao chép. Tải Chuyện Nhà Đêm 23 về, mở TikTok và đăng ảnh kèm caption nhé.', 'info', 'tiktok-logo');
     }
   }
   $('#btn-share-fb').addEventListener('click', () => share('facebook'));
@@ -2350,7 +2532,7 @@
 
   /* =========================================================================
    * Hiệu ứng nền Bụi vàng kim tuyến & Ánh hào quang lấp lánh (Golden Dust & Shimmer)
-   * cho khu vực Lá sớ gửi Táo (#la-so).
+   * cho khu vực Chuyện Nhà Đêm 23 (#la-so).
    * - Hạt bụi vàng lơ lửng bồng bềnh từ dưới lên
    * - Các ngôi sao 4 cánh lấp lánh (sparkle stars)
    * - Hào quang vàng kim phản ứng nhẹ theo con trỏ chuột
@@ -2525,7 +2707,7 @@
         drawLantern(ctx, l.x, l.y, l.size, lanternAlpha, l.flicker);
       }
 
-      // 3. Hạt bụi vàng & Ngôi sao lấp lánh bay xuyên suốt từ đáy Lá sớ lên hoàng hôn
+      // 3. Hạt bụi vàng & Ngôi sao lấp lánh bay xuyên suốt từ đáy Chuyện Nhà Đêm 23 lên hoàng hôn
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
 
@@ -2658,7 +2840,7 @@
   });
 
   // QR ở cổng: ?vao=CONG23 → ghi nhận check-in. QR ở trạm: ?tram=HUONG1 → đóng dấu.
-  // Tham số ?test hoặc ?demo: mở nhanh Lá sớ để kiểm thử.
+  // Tham số ?test hoặc ?demo: mở nhanh Chuyện Nhà Đêm 23 để kiểm thử.
   {
     const qs = new URLSearchParams(location.search);
     if (qs.has('test') || qs.has('demo')) {
@@ -2688,7 +2870,7 @@
   }
   requestAnimationFrame(() => moveIndicator(false));
 
-  document.addEventListener('copy', () => {}, { passive: true });
+  document.addEventListener('copy', () => { }, { passive: true });
   window.addEventListener('pagehide', () => { stopVoice(); stopTale(); });
 
   /* ======================================================================
@@ -3060,4 +3242,188 @@
 
   // Font tải xong làm đổi chiều cao chữ → tính lại vị trí trigger
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { ScrollTrigger.refresh(); moveIndicator(false); });
+
+  /* ===================================================================
+     S00 · SITE INTRO ANIMATION (Màn chào hỏi nhảy nhót trước khi vào web)
+     =================================================================== */
+  function initSiteIntro() {
+    const overlay = document.getElementById('site-intro-overlay');
+    if (!overlay) return;
+
+    const skipBtn = document.getElementById('intro-skip-btn');
+    const words = overlay.querySelectorAll('.intro-word');
+    const fishWrap = document.getElementById('intro-fish-wrapper');
+    const fish = document.getElementById('intro-fish');
+    const hatWrap = document.getElementById('intro-hat-wrapper');
+    const hat = document.getElementById('intro-hat');
+    const impactWave = document.getElementById('hat-impact-wave');
+    const shimmer = document.getElementById('intro-shimmer');
+    const footerHint = overlay.querySelector('.intro-footer-hint');
+
+    let dismissed = false;
+    let introMasterTl = null;
+
+    function dismissIntro() {
+      if (dismissed) return;
+      dismissed = true;
+      if (introMasterTl) introMasterTl.kill();
+      words.forEach(el => el.classList.remove('sync-dancing'));
+      overlay.classList.add('intro-dismissed');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        if (window.ScrollTrigger) ScrollTrigger.refresh();
+      }, 900);
+    }
+
+    if (skipBtn) {
+      skipBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        dismissIntro();
+      });
+    }
+
+    // Nếu người dùng bật giảm chuyển động
+    if (typeof reduceMotion !== 'undefined' && reduceMotion) {
+      setTimeout(dismissIntro, 1200);
+      return;
+    }
+
+    // Ban đầu:
+    gsap.set(words, { opacity: 0, y: -26, scale: 0.88 });
+    gsap.set(fishWrap, { x: -window.innerWidth * 0.9, y: 30, rotation: 12, opacity: 0 });
+    gsap.set(hatWrap, { y: -Math.max(window.innerHeight * 0.6, 320), rotation: -12, opacity: 0 });
+    if (footerHint) gsap.set(footerHint, { opacity: 0, y: 15 });
+
+    introMasterTl = gsap.timeline();
+
+    // 1. Các khối chữ xuất hiện dạng nảy mượt (stagger)
+    introMasterTl.to(words, {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.55,
+      stagger: 0.1,
+      ease: 'back.out(2.2)'
+    });
+
+    // 2. Kích hoạt hiệu ứng nhảy nhót đồng bộ dạng sóng (sync-dancing)
+    introMasterTl.add(() => {
+      words.forEach(el => el.classList.add('sync-dancing'));
+    }, 0.4);
+
+    // 3. Con cá chép bơi từ bên trái qua làm thành chữ C
+    introMasterTl.to(fishWrap, {
+      opacity: 1,
+      duration: 0.35,
+      ease: 'power1.out'
+    }, 0.3);
+
+    introMasterTl.to(fishWrap, {
+      x: 0,
+      y: 0,
+      rotation: 0,
+      duration: 1.55,
+      ease: 'power2.out',
+      onUpdate: function() {
+        const p = this.progress();
+        if (p < 0.92) {
+          // Uốn lượn nhịp nhàng kiểu cá bơi
+          const wave = Math.sin(p * Math.PI * 4.5) * (1 - p) * 20;
+          gsap.set(fish, { y: wave, rotation: wave * 0.35 });
+        } else {
+          gsap.set(fish, { y: 0, rotation: 0 });
+        }
+      }
+    }, 0.3);
+
+    // Khi cá tới nơi: nảy nhẹ như đỗ nước
+    introMasterTl.to(fish, {
+      scaleY: 1.1,
+      scaleX: 0.92,
+      duration: 0.16,
+      yoyo: true,
+      repeat: 1,
+      ease: 'power1.out'
+    }, 1.85);
+
+    // 4. Cái nón dấu ^ rơi xuống ngay chữ E
+    introMasterTl.to(hatWrap, {
+      opacity: 1,
+      y: 0,
+      rotation: 0,
+      duration: 1.05,
+      ease: 'bounce.out'
+    }, 1.25);
+
+    // Hiệu ứng sóng va chạm khi nón đáp xuống chữ E
+    if (impactWave) {
+      introMasterTl.fromTo(impactWave, 
+        { scale: 0.2, opacity: 0.9 },
+        { scale: 2.2, opacity: 0, duration: 0.45, ease: 'power2.out' },
+        2.05
+      );
+    }
+    introMasterTl.to(hat, {
+      scaleY: 0.84,
+      scaleX: 1.18,
+      duration: 0.14,
+      yoyo: true,
+      repeat: 1,
+      ease: 'power1.out'
+    }, 2.05);
+
+    // 5. Kết thúc tạo hình: Tất cả các chữ + Cá + Nón cùng nhảy bổng đồng loạt chúc mừng!
+    introMasterTl.add(() => {
+      words.forEach(el => el.classList.remove('sync-dancing'));
+    }, 2.3);
+
+    introMasterTl.to(['.intro-word', fishWrap, hatWrap], {
+      y: -26,
+      scaleY: 1.14,
+      scaleX: 0.92,
+      duration: 0.28,
+      ease: 'power2.out'
+    }, 2.35);
+
+    introMasterTl.to(['.intro-word', fishWrap, hatWrap], {
+      y: 0,
+      scaleY: 0.92,
+      scaleX: 1.08,
+      duration: 0.18,
+      ease: 'power2.in'
+    }, 2.63);
+
+    introMasterTl.to(['.intro-word', fishWrap, hatWrap], {
+      scaleY: 1,
+      scaleX: 1,
+      duration: 0.32,
+      ease: 'elastic.out(1.2, 0.4)'
+    }, 2.81);
+
+    // Vệt sáng lấp lánh quét qua toàn bộ chữ
+    if (shimmer) {
+      introMasterTl.fromTo(shimmer,
+        { x: '-140%', opacity: 0.8 },
+        { x: '180%', opacity: 1, duration: 0.8, ease: 'power2.inOut' },
+        2.5
+      );
+    }
+
+    if (footerHint) {
+      introMasterTl.to(footerHint, { opacity: 0.9, y: 0, duration: 0.5 }, 2.4);
+    }
+
+    // 6. Mở ra trang chủ: mờ dần nền kem và phóng nhẹ
+    introMasterTl.to(overlay, {
+      opacity: 0,
+      scale: 1.06,
+      duration: 0.85,
+      ease: 'power2.inOut',
+      delay: 1.4,
+      onComplete: dismissIntro
+    });
+  }
+
+  // Khởi chạy intro
+  initSiteIntro();
 })();

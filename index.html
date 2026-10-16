@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Chuyện Nhà Táo | Đêm 23 tháng Chạp</title>
-  <meta name="description" content="Trải nghiệm sâu sắc từ những vật dụng và hình ảnh gắn kết với ngày 23 tháng Chạp. Đọc sách 4 chương, nhận thẻ thông hành 4 trạm và viết lá sớ gửi Táo.">
+  <meta name="description" content="Trải nghiệm sâu sắc từ những vật dụng và hình ảnh gắn kết với ngày 23 tháng Chạp. Đọc sách 4 chương, nhận thẻ thông hành 4 trạm và viết Chuyện Nhà Đêm 23 gửi Táo.">
   <meta name="theme-color" content="#fff8f0">
 
   <!-- OG image / preview khi share (Checklist kỹ thuật). TODO: thay og-image.jpg 1200x630 thật -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Chuyện Nhà Táo | Đêm 23 tháng Chạp">
-  <meta property="og:description" content="Lật sách 4 chương, nhận thẻ thông hành 4 trạm, viết lá sớ gửi Táo. #ChuyenNhaTao">
+  <meta property="og:description" content="Lật sách 4 chương, nhận thẻ thông hành 4 trạm, viết Chuyện Nhà Đêm 23 gửi Táo. #ChuyenNhaTao">
   <meta property="og:image" content="og-image.jpg">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -22,10 +22,61 @@
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css">
+  <link rel="preload" href="images/intro/intro_fish.png" as="image">
+  <link rel="preload" href="images/intro/intro_hat.png" as="image">
   <link rel="preload" href="fish.stl" as="fetch" crossorigin>
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
 <body>
+  <!-- ===================================================================
+       S00 · INTRO ANIMATION (Màn chào hỏi động trước khi vào web)
+       =================================================================== -->
+  <aside class="site-intro-overlay" id="site-intro-overlay" aria-label="Màn chào đón Chuyện Nhà Táo">
+    <div class="intro-bg-ambient">
+      <div class="intro-cloud intro-cloud-1"></div>
+      <div class="intro-cloud intro-cloud-2"></div>
+      <div class="intro-cloud intro-cloud-3"></div>
+      <div class="intro-sparkle-field" id="intro-sparkle-field"></div>
+    </div>
+
+    <button class="intro-skip-btn" id="intro-skip-btn" type="button" aria-label="Bỏ qua phần giới thiệu">
+      <span>Bỏ qua</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
+
+    <div class="intro-stage" id="intro-stage">
+      <div class="intro-logo-canvas" id="intro-logo-canvas">
+        <!-- Cụm chữ Hàng 1: HUYỆN (liền khối 3D nguyên bản) -->
+        <img src="images/intro/word_huyen.png?v=10" class="intro-word intro-word-huyen" alt="HUYỆN" draggable="false">
+
+        <!-- Cụm chữ Hàng 2: NHÀ (ngôi nhà 3D nguyên bản) -->
+        <img src="images/intro/word_nha.png?v=8" class="intro-word intro-word-nha" alt="NHÀ" draggable="false">
+
+        <!-- Cụm chữ Hàng 2: TÁO (chữ Táo 3D nguyên bản) -->
+        <img src="images/intro/word_tao.png?v=8" class="intro-word intro-word-tao" alt="TÁO" draggable="false">
+
+        <!-- Con cá chép bơi từ trái sang tạo thành chữ C -->
+        <div class="intro-fish-wrapper" id="intro-fish-wrapper">
+          <div class="fish-water-swirl" id="fish-water-swirl"></div>
+          <img src="images/intro/intro_fish.png?v=7" class="intro-fish" id="intro-fish" alt="Cá chép chữ C" draggable="false">
+        </div>
+
+        <!-- Chiếc nón cánh chuồn dấu ^ rớt xuống ngay chữ E -->
+        <div class="intro-hat-wrapper" id="intro-hat-wrapper">
+          <img src="images/intro/intro_hat.png?v=6" class="intro-hat" id="intro-hat" alt="Nón cánh chuồn dấu ^" draggable="false">
+          <div class="hat-impact-wave" id="hat-impact-wave"></div>
+        </div>
+
+        <!-- Vệt sáng lấp lánh hoàn thiện logo -->
+        <div class="intro-shimmer" id="intro-shimmer"></div>
+      </div>
+    </div>
+    
+    <div class="intro-footer-hint">
+      <span class="intro-hint-text">Chuyện Nhà Táo · Đêm 23 tháng Chạp</span>
+    </div>
+  </aside>
+
   <!-- Bộ lọc mực in typo: mép chữ hơi nhoè, không đều -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="letterpress" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
   <a class="skip-link" href="#doc-sach">Bỏ qua, đến phần đọc sách</a>
@@ -42,8 +93,8 @@
       <nav class="nav-links" aria-label="Điều hướng chính">
         <a href="#doc-sach" data-nav>Đọc sách</a>
         <a href="#tram-trai-nghiem" data-nav>Trạm trải nghiệm</a>
-        <!-- Góp ý của cô: bỏ "Thẻ Vị Táo" (biến giá trị thành tính cách), thay bằng lá sớ ghi đủ 4 giá trị -->
-        <a href="#la-so" data-nav>Lá sớ gửi Táo</a>
+        <!-- Góp ý của cô: bỏ "Thẻ Vị Táo" (biến giá trị thành tính cách), thay bằng Chuyện Nhà Đêm 23 ghi đủ 4 giá trị -->
+        <a href="#la-so" data-nav>Chuyện Nhà Đêm 23</a>
       </nav>
 
       <div class="header-actions">
@@ -64,7 +115,7 @@
   <div class="mobile-menu" id="mobile-menu" aria-label="Menu">
     <a href="#doc-sach">Đọc sách <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
     <a href="#tram-trai-nghiem">Trạm trải nghiệm <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
-    <a href="#la-so">Lá sớ gửi Táo <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <a href="#la-so">Chuyện Nhà Đêm 23 <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
     <a class="btn btn-primary btn-block" href="#doc-sach" data-track="cta_open_book" data-track-from="menu">Mở cuốn sách</a>
   </div>
 
@@ -227,7 +278,7 @@
               <div class="field">
                 <label for="f-nickname">Tên hoặc nickname</label>
                 <input class="input" id="f-nickname" name="nickname" type="text" autocomplete="nickname" maxlength="24" required aria-describedby="f-nickname-help f-nickname-err" placeholder="Ví dụ: Bé Na, Minh Khôi">
-                <p class="help" id="f-nickname-help">Tên này sẽ in trên hộ chiếu và lá sớ của bạn.</p>
+                <p class="help" id="f-nickname-help">Tên này sẽ in trên hộ chiếu và Chuyện Nhà Đêm 23 của bạn.</p>
                 <p class="error-text" id="f-nickname-err" aria-live="polite"></p>
               </div>
 
@@ -239,7 +290,7 @@
 
               <label class="check" for="f-consent">
                 <input id="f-consent" name="consent" type="checkbox">
-                <span>Tôi đồng ý để Chuyện Nhà Táo lưu email nhằm gửi thông tin nhận quà và lời mời viết lá sớ gửi Táo. <a href="#du-lieu">Xem chính sách dữ liệu</a>.</span>
+                <span>Tôi đồng ý để Chuyện Nhà Táo lưu email nhằm gửi thông tin nhận quà và lời mời viết Chuyện Nhà Đêm 23 gửi Táo. <a href="#du-lieu">Xem chính sách dữ liệu</a>.</span>
               </label>
 
               <button class="btn btn-primary btn-block" type="submit" id="btn-register">
@@ -264,30 +315,30 @@
     </section>
 
     <!-- =================================================================
-         S07–S08 · LÁ SỚ GỬI TÁO (UGC "Year in Values")
-         Cầu hoàng hôn 200px tích hợp liền khối ở đỉnh Lá sớ,
-         cho phép bụi vàng & đèn trời bay xuyên suốt từ đáy Lá sớ lên hoàng hôn.
+         S07–S08 · CHUYỆN NHÀ ĐÊM 23 (UGC "Year in Values")
+         Cầu hoàng hôn 200px tích hợp liền khối ở đỉnh Chuyện Nhà Đêm 23,
+         cho phép bụi vàng & đèn trời bay xuyên suốt từ đáy Chuyện Nhà Đêm 23 lên hoàng hôn.
          ================================================================= -->
     <section class="section" id="la-so" aria-labelledby="letter-title">
-      <!-- Cầu chuyển tiếp hoàng hôn 200px nằm ở tầng nền đỉnh Lá sớ -->
+      <!-- Cầu chuyển tiếp hoàng hôn 200px nằm ở tầng nền đỉnh Chuyện Nhà Đêm 23 -->
       <div class="nightfall-bridge" aria-hidden="true">
         <div class="nightfall-bridge-glow"></div>
         <div class="nightfall-bridge-mist"></div>
       </div>
-      <!-- Canvas trải dài trọn vẹn toàn bộ Lá sớ & xuyên suốt qua cầu hoàng hôn -->
+      <!-- Canvas trải dài trọn vẹn toàn bộ Chuyện Nhà Đêm 23 & xuyên suốt qua cầu hoàng hôn -->
       <canvas class="la-so-bg-canvas" id="la-so-bg-canvas" aria-hidden="true"></canvas>
       <div class="container">
         <div class="section-head reveal">
           <span class="tag-phase"><i class="ph ph-scroll" aria-hidden="true"></i> Year in Values</span>
-          <h2 id="letter-title">Lá sớ gửi Táo</h2>
-          <p>Ngày 23 tháng Chạp, ông Táo mang lá sớ về trời kể chuyện một năm của mỗi nhà. Đi đủ bốn trạm ở sự kiện là mở lá sớ: ghi đủ bốn giá trị, kèm những khoảnh khắc bạn chụp.</p>
+          <h2 id="letter-title">Chuyện Nhà Đêm 23</h2>
+          <p>Ngày 23 tháng Chạp, ông Táo mang Chuyện Nhà Đêm 23 về trời kể chuyện một năm của mỗi nhà. Đi đủ bốn trạm ở sự kiện là mở Chuyện Nhà Đêm 23: ghi đủ bốn giá trị, kèm những khoảnh khắc bạn chụp.</p>
         </div>
 
         <div class="reveal" id="letter-root">
           <!-- Chưa đủ điều kiện: danh sách việc còn thiếu -->
           <div class="card letter-lock" id="letter-lock" aria-live="polite"></div>
 
-          <!-- Đủ điều kiện: soạn lá sớ + ảnh khoảnh khắc + xem trước -->
+          <!-- Đủ điều kiện: soạn Chuyện Nhà Đêm 23 + ảnh khoảnh khắc + xem trước -->
           <div class="ugc-grid" id="letter-open" hidden>
             <div>
               <div class="card letter-edit" id="letter-edit"></div>
@@ -308,17 +359,17 @@
 
             <aside class="card ugc-preview" aria-labelledby="result-title">
               <div>
-                <h3 class="result-title" id="result-title">Lá sớ của nhà bạn</h3>
+                <h3 class="result-title" id="result-title">Chuyện Nhà Đêm 23 của bạn</h3>
                 <p class="result-desc" id="result-desc">Bốn giá trị, bốn lời gửi ông Táo.</p>
               </div>
-              <div class="canvas-wrap"><canvas id="ugc-canvas" width="1080" height="1080" aria-label="Xem trước lá sớ gửi Táo"></canvas></div>
+              <div class="canvas-wrap"><canvas id="ugc-canvas" width="1080" height="1080" aria-label="Xem trước Chuyện Nhà Đêm 23 gửi Táo"></canvas></div>
               <div class="share-actions">
-                <button class="btn btn-primary" type="button" id="btn-download"><i class="ph ph-download-simple" aria-hidden="true"></i> Tải lá sớ về máy</button>
+                <button class="btn btn-primary" type="button" id="btn-download"><i class="ph ph-download-simple" aria-hidden="true"></i> Tải Chuyện Nhà Đêm 23 về máy</button>
                 <button class="btn btn-ghost" type="button" id="btn-share-fb"><i class="ph ph-facebook-logo" aria-hidden="true"></i> Facebook</button>
                 <button class="btn btn-ghost" type="button" id="btn-share-tt"><i class="ph ph-tiktok-logo" aria-hidden="true"></i> TikTok</button>
               </div>
               <div class="captions" id="captions"></div>
-              <p class="rules">Thể lệ tóm tắt: đăng lá sớ ở chế độ công khai, kèm #ChuyenNhaTao #YearInValues. <span class="pending">Thể lệ đầy đủ đang được chốt (mục 2.4).</span></p>
+              <p class="rules">Thể lệ tóm tắt: đăng Chuyện Nhà Đêm 23 ở chế độ công khai, kèm #ChuyenNhaTao #YearInValues. <span class="pending">Thể lệ đầy đủ đang được chốt (mục 2.4).</span></p>
             </aside>
           </div>
         </div>
@@ -337,11 +388,11 @@
         <div class="faq reveal">
           <details open>
             <summary>Chúng tôi thu thập gì? <i class="ph ph-plus" aria-hidden="true"></i></summary>
-            <div class="faq-body">Tên hoặc nickname, email (nếu bạn đồng ý), tiến độ đóng dấu, quà vòng quay, và mức độ đọc sách (số lần lật trang, trang đã xem, chương đã nghe) gắn với mã thẻ để ban tổ chức thống kê. Ảnh khoảnh khắc và lời bạn viết trong lá sớ chỉ được xử lý trên máy của bạn, không gửi lên máy chủ.</div>
+            <div class="faq-body">Tên hoặc nickname, email (nếu bạn đồng ý), tiến độ đóng dấu, quà vòng quay, và mức độ đọc sách (số lần lật trang, trang đã xem, chương đã nghe) gắn với mã thẻ để ban tổ chức thống kê. Ảnh khoảnh khắc và lời bạn viết trong Chuyện Nhà Đêm 23 chỉ được xử lý trên máy của bạn, không gửi lên máy chủ.</div>
           </details>
           <details>
             <summary>Dùng để làm gì? <i class="ph ph-plus" aria-hidden="true"></i></summary>
-            <div class="faq-body">Tạo thẻ thông hành và mã QR, xác nhận quà tại sự kiện, mời bạn viết lá sớ gửi Táo (chỉ khi bạn đồng ý), và thống kê nội bộ không gắn tên.</div>
+            <div class="faq-body">Tạo thẻ thông hành và mã QR, xác nhận quà tại sự kiện, mời bạn viết Chuyện Nhà Đêm 23 gửi Táo (chỉ khi bạn đồng ý), và thống kê nội bộ không gắn tên.</div>
           </details>
           <details>
             <summary>Lưu bao lâu, ai xem được? <i class="ph ph-plus" aria-hidden="true"></i></summary>
@@ -374,7 +425,7 @@
             <ul>
               <li><a href="#doc-sach">Đọc sách</a></li>
               <li><a href="#tram-trai-nghiem">Trạm trải nghiệm</a></li>
-              <li><a href="#la-so">Lá sớ gửi Táo</a></li>
+              <li><a href="#la-so">Chuyện Nhà Đêm 23</a></li>
             </ul>
           </div>
           <div>
@@ -395,7 +446,42 @@
 
   <!-- Hộp thoại dùng chung: cảnh báo xoá, trùng tên, lấy lại thẻ (app.js: ask) -->
   <dialog class="dlg" id="dlg" aria-labelledby="dlg-title"></dialog>
-  <!-- Chọn ảnh khoảnh khắc (dùng chung cho trang visa trong hộ chiếu và lá sớ) -->
+
+  <!-- Popup nhận Huy Chương kiểu game khi nghe kể xong -->
+  <div class="medal-modal" id="medal-modal" role="dialog" aria-modal="true" aria-labelledby="medal-modal-congrats" hidden>
+    <div class="medal-modal-backdrop" id="medal-modal-backdrop" aria-hidden="true"></div>
+    <div class="medal-modal-card">
+      <div class="medal-modal-body">
+        <span class="medal-modal-kicker">✦ THÀNH TỰU MỞ KHÓA ✦</span>
+        <div class="medal-modal-stage">
+          <div class="medal-sunburst" aria-hidden="true"></div>
+          <div class="medal-aura-ring ring-1" aria-hidden="true"></div>
+          <div class="medal-aura-ring ring-2" aria-hidden="true"></div>
+          <div class="medal-aura-ring ring-3" aria-hidden="true"></div>
+          <div class="medal-sparkles" aria-hidden="true">
+            <span class="sp-1">✦</span>
+            <span class="sp-2">★</span>
+            <span class="sp-3">✦</span>
+            <span class="sp-4">★</span>
+            <span class="sp-5">✦</span>
+            <span class="sp-6">✦</span>
+          </div>
+          <img class="medal-modal-img" id="medal-modal-img" src="" alt="Huy chương" width="240" height="240">
+          <div class="medal-modal-sheen" aria-hidden="true"></div>
+        </div>
+        <h3 class="medal-modal-congrats" id="medal-modal-congrats">Chúc mừng bạn đã nhận được Huy Chương!</h3>
+        <h4 class="medal-modal-name" id="medal-modal-name">Huy hiệu Hướng Thiện</h4>
+        <p class="medal-modal-desc" id="medal-modal-desc">Dám nhìn thật lòng mình để sống tốt hơn.</p>
+        <div class="medal-modal-actions">
+          <button type="button" class="btn btn-primary medal-modal-stamp-btn" id="medal-modal-stamp-btn">
+            <span>In vào sách ngay</span>
+            <i class="ph ph-stamp" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Chọn ảnh khoảnh khắc (dùng chung cho trang visa trong hộ chiếu và Chuyện Nhà Đêm 23) -->
   <input class="sr-only" type="file" id="moment-input" accept="image/*" tabindex="-1" aria-hidden="true">
   <!-- Ghi chú hướng dẫn kiểu bóng thoại truyện tranh (phần thẻ thông hành): bật lên ~8 giây rồi thu thành bóng thoại góc dưới trái -->
   <aside class="guide" id="guide" hidden>
@@ -406,7 +492,7 @@
         <li><b>Tạo thẻ thông hành</b> ở ô "Tạo thẻ", ở nhà hay tại cổng đều được.</li>
         <li>Đến mỗi trạm, bấm <b>Mở mã QR</b> rồi đưa nhân sự quét. Không quét được thì nhập <b>mã 6 số</b> nhân sự đọc.</li>
         <li>Mỗi dấu được <b>quay vòng may mắn</b> một lần, trúng gì nhận ngay tại trạm.</li>
-        <li>Đủ <b>4 dấu</b> thì ra bàn check-out nhận quà cuối và viết lá sớ.</li>
+        <li>Đủ <b>4 dấu</b> thì ra bàn check-out nhận quà cuối và viết Chuyện Nhà Đêm 23.</li>
       </ol>
       <span class="guide-timer" aria-hidden="true"><i></i></span>
     </div>

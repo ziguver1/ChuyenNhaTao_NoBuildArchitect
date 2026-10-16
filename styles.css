@@ -508,7 +508,29 @@ body::after {
 .pg-seed small { display: block; font-size: 12px; font-weight: 600; color: var(--text-dim); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
 
 /* Trang huy hiệu chương */
-.pg-badge-page { align-items: center; justify-content: center; text-align: center; }
+.pg-body.pg-badge-page {
+  padding: 16px 20px 20px;
+  gap: 0;
+  align-items: center;
+  justify-content: safe center;
+  text-align: center;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.pg-body.pg-badge-page::-webkit-scrollbar {
+  display: none;
+}
+.pg-body.pg-badge-page .pg-kicker {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  text-transform: none;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--cinnabar);
+  letter-spacing: 0.02em;
+  margin: 0 0 2px 0;
+}
 .pg-medal {
   position: relative;
   width: min(260px, 82%);
@@ -516,7 +538,7 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 4px auto 8px;
+  margin: 0 auto;
 }
 .pg-medal-aura {
   position: absolute;
@@ -575,9 +597,395 @@ body::after {
   color: #f6e2a0;
   font-size: 26px;
 }
-.pg-badge-page .pg-kicker { margin-bottom: 2px; }
-.pg-badge-page .pg-title { margin-top: 4px; margin-bottom: 4px; }
-.pg-badge-page .pg-prose { max-width: 32ch; margin-bottom: 12px; }
+.pg-body.pg-badge-page .pg-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  font-size: clamp(20px, 2.2vw, 23px);
+  line-height: 1.2;
+  color: #3b1f0e;
+  letter-spacing: -0.01em;
+  margin: 3px 0 0 0;
+}
+.pg-body.pg-badge-page .pg-title::after {
+  content: "❦";
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(155, 42, 23, .7);
+  font-weight: 400;
+  text-align: center;
+}
+.pg-body.pg-badge-page .pg-prose {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.4;
+  letter-spacing: 0;
+  word-spacing: normal;
+  text-align: center;
+  text-wrap: balance;
+  max-width: 28ch;
+  margin: 5px auto 9px;
+  color: var(--ink-soft);
+  hyphens: none;
+}
+.pg-body.pg-badge-page .btn {
+  --h: 40px;
+  min-height: 40px;
+  padding: 0 20px;
+  font-size: 15.5px;
+  margin-top: 2px;
+}
+
+/* =========================================================================
+   POPUP NHẬN HUY CHƯƠNG KIỂU GAME (Sau khi nghe xong chuyện - Tràn Màn Hình)
+   ========================================================================= */
+.medal-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0;
+}
+.medal-modal[hidden] {
+  display: none !important;
+}
+.medal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(65, 20, 10, 0.88) 0%, rgba(22, 7, 4, 0.96) 65%, rgba(10, 3, 2, 0.99) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: medalBackdropFade 0.45s ease-out;
+  cursor: pointer;
+}
+@keyframes medalBackdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.medal-modal-card {
+  position: relative;
+  z-index: 2;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.medal-modal-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 580px;
+  pointer-events: auto;
+}
+
+.medal-modal-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #fce296;
+  text-shadow: 0 0 14px rgba(252, 226, 150, 0.85);
+  margin-bottom: 4px;
+}
+
+.medal-modal-stage {
+  position: relative;
+  width: min(270px, 72vw);
+  height: min(270px, 72vw);
+  margin: 12px auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 45px rgba(246, 195, 70, 0.65));
+  animation: medalHover 4s ease-in-out infinite alternate;
+}
+@keyframes medalHover {
+  0% { transform: translateY(0) rotate(-1deg); }
+  100% { transform: translateY(-9px) rotate(1deg); }
+}
+
+/* Hào quang xoay trải dài ra tận góc màn hình */
+.medal-sunburst {
+  position: absolute;
+  top: var(--coin-cy, 55%);
+  left: var(--coin-cx, 50%);
+  transform: translate(-50%, -50%);
+  width: 250vmax;
+  height: 250vmax;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 218, 115, 0.22) 0deg 6deg,
+    transparent 6deg 12deg
+  );
+  mask-image: radial-gradient(circle, rgba(0, 0, 0, 0.95) 10%, rgba(0, 0, 0, 0.5) 45%, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 0.95) 10%, rgba(0, 0, 0, 0.5) 45%, transparent 75%);
+  animation: sunburstRotate 32s linear infinite;
+}
+@keyframes sunburstRotate {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Vòng hào quang bám khít vừa vặn theo mặt tròn của Huy Chương */
+.medal-aura-ring {
+  position: absolute;
+  top: var(--coin-cy, 55%);
+  left: var(--coin-cx, 50%);
+  width: var(--coin-dia, 65%);
+  height: var(--coin-dia, 65%);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid rgba(255, 220, 130, 0.75);
+  box-shadow: 0 0 25px rgba(255, 195, 75, 0.65), inset 0 0 16px rgba(255, 195, 75, 0.35);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  animation: medalAuraPulse 3s ease-out infinite;
+}
+.medal-aura-ring.ring-1 {
+  animation-delay: 0s;
+}
+.medal-aura-ring.ring-2 {
+  border-color: rgba(255, 175, 45, 0.45);
+  animation-delay: 1s;
+}
+.medal-aura-ring.ring-3 {
+  border-color: rgba(255, 225, 130, 0.25);
+  animation-delay: 2s;
+}
+@keyframes medalAuraPulse {
+  0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0; }
+  12% { opacity: 0.95; }
+  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.55; }
+  100% { transform: translate(-50%, -50%) scale(1.22); opacity: 0; }
+}
+
+/* Ảnh huy chương nằm ở tầng giữa */
+.medal-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Ô tròn hiệu ứng bóng/ánh sáng phủ vừa khít mặt tròn của Huy Chương */
+.medal-modal-sheen {
+  position: absolute;
+  top: var(--coin-cy, 55%);
+  left: var(--coin-cx, 50%);
+  width: var(--coin-dia, 65%);
+  height: var(--coin-dia, 65%);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 3;
+  pointer-events: none;
+}
+.medal-modal-sheen::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    125deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.18) 45%,
+    rgba(255, 255, 255, 0.72) 50%,
+    rgba(255, 255, 255, 0.18) 55%,
+    transparent 62%
+  );
+  transform: translate(-100%, -100%);
+  opacity: 0;
+  animation: medalSheenSweep 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes medalSheenSweep {
+  0% {
+    transform: translate(-100%, -100%);
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  42% {
+    transform: translate(100%, 100%);
+    opacity: 1;
+  }
+  45% {
+    transform: translate(100%, 100%);
+    opacity: 0;
+  }
+  46%, 100% {
+    transform: translate(-100%, -100%);
+    opacity: 0;
+  }
+}
+
+/* Ngôi sao lấp lánh bay quanh viền tròn huy chương */
+.medal-sparkles {
+  position: absolute;
+  top: var(--coin-cy, 55%);
+  left: var(--coin-cx, 50%);
+  width: calc(var(--coin-dia, 65%) + 40px);
+  height: calc(var(--coin-dia, 65%) + 40px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 4;
+}
+.medal-sparkles span {
+  position: absolute;
+  color: #ffe699;
+  text-shadow: 0 0 10px #ffcc00;
+  animation: medalSparkleFloat 2.6s ease-in-out infinite alternate;
+}
+.medal-sparkles .sp-1 { top: 4%; left: 8%; font-size: 18px; animation-delay: 0.1s; }
+.medal-sparkles .sp-2 { top: 8%; right: 6%; font-size: 16px; animation-delay: 0.7s; color: #ffbe3b; }
+.medal-sparkles .sp-3 { bottom: 8%; left: 6%; font-size: 17px; animation-delay: 1.2s; }
+.medal-sparkles .sp-4 { bottom: 6%; right: 8%; font-size: 20px; animation-delay: 0.4s; color: #fff1be; }
+.medal-sparkles .sp-5 { top: -8%; left: 48%; font-size: 15px; animation-delay: 0.9s; }
+.medal-sparkles .sp-6 { bottom: -8%; right: 46%; font-size: 14px; animation-delay: 1.5s; }
+@keyframes medalSparkleFloat {
+  0% { transform: translateY(0) scale(0.85); opacity: 0.5; }
+  100% { transform: translateY(-8px) scale(1.2); opacity: 1; }
+}
+
+.medal-modal-congrats {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(20px, 3.8vw, 28px);
+  font-weight: 700;
+  color: #fff9ea;
+  line-height: 1.25;
+  margin: 6px 0 4px;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.75);
+}
+.medal-modal-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(28px, 5.2vw, 42px);
+  font-weight: 800;
+  margin: 4px 0 8px;
+  line-height: 1.2;
+  background: linear-gradient(180deg, #ffffff 0%, #ffe07a 40%, #e59d28 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 3px 12px rgba(229, 157, 40, 0.55));
+}
+.medal-modal-desc {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(17px, 2.8vw, 21px);
+  line-height: 1.45;
+  color: rgba(255, 238, 205, 0.95);
+  max-width: 36ch;
+  margin: 0 auto 24px;
+  text-wrap: balance;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+.medal-modal-stamp-btn {
+  --h: 48px;
+  min-height: 48px;
+  padding: 0 30px;
+  font-size: 16.5px;
+  font-weight: 700;
+  font-family: 'Playfair Display', Georgia, serif;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #c43820 0%, #881b0e 100%) !important;
+  border: 1.5px solid rgba(255, 225, 140, 0.75) !important;
+  border-radius: var(--radius-pill);
+  color: #fff8e8 !important;
+  box-shadow:
+    0 0 28px rgba(196, 56, 32, 0.7),
+    0 8px 18px rgba(0, 0, 0, 0.45),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+.medal-modal-stamp-btn:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 36px rgba(220, 70, 40, 0.85),
+    0 10px 22px rgba(0, 0, 0, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+.medal-modal-stamp-btn:active {
+  transform: scale(0.96);
+}
+
+/* Hiệu ứng in huy chương vào trang sách */
+.pg-medal.is-stamping {
+  animation: medalStampImpact 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.3) forwards;
+}
+@keyframes medalStampImpact {
+  0% {
+    transform: scale(2.4) rotate(-8deg);
+    filter: brightness(2) drop-shadow(0 0 50px rgba(255, 215, 100, 1));
+    opacity: 0;
+  }
+  45% {
+    transform: scale(0.92) rotate(2deg);
+    filter: brightness(1.6) drop-shadow(0 0 30px rgba(255, 215, 100, 0.8));
+    opacity: 1;
+  }
+  70% {
+    transform: scale(1.06) rotate(-1deg);
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    filter: drop-shadow(0 10px 18px rgba(150, 85, 20, 0.32)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+    opacity: 1;
+  }
+}
+.stamp-shockwave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  margin-left: -70px;
+  margin-top: -70px;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 3px solid rgba(246, 212, 123, 0.9);
+  box-shadow: 0 0 30px rgba(246, 200, 80, 0.8), inset 0 0 20px rgba(246, 200, 80, 0.6);
+  animation: shockwaveExpand 0.9s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+  z-index: 5;
+}
+@keyframes shockwaveExpand {
+  0% { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
 
 /* Trang tổng kết: 4 huy hiệu gọn trong 1 trang */
 .pg-badges { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px; }
@@ -692,7 +1100,7 @@ body::after {
   .pg-title { font-size: 19px; }
   .pg-art-icon { font-size: 72px; }
   .pg-seed { font-size: 15px; }
-  .pg-medal { width: min(230px, 76vw); height: 230px; margin: 4px auto 6px; }
+  .pg-medal { margin: 0 auto; }
   .pg-badges .badge { padding: 8px 4px 10px; min-height: 155px; }
   .pg-badges .badge .disc { width: 84px; height: 84px; }
   .pg-badges .badge h4 { font-size: 12px; }
@@ -1739,7 +2147,7 @@ body::after {
 .pp-photo-add:hover { background: rgba(46, 125, 79, .1); }
 
 /* =========================================================================
-   LÁ SỚ GỬI TÁO (S07–S08) - CÕI TRỜI ĐÊM 23 THÁNG CHẠP (CELESTIAL NIGHT SKY)
+   CHUYỆN NHÀ ĐÊM 23 (S07–S08) - CÕI TRỜI ĐÊM 23 THÁNG CHẠP (CELESTIAL NIGHT SKY)
    ========================================================================= */
 #la-so {
   position: relative;
@@ -1763,7 +2171,7 @@ body::after {
 }
 #la-so .container {
   position: relative;
-  z-index: 2; /* Nội dung lá sớ nằm trên canvas */
+  z-index: 2; /* Nội dung Chuyện Nhà Đêm 23 nằm trên canvas */
 }
 
 #la-so .tag-phase {
@@ -1818,7 +2226,7 @@ body::after {
   background: rgba(28, 26, 44, 0.55);
 }
 
-/* Thẻ xem trước Lá sớ rực sáng uy nghi giữa trời đêm */
+/* Thẻ xem trước Chuyện Nhà Đêm 23 rực sáng uy nghi giữa trời đêm */
 #la-so .ugc-preview {
   background: rgba(255, 252, 244, 0.98);
   box-shadow: 0 24px 65px -16px rgba(0, 0, 0, 0.85), 0 0 50px -2px rgba(240, 184, 71, 0.5);
@@ -2705,6 +3113,290 @@ body::after {
   .qr-fallback-section {
     margin-top: 8px;
     padding-top: 10px;
+  }
+}
+
+/* ===================================================================
+   S00 · SITE INTRO ANIMATION (Màn chào hỏi động trước khi vào web)
+   =================================================================== */
+.site-intro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 45%, #fffefb 0%, #faf3e6 55%, #eedec7 100%);
+  overflow: hidden;
+  user-select: none;
+  transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+              visibility 0.85s;
+  will-change: opacity, transform;
+}
+
+.site-intro-overlay.intro-dismissed {
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(1.06);
+  pointer-events: none;
+}
+
+/* Ambient background effects */
+.intro-bg-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.intro-cloud {
+  position: absolute;
+  width: clamp(240px, 35vw, 420px);
+  height: clamp(80px, 12vw, 150px);
+  background: radial-gradient(ellipse at center, rgba(255, 235, 204, 0.45) 0%, rgba(255, 245, 230, 0) 70%);
+  border-radius: 50%;
+  filter: blur(24px);
+  opacity: 0.7;
+}
+.intro-cloud-1 { top: 10%; left: -5%; animation: introCloudFloat 18s ease-in-out infinite alternate; }
+.intro-cloud-2 { bottom: 15%; right: -5%; animation: introCloudFloat 22s ease-in-out infinite alternate-reverse; }
+.intro-cloud-3 { top: 60%; left: 15%; width: 280px; height: 90px; opacity: 0.4; }
+
+@keyframes introCloudFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -15px) scale(1.08); }
+  100% { transform: translate(-20px, 10px) scale(0.96); }
+}
+
+/* Skip button */
+.intro-skip-btn {
+  position: absolute;
+  top: clamp(16px, 3.5vw, 28px);
+  right: clamp(16px, 3.5vw, 32px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  font-family: 'Be Vietnam Pro', -apple-system, sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #8c2a1e;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(212, 148, 58, 0.45);
+  border-radius: 999px;
+  box-shadow: 0 4px 16px rgba(140, 42, 30, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.intro-skip-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #d4943a;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 20px rgba(140, 42, 30, 0.15);
+  color: #b8241c;
+}
+.intro-skip-btn svg {
+  transition: transform 0.2s ease;
+}
+.intro-skip-btn:hover svg {
+  transform: translateX(2px);
+}
+
+/* Central Stage */
+.intro-stage {
+  position: relative;
+  width: min(88vw, 840px);
+  max-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.intro-logo-canvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1135 / 677;
+  display: block;
+}
+
+/* Base Word Elements (Liền khối 3D, không một vết cắt rách) */
+.intro-word {
+  position: absolute;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 10px 22px rgba(184, 80, 20, 0.16));
+  transform-origin: center bottom;
+  will-change: transform;
+}
+
+/* Coordinate mapping (matching exact 1135x677 measurements) */
+.intro-word-huyen {
+  left: 20.70%;
+  top: 21.27%;
+  width: 79.38%;
+  z-index: 2;
+}
+
+.intro-word-nha {
+  left: 3.61%;
+  top: 57.61%;
+  width: 48.55%;
+  z-index: 3;
+}
+
+.intro-word-tao {
+  left: 54.27%;
+  top: 56.13%;
+  width: 45.73%;
+  z-index: 4;
+}
+
+/* Actor 1: Koi Fish (chữ C) */
+.intro-fish-wrapper {
+  position: absolute;
+  left: 0.00%;
+  top: 8.42%;
+  width: 30.84%;
+  z-index: 6;
+  pointer-events: none;
+  transform-origin: 40% 50%;
+  will-change: transform;
+}
+
+.intro-fish {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 14px 28px rgba(184, 36, 28, 0.28));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Water swirl behind fish when swimming */
+.fish-water-swirl {
+  position: absolute;
+  inset: -15%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 40% 50%, rgba(255, 180, 80, 0.35) 0%, rgba(255, 215, 120, 0) 65%);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.6);
+  transition: opacity 0.3s ease;
+}
+
+/* Actor 2: Mandarin Hat (dấu ^ trên chữ E) */
+.intro-hat-wrapper {
+  position: absolute;
+  left: 59.65%;
+  top: 0.00%;
+  width: 31.89%;
+  z-index: 7;
+  pointer-events: none;
+  transform-origin: 50% 85%;
+  will-change: transform;
+}
+
+.intro-hat {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 12px 24px rgba(184, 36, 28, 0.22));
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Impact shockwave when hat lands on E */
+.hat-impact-wave {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 120%;
+  height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(245, 166, 35, 0.8);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Shimmer gleam across the whole logo */
+.intro-shimmer {
+  position: absolute;
+  inset: -10% -20%;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.45) 45%,
+    rgba(255, 240, 200, 0.75) 50%,
+    rgba(255, 255, 255, 0.45) 55%,
+    transparent 80%
+  );
+  transform: translateX(-150%);
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+}
+
+/* Synchronized CSS Bounce Dance animation */
+@keyframes syncBounceLoop {
+  0%, 100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  25% {
+    transform: translateY(-24px) scale(0.94, 1.08);
+  }
+  50% {
+    transform: translateY(0) scale(1.08, 0.92);
+  }
+  65% {
+    transform: translateY(-8px) scale(0.98, 1.03);
+  }
+  80% {
+    transform: translateY(0) scale(1.02, 0.98);
+  }
+}
+
+.intro-letter.sync-dancing {
+  animation: syncBounceLoop 1.6s ease-in-out infinite;
+}
+
+/* Footer Hint */
+.intro-footer-hint {
+  position: absolute;
+  bottom: clamp(18px, 4vh, 32px);
+  text-align: center;
+  z-index: 2;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.intro-footer-hint.visible {
+  opacity: 0.85;
+  transform: translateY(0);
+}
+.intro-hint-text {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: clamp(14px, 1.8vw, 17px);
+  font-style: italic;
+  color: #7b432e;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive tweaks for smaller screens */
+@media (max-width: 600px) {
+  .intro-stage {
+    width: 94vw;
+  }
+  .intro-skip-btn {
+    padding: 6px 14px;
+    font-size: 12.5px;
   }
 }
 

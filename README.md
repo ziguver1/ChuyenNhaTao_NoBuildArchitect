@@ -56,9 +56,9 @@ Chạy `npm start`, xem địa chỉ IP máy tính bằng lệnh `ipconfig` (dò
 
 ```
 ChuyenNhaTao/
-├─ index.html        Bố cục trang: hero, sách, thẻ thông hành, lá sớ, dữ liệu cá nhân
+├─ index.html        Bố cục trang: hero, sách, thẻ thông hành, Chuyện Nhà Đêm 23, dữ liệu cá nhân
 ├─ styles.css        Giao diện (tông sáng, hero tông đêm), responsive từ 360px
-├─ app.js            Logic: sách 4 chương, nghe chuyện, thẻ thông hành, vòng quay, lá sớ, đo lường
+├─ app.js            Logic: sách 4 chương, nghe chuyện, thẻ thông hành, vòng quay, Chuyện Nhà Đêm 23, đo lường
 ├─ ca-chep.js        Cảnh 3D hero: cá chép + 500 đèn trời
 ├─ admin.html/.js    Trang quản trị: số liệu từng mã thẻ, in mã QR cổng và trạm
 ├─ api/
@@ -82,7 +82,7 @@ Thư viện (three.js r147, GSAP 3.12, QRCode.js, StPageFlip, Phosphor Icons, fo
 2. **Tạo thẻ thông hành:** nhập tên là có hộ chiếu và mã QR riêng. Tạo trước ở nhà hoặc ngay tại cổng đều được.
 3. **Check-in ở cổng (tuỳ chọn):** quét QR ở cổng (`?vao=CONG23`) để ghi nhận đã tới sự kiện, admin xem được.
 4. **Đi 4 trạm (chỉ ở sự kiện):** quét QR ở trạm (`?tram=HUONG1`...) hoặc nhập mã in dưới QR. Dấu đóng vào trang visa, sau đó **quay vòng may mắn** một lần (sticker 45%, móc khoá 20%, blindbox 5%, không có gì 30%; mỗi thẻ chỉ trúng ô trống tối đa 1 lần). Chưa có thẻ mà quét QR trạm thì tạo thẻ xong dấu được đóng ngay.
-5. **Check-out:** đủ 4 dấu thì nhận quà cuối bằng mã QUA-XXXX, và mở **lá sớ gửi Táo** để chia sẻ.
+5. **Check-out:** đủ 4 dấu thì nhận quà cuối bằng mã QUA-XXXX, và mở **Chuyện Nhà Đêm 23** để chia sẻ.
 
 **Mã dùng thử:** cổng `CONG23`, trạm `HUONG1`, `MAIAM2`, `NEPNH3`, `TOTLA4`. Trang quản trị có sẵn 5 mã QR để in.
 
@@ -98,7 +98,7 @@ Thư viện (three.js r147, GSAP 3.12, QRCode.js, StPageFlip, Phosphor Icons, fo
 | Mã cổng | `app.js` `GATE_CODE` và `admin.js` `GATE_CODE` (đổi cả hai) |
 | Tên 4 trạm và mã trạm | `app.js` `STATIONS` và `admin.js` `STATIONS` |
 | Quà vòng quay và tỉ lệ trúng | `app.js` `PRIZES` (tên quà), `WHEEL` (12 ô, mỗi ô một `share`, tổng 100) và `api/_store.js` `PRIZE_WEIGHTS` (máy chủ bốc theo tỉ lệ này) |
-| Gợi ý lời trong lá sớ | `app.js`, mảng `VALUES` |
+| Gợi ý lời trong Chuyện Nhà Đêm 23 | `app.js`, mảng `VALUES` |
 | Ngày giờ, địa điểm sự kiện | `app.js`, trang sự kiện trong sách (đang ghi "Sắp công bố") |
 | Màu sắc, font | `styles.css`, các biến trong `:root` |
 
@@ -138,7 +138,7 @@ Khi đã nối kho dữ liệu (mục 5), thẻ được lưu trên máy chủ v
 
 ## 7. Một số điểm kỹ thuật
 
-- **Lưu trữ:** thẻ, dấu trạm, quà, ảnh khoảnh khắc và lá sớ lưu trong `localStorage` của người chơi. Số liệu đo lường gửi lên `/api/track` (Upstash Redis). Ảnh và lời trong lá sớ không gửi lên máy chủ.
+- **Lưu trữ:** thẻ, dấu trạm, quà, ảnh khoảnh khắc và Chuyện Nhà Đêm 23 lưu trong `localStorage` của người chơi. Số liệu đo lường gửi lên `/api/track` (Upstash Redis). Ảnh và lời trong Chuyện Nhà Đêm 23 không gửi lên máy chủ.
 - **Mất mạng:** thẻ tạo lúc mất mạng có mã `OFF-`, có mạng lại tự đổi sang `TAO-`. Sự kiện đo lường được giữ lại trên máy và gửi khi có mạng.
 - **Vòng quay:** khi có máy chủ, quà do máy chủ bốc lúc staff đóng dấu (tỉ lệ ở `api/_store.js` `PRIZE_WEIGHTS`, giữ khớp `WHEEL` trong `app.js`), điện thoại chỉ diễn hoạt cảnh. Không có máy chủ thì quay trên máy người chơi.
 - **Analytics:** sự kiện cũng được đẩy vào `window.dataLayer`, gắn Google Tag Manager là đọc được.

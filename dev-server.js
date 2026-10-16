@@ -29,8 +29,9 @@ const ROOT = __dirname;
 process.env.ADMIN_KEY = process.env.ADMIN_KEY || 'admin123';
 process.env.STAFF_KEY = process.env.STAFF_KEY || 'staff123';
 
-// Redis giả lập: chỉ những lệnh dự án dùng
-if (!process.env.KV_REST_API_URL && !process.env.UPSTASH_REDIS_REST_URL) {
+// Redis giả lập: kích hoạt khi chưa có cấu hình Upstash thực tế
+const isRealUrl = (s) => Boolean(s && !s.includes('your-upstash-redis') && !s.includes('example'));
+if (!isRealUrl(process.env.KV_REST_API_URL) && !isRealUrl(process.env.UPSTASH_REDIS_REST_URL)) {
   process.env.KV_REST_API_URL = 'http://memory.redis';
   process.env.KV_REST_API_TOKEN = 'local';
   const db = { h: {}, s: {}, z: {}, k: {} };

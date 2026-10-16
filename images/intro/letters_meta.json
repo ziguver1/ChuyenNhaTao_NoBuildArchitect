@@ -1,0 +1,132 @@
+[
+  {
+    "name": "intro_fish",
+    "x": 0,
+    "y": 57,
+    "w": 344,
+    "h": 371,
+    "leftPct": "0.00",
+    "topPct": "8.42",
+    "widthPct": "30.31"
+  },
+  {
+    "name": "intro_hat",
+    "x": 677,
+    "y": 0,
+    "w": 362,
+    "h": 144,
+    "leftPct": "59.65",
+    "topPct": "0.00",
+    "widthPct": "31.89"
+  },
+  {
+    "name": "letter_h1",
+    "x": 260,
+    "y": 160,
+    "w": 156,
+    "h": 226,
+    "leftPct": "22.91",
+    "topPct": "23.63",
+    "widthPct": "13.74"
+  },
+  {
+    "name": "letter_u",
+    "x": 416,
+    "y": 160,
+    "w": 110,
+    "h": 217,
+    "leftPct": "36.65",
+    "topPct": "23.63",
+    "widthPct": "9.69"
+  },
+  {
+    "name": "letter_y",
+    "x": 526,
+    "y": 160,
+    "w": 160,
+    "h": 226,
+    "leftPct": "46.34",
+    "topPct": "23.63",
+    "widthPct": "14.10"
+  },
+  {
+    "name": "letter_e",
+    "x": 686,
+    "y": 144,
+    "w": 240,
+    "h": 307,
+    "leftPct": "60.44",
+    "topPct": "21.27",
+    "widthPct": "21.15"
+  },
+  {
+    "name": "letter_n1",
+    "x": 926,
+    "y": 145,
+    "w": 210,
+    "h": 234,
+    "leftPct": "81.59",
+    "topPct": "21.42",
+    "widthPct": "18.50"
+  },
+  {
+    "name": "letter_n2",
+    "x": 41,
+    "y": 400,
+    "w": 205,
+    "h": 273,
+    "leftPct": "3.61",
+    "topPct": "59.08",
+    "widthPct": "18.06"
+  },
+  {
+    "name": "letter_h2",
+    "x": 246,
+    "y": 400,
+    "w": 160,
+    "h": 273,
+    "leftPct": "21.67",
+    "topPct": "59.08",
+    "widthPct": "14.10"
+  },
+  {
+    "name": "letter_a1",
+    "x": 407,
+    "y": 393,
+    "w": 185,
+    "h": 280,
+    "leftPct": "35.86",
+    "topPct": "58.05",
+    "widthPct": "16.30"
+  },
+  {
+    "name": "letter_t",
+    "x": 619,
+    "y": 453,
+    "w": 147,
+    "h": 222,
+    "leftPct": "54.54",
+    "topPct": "66.91",
+    "widthPct": "12.95"
+  },
+  {
+    "name": "letter_a2",
+    "x": 766,
+    "y": 390,
+    "w": 170,
+    "h": 284,
+    "leftPct": "67.49",
+    "topPct": "57.61",
+    "widthPct": "14.98"
+  },
+  {
+    "name": "letter_o",
+    "x": 936,
+    "y": 454,
+    "w": 199,
+    "h": 222,
+    "leftPct": "82.47",
+    "topPct": "67.06",
+    "widthPct": "17.53"
+  }
+]
