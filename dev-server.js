@@ -29,11 +29,19 @@ const ROOT = __dirname;
 process.env.ADMIN_KEY = process.env.ADMIN_KEY || 'admin123';
 process.env.STAFF_KEY = process.env.STAFF_KEY || 'staff123';
 
-// Redis giả lập: kích hoạt khi chưa có cấu hình Upstash thực tế
+const https = require('https');
+const keepAliveAgent = new https.Agent({ keepAlive: true, keepAliveMsecs: 30000 });
+
+// Redis giả lập: kích hoạt khi chưa có cấu hình Upstash thực tế hoặc khi bật USE_LOCAL_REDIS=true
 const isRealUrl = (s) => Boolean(s && !s.includes('your-upstash-redis') && !s.includes('example'));
-if (!isRealUrl(process.env.KV_REST_API_URL) && !isRealUrl(process.env.UPSTASH_REDIS_REST_URL)) {
+const forceLocalRedis = process.env.USE_LOCAL_REDIS === 'true' || process.env.LOCAL_REDIS === 'true' || process.env.LOCAL_REDIS === '1';
+
+if (forceLocalRedis || (!isRealUrl(process.env.KV_REST_API_URL) && !isRealUrl(process.env.UPSTASH_REDIS_REST_URL))) {
+  process.env.UPSTASH_REDIS_REST_URL = 'http://memory.redis';
+  process.env.UPSTASH_REDIS_REST_TOKEN = 'local';
   process.env.KV_REST_API_URL = 'http://memory.redis';
   process.env.KV_REST_API_TOKEN = 'local';
+  console.log('[Dev-Server] Đang sử dụng Redis giả lập trong bộ nhớ (In-Memory) -> Phản hồi 0ms, không phụ thuộc mạng.');
   const db = { h: {}, s: {}, z: {}, k: {} };
   const run = ([cmd, k, ...a]) => {
     switch (cmd) {
@@ -56,6 +64,43 @@ if (!isRealUrl(process.env.KV_REST_API_URL) && !isRealUrl(process.env.UPSTASH_RE
     if (!String(url).startsWith('http://memory.redis')) return realFetch(url, opt);
     const out = JSON.parse(opt.body).map((c) => ({ result: run(c) }));
     return { ok: true, json: async () => out };
+  };
+} else {
+  console.log(`[Dev-Server] Đang kết nối Upstash Redis từ xa: ${process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL}`);
+  console.log('             (Mẹo: Đặt USE_LOCAL_REDIS=true trong .env nếu mạng quốc tế chậm hoặc gặp lỗi fetch failed)');
+  const realFetch = global.fetch;
+  global.fetch = async (url, opt = {}) => {
+    const urlStr = String(url);
+    if (!urlStr.startsWith('https://')) return realFetch(url, opt);
+    return new Promise((resolve, reject) => {
+      const parsed = new URL(urlStr);
+      const req = https.request(parsed, {
+        method: opt.method || 'GET',
+        headers: opt.headers || {},
+        agent: keepAliveAgent,
+        timeout: 30000
+      }, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            json: async () => JSON.parse(data),
+            text: async () => data
+          });
+        });
+      });
+      req.on('timeout', () => {
+        req.destroy(new Error(`Timeout kết nối tới ${parsed.hostname} (> 30s). Hãy thử bật USE_LOCAL_REDIS=true trong .env`));
+      });
+      req.on('error', (err) => {
+        console.error(`[Dev-Server Lỗi Upstash]: ${err.message}`);
+        reject(err);
+      });
+      if (opt.body) req.write(opt.body);
+      req.end();
+    });
   };
 }
 

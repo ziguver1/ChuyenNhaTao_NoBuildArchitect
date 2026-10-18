@@ -157,7 +157,8 @@
       dlg.addEventListener('cancel', () => done(''), { once: true });
       dlg.addEventListener('close', () => done(dlg.returnValue), { once: true });
       dlg.showModal();
-      if (hasGsap && !reduceMotion) gsap.from('.dlg-box', { y: 18, opacity: 0, duration: 0.3, ease: 'power2.out' });
+      const dlgBox = $('.dlg-box', dlg);
+      if (hasGsap && !reduceMotion && dlgBox) gsap.from(dlgBox, { y: 18, opacity: 0, duration: 0.3, ease: 'power2.out' });
     });
   }
   // Bỏ dấu, viết hoa: so tên trùng và chữ xác nhận không phụ thuộc cách gõ dấu
@@ -886,7 +887,8 @@
         ? `<button class="btn btn-primary" type="button" data-goto="${P.summary}">Xem bộ huy hiệu <i class="ph ph-arrow-right" aria-hidden="true"></i></button>`
         : `<button class="btn btn-primary" type="button" data-goto="${P.art(i + 1)}">Sang chương ${i + 2} <i class="ph ph-arrow-right" aria-hidden="true"></i></button>`)
         : `<button class="btn btn-ghost" type="button" data-goto="${P.game(i)}"><i class="ph ph-arrow-left" aria-hidden="true"></i> Về câu chuyện</button>`}`;
-    if (animate && hasGsap && !reduceMotion) gsap.from($('.pg-medal', pg), { scale: 0.3, rotation: -20, duration: 0.7, ease: 'back.out(2)', delay: 0.2 });
+    const pgMedal = $('.pg-medal', pg);
+    if (animate && hasGsap && !reduceMotion && pgMedal) gsap.from(pgMedal, { scale: 0.3, rotation: -20, duration: 0.7, ease: 'back.out(2)', delay: 0.2 });
   }
 
   function completeChapter(i) {
@@ -1576,16 +1578,8 @@
   function ppPageHTML(n) {
     const total = pass.stamps.length;
     if (n === PP.cover) return `
-      <div class="pp-cover">
-        <p class="pp-cover-top">CHUYỆN NHÀ TÁO</p>
-        <div class="pp-emblem" aria-hidden="true">
-          <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="60" cy="60" r="46" fill="none" stroke="currentColor" stroke-width="1.2"/>
-          ${[0, 1, 2, 3, 4].map((k) => { const a = (-150 + k * 30) * Math.PI / 180; return `<text x="${60 + 36 * Math.cos(a)}" y="${60 + 36 * Math.sin(a) + 4}" text-anchor="middle" font-size="11" fill="currentColor">★</text>`; }).join('')}
-          <text x="60" y="74" text-anchor="middle" font-family="Be Vietnam Pro, Arial" font-size="26" font-weight="800" fill="currentColor">Táo</text></svg>
-        </div>
-        <p class="pp-cover-title">THẺ THÔNG HÀNH</p>
-        <p class="pp-cover-sub">PASSPORT · ĐÊM 23 THÁNG CHẠP</p>
-        <span class="pp-chip" aria-hidden="true"><svg viewBox="0 0 48 32"><rect x="1.5" y="1.5" width="45" height="29" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="16" r="7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="1.5" y1="16" x2="17" y2="16" stroke="currentColor" stroke-width="2"/><line x1="31" y1="16" x2="46.5" y2="16" stroke="currentColor" stroke-width="2"/></svg></span>
+      <div class="pp-cover pp-cover-front">
+        <img class="pp-cover-img" src="images/passport/biapassport.png" alt="Thẻ Thông Hành - Vân Du Ký - Chuyện Nhà Táo" draggable="false">
       </div>`;
     if (n === PP.data) {
       const nameMRZ = pass.nickname.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'D').toUpperCase().replace(/[^A-Z0-9]+/g, '<');
@@ -1657,7 +1651,9 @@
         <p class="pp-note">Ở mỗi trang visa, bạn lưu được một ảnh khoảnh khắc của trạm đó. Đủ bốn dấu, các ảnh sẽ được dán vào Chuyện Nhà Đêm 23 gửi Táo.</p>
         <div class="pp-lines" aria-hidden="true">${'<span></span>'.repeat(9)}</div>
       </div>`;
-    return `<div class="pp-cover pp-cover-back"><div class="pp-emblem pp-emblem-sm" aria-hidden="true"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="currentColor" stroke-width="3"/><text x="60" y="72" text-anchor="middle" font-family="Be Vietnam Pro, Arial" font-size="26" font-weight="800" fill="currentColor">Táo</text></svg></div><p class="pp-cover-sub">#ChuyenNhaTao</p></div>`;
+    return `<div class="pp-cover pp-cover-back">
+      <img class="pp-cover-img" src="images/passport/biasaupassport.png" alt="Bìa sau Thẻ Thông Hành - Chuyện Nhà Táo" draggable="false">
+    </div>`;
   }
 
   function ppStatus(p) {
@@ -2233,7 +2229,109 @@
     { name: 'Tốt Lành', icon: 'fish', lines: ['Mang ước mong cả nhà khỏe mạnh sang năm mới.', 'Dám bắt đầu lại một điều còn dang dở.', 'Như cá chép, gặp khó vẫn bơi tiếp.'] }
   ];
   const letter = Object.assign({ picks: [0, 0, 0, 0], custom: ['', '', '', ''] }, store.get('letter', {}));
-  const ugc = { ratio: '1:1', caption: 0 };
+  const FRAME_CONFIG = {
+    '1': {
+      id: '1',
+      name: 'Khung 1: Xanh Dương',
+      tag: 'Pastel Sky',
+      src: 'images/chuyendem23/khungnoidung/1.png',
+      ink: '#1c3558',
+      inkMuted: '#365784'
+    },
+    '2': {
+      id: '2',
+      name: 'Khung 2: Xanh Cốm',
+      tag: 'Pastel Mint',
+      src: 'images/chuyendem23/khungnoidung/2.png',
+      ink: '#163830',
+      inkMuted: '#35675b'
+    },
+    '3': {
+      id: '3',
+      name: 'Khung 3: Kem Cổ Điển',
+      tag: 'Vintage Sepia',
+      src: 'images/chuyendem23/khungnoidung/3.png',
+      ink: '#422312',
+      inkMuted: '#8b5035'
+    },
+    '4': {
+      id: '4',
+      name: 'Khung 4: Tím Mộng Mơ',
+      tag: 'Pastel Lavender',
+      src: 'images/chuyendem23/khungnoidung/4.png',
+      ink: '#2e1948',
+      inkMuted: '#61417e'
+    },
+    '5': {
+      id: '5',
+      name: 'Khung 5: Hồng Phấn',
+      tag: 'Pastel Pink',
+      src: 'images/chuyendem23/khungnoidung/5.png',
+      ink: '#3b1232',
+      inkMuted: '#642557'
+    }
+  };
+  const COLOR_PRESETS = [
+    { name: 'Vàng Chanh & Xanh Tiffany', bg: '#faeb77', dot: '#4ec5cb' },
+    { name: 'Xanh Tiffany & Vàng Chanh', bg: '#4ec5cb', dot: '#faeb77' },
+    { name: 'Hồng Phấn & Tím Mận', bg: '#f9d2de', dot: '#70224d' },
+    { name: 'Kem Dó & Rêu Xanh', bg: '#fbf4e2', dot: '#2d6046' },
+    { name: 'Tím Tử Đinh Hương & Nho', bg: '#e4d2f5', dot: '#531b78' },
+    { name: 'Đỏ Son & Vàng Kim', bg: '#bf3322', dot: '#f7ca48' },
+    { name: 'Trời Đêm & Vàng Sao', bg: '#18192a', dot: '#ffd166' }
+  ];
+
+  // 16 Sticker Trang trí Tết (8 Cá Chép, 8 Hoa Sen)
+  const STICKER_CATALOG = [
+    // 8 Cá Chép
+    { id: 'cachep1', name: 'Cá Chép 1', tag: 'Vượt Vũ Môn', category: 'fish', src: 'images/chuyendem23/sticker/cachep1.png' },
+    { id: 'cachep2', name: 'Cá Chép 2', tag: 'Vẫy Đuôi',   category: 'fish', src: 'images/chuyendem23/sticker/cachep2.png' },
+    { id: 'cachep3', name: 'Cá Chép 3', tag: 'Cá Vàng',    category: 'fish', src: 'images/chuyendem23/sticker/cachep3.png' },
+    { id: 'cachep4', name: 'Cá Chép 4', tag: 'Trông Trăng', category: 'fish', src: 'images/chuyendem23/sticker/cachep4.png' },
+    { id: 'cachep5', name: 'Cá Chép 5', tag: 'Tài Lộc',    category: 'fish', src: 'images/chuyendem23/sticker/cachep5.png' },
+    { id: 'cachep6', name: 'Cá Chép 6', tag: 'Bay Lượn',   category: 'fish', src: 'images/chuyendem23/sticker/cachep6.png' },
+    { id: 'cachep7', name: 'Cá Chép 7', tag: 'Nghinh Xuân', category: 'fish', src: 'images/chuyendem23/sticker/cachep7.png' },
+    { id: 'cachep8', name: 'Cá Chép 8', tag: 'Đại Cát',    category: 'fish', src: 'images/chuyendem23/sticker/cachep8.png' },
+    // 8 Hoa Sen
+    { id: 'hoasen1', name: 'Hoa Sen 1', tag: 'Nở Rộ',      category: 'lotus', src: 'images/chuyendem23/sticker/hoasen1.png' },
+    { id: 'hoasen2', name: 'Hoa Sen 2', tag: 'Búp Sen',    category: 'lotus', src: 'images/chuyendem23/sticker/hoasen2.png' },
+    { id: 'hoasen3', name: 'Hoa Sen 3', tag: 'Thanh Khiết', category: 'lotus', src: 'images/chuyendem23/sticker/hoasen3.png' },
+    { id: 'hoasen4', name: 'Hoa Sen 4', tag: 'Cánh Sen',   category: 'lotus', src: 'images/chuyendem23/sticker/hoasen4.png' },
+    { id: 'hoasen5', name: 'Hoa Sen 5', tag: 'Duyên Dáng', category: 'lotus', src: 'images/chuyendem23/sticker/hoasen5.png' },
+    { id: 'hoasen6', name: 'Hoa Sen 6', tag: 'Nụ Sen',     category: 'lotus', src: 'images/chuyendem23/sticker/hoasen6.png' },
+    { id: 'hoasen7', name: 'Hoa Sen 7', tag: 'Hồng Phúc',  category: 'lotus', src: 'images/chuyendem23/sticker/hoasen7.png' },
+    { id: 'hoasen8', name: 'Hoa Sen 8', tag: 'Viên Mãn',   category: 'lotus', src: 'images/chuyendem23/sticker/hoasen8.png' }
+  ];
+
+  const STICKER_DEFAULT_SLOTS = [
+    { relX: 0.88, relY: 0.08, relScale: 0.22, rot: 14 },   // Góc trên phải vé
+    { relX: 0.12, relY: 0.94, relScale: 0.20, rot: -12 },  // Góc dưới trái vé
+    { relX: 0.88, relY: 0.92, relScale: 0.20, rot: 8 },    // Góc dưới phải vé
+    { relX: 0.10, relY: 0.08, relScale: 0.19, rot: -15 },  // Góc trên trái vé
+    { relX: 0.89, relY: 0.52, relScale: 0.20, rot: 10 },   // Cạnh phải giữa
+    { relX: 0.11, relY: 0.52, relScale: 0.20, rot: -8 },   // Cạnh trái giữa
+    { relX: 0.50, relY: 0.95, relScale: 0.18, rot: 0 },    // Cạnh đáy giữa
+    { relX: 0.80, relY: 0.16, relScale: 0.19, rot: 6 }     // Cạnh trên logo
+  ];
+
+  const ugc = Object.assign({
+    ratio: '1:1',
+    caption: 0,
+    frame: '1',
+    bgColor: '#faeb77',
+    dotColor: '#4ec5cb',
+    stickers: []
+  }, store.get('ugc_settings', {}));
+  if (!Array.isArray(ugc.stickers)) ugc.stickers = [];
+
+  const saveUgcSettings = () => store.set('ugc_settings', {
+    ratio: ugc.ratio,
+    frame: ugc.frame,
+    bgColor: ugc.bgColor,
+    dotColor: ugc.dotColor,
+    caption: ugc.caption,
+    stickers: ugc.stickers
+  });
   const lineOf = (k) => (letter.custom[k] || '').trim() || VALUES[k].lines[letter.picks[k] % VALUES[k].lines.length];
   const saveLetter = () => store.set('letter', letter);
 
@@ -2292,10 +2390,17 @@
     $('#letter-lock').hidden = g.ok;
     $('#letter-open').hidden = !g.ok;
     if (!g.ok) { renderLock(g); return; }
-    renderLetterEdit(); renderMoments(); drawCard();
+    renderFrameSelector();
+    renderColorControls();
+    renderStickerControls();
+    setupDesignTabs();
+    renderLetterEdit();
+    renderMoments();
+    drawCard();
     if (!wasOpen) {
       if (!store.get('letter_unlocked', false)) { store.set('letter_unlocked', true); track('letter_unlocked'); }
-      if (!first && hasGsap && !reduceMotion) gsap.from('#letter-open > *', { y: 24, opacity: 0, duration: 0.6, stagger: 0.12, ease: 'power3.out' });
+      const letterEls = $$('#letter-open > *');
+      if (!first && hasGsap && !reduceMotion && letterEls.length) gsap.from(letterEls, { y: 24, opacity: 0, duration: 0.6, stagger: 0.12, ease: 'power3.out' });
     }
   }
 
@@ -2317,7 +2422,7 @@
       <li class="${done ? 'is-done' : ''}">
         <i class="ph${done ? '-fill' : ''} ph-${done ? 'check-circle' : 'circle-dashed'}" aria-hidden="true"></i>
         <span><strong>${title}</strong><small>${sub}</small></span>
-        ${done ? '' : `<a class="btn btn-ghost btn-sm" href="${href}">${cta}</a>`}
+        ${done ? '' : `<a class="btn btn-primary btn-sm lock-step-btn" href="${href}">${cta}</a>`}
       </li>`;
     $('#letter-lock').innerHTML = `
       <div class="lock-head">
@@ -2368,9 +2473,16 @@
   function renderMoments() {
     const box = $('#moments');
     if (!box) return;
+    const labels = {
+      '1': 'Hướng Thiện',
+      '2': 'Mái Ấm',
+      '3': 'Nếp Nhà',
+      '4': 'Tốt Lành',
+      'x1': 'Kỷ niệm 1',
+      'x2': 'Kỷ niệm 2'
+    };
     box.innerHTML = MOMENT_SLOTS.map((slot) => {
-      const st = /^\d$/.test(slot) ? STATIONS[+slot - 1] : null;
-      const label = st ? st.name.replace('Trạm ', '') : 'Ảnh khác';
+      const label = labels[slot] || 'Ảnh khác';
       const src = moments[slot];
       return `<div class="moment ${src ? 'has-photo' : ''}">
         ${src
@@ -2383,8 +2495,542 @@
     $$('[data-del]', box).forEach((b) => b.addEventListener('click', () => removeMoment(b.dataset.del)));
   }
 
-  // ---------- Vẽ Chuyện Nhà Đêm 23 (canvas) theo phong cách sách cổ: giấy dó, mực son, chữ có chân
+  // ---------- Thanh Menu Tab Thiết Kế (Design Studio Toolbar)
+  let activeDesignTab = 'frames';
+  function setupDesignTabs() {
+    const tabs = $$('.design-tab');
+    const panes = $$('.design-pane');
+    if (!tabs.length) return;
+
+    function activateTab(tabKey) {
+      activeDesignTab = tabKey;
+      tabs.forEach((t) => {
+        const isActive = t.dataset.tab === tabKey;
+        t.classList.toggle('is-active', isActive);
+        t.setAttribute('aria-selected', String(isActive));
+      });
+      panes.forEach((p) => {
+        const isMatch = p.id === `pane-${tabKey}`;
+        p.classList.toggle('is-active', isMatch);
+        p.hidden = !isMatch;
+      });
+    }
+
+    tabs.forEach((tab) => {
+      tab.onclick = () => activateTab(tab.dataset.tab);
+    });
+
+    activateTab(activeDesignTab);
+  }
+
+  // ---------- UI Cài đặt Giao diện: Chọn Khung, Màu Nền Chấm Bi, Màu Chấm Bi
+  function renderFrameSelector() {
+    const container = $('#frame-selector');
+    if (!container) return;
+    container.innerHTML = Object.values(FRAME_CONFIG).map((f) => `
+      <button type="button" class="frame-opt ${ugc.frame === f.id ? 'is-active' : ''}" data-frame="${f.id}" role="radio" aria-checked="${ugc.frame === f.id}" title="${f.name}">
+        <div class="frame-thumb-wrap">
+          <img src="${f.src}" alt="${f.name}" class="frame-thumb">
+          <span class="frame-check"><i class="ph-bold ph-check" aria-hidden="true"></i></span>
+        </div>
+        <div class="frame-info">
+          <strong class="frame-title">Khung ${f.id}</strong>
+          <span class="frame-tag">${f.tag}</span>
+        </div>
+      </button>
+    `).join('');
+
+    $$('#frame-selector [data-frame]').forEach((b) => {
+      b.addEventListener('click', () => {
+        ugc.frame = b.dataset.frame;
+        saveUgcSettings();
+        $$('#frame-selector [data-frame]').forEach((x) => {
+          const isActive = x === b;
+          x.classList.toggle('is-active', isActive);
+          x.setAttribute('aria-checked', String(isActive));
+        });
+        drawCard();
+      });
+    });
+  }
+
+  function renderColorControls() {
+    const bgInput = $('#ugc-bg-color');
+    const dotInput = $('#ugc-dot-color');
+    const bgHex = $('#ugc-bg-hex');
+    const dotHex = $('#ugc-dot-hex');
+    const presetList = $('#preset-list');
+
+    if (bgInput) {
+      bgInput.value = ugc.bgColor;
+      if (bgHex) bgHex.textContent = (ugc.bgColor || '').toUpperCase();
+      bgInput.oninput = (e) => {
+        ugc.bgColor = e.target.value;
+        if (bgHex) bgHex.textContent = ugc.bgColor.toUpperCase();
+        saveUgcSettings();
+        updatePresetActive();
+        drawCard();
+      };
+    }
+
+    if (dotInput) {
+      dotInput.value = ugc.dotColor;
+      if (dotHex) dotHex.textContent = (ugc.dotColor || '').toUpperCase();
+      dotInput.oninput = (e) => {
+        ugc.dotColor = e.target.value;
+        if (dotHex) dotHex.textContent = ugc.dotColor.toUpperCase();
+        saveUgcSettings();
+        updatePresetActive();
+        drawCard();
+      };
+    }
+
+    const swapBtn = $('#btn-swap-colors');
+    if (swapBtn) {
+      swapBtn.onclick = () => {
+        const tmp = ugc.bgColor;
+        ugc.bgColor = ugc.dotColor;
+        ugc.dotColor = tmp;
+        if (bgInput) bgInput.value = ugc.bgColor;
+        if (dotInput) dotInput.value = ugc.dotColor;
+        if (bgHex) bgHex.textContent = ugc.bgColor.toUpperCase();
+        if (dotHex) dotHex.textContent = ugc.dotColor.toUpperCase();
+        saveUgcSettings();
+        updatePresetActive();
+        drawCard();
+        toast('Đã đảo màu nền và màu chấm bi', 'ok', 'arrows-left-right');
+      };
+    }
+
+    if (presetList) {
+      presetList.innerHTML = COLOR_PRESETS.map((p, idx) => `
+        <button type="button" class="preset-pill ${ugc.bgColor.toLowerCase() === p.bg.toLowerCase() && ugc.dotColor.toLowerCase() === p.dot.toLowerCase() ? 'is-active' : ''}" data-preset="${idx}" title="${p.name}">
+          <span class="preset-dual-dot" style="background:${p.bg}">
+            <span class="inner-dot" style="background:${p.dot}"></span>
+          </span>
+          <span class="preset-name">${p.name}</span>
+        </button>
+      `).join('');
+
+      $$('#preset-list [data-preset]').forEach((b) => {
+        b.onclick = () => {
+          const p = COLOR_PRESETS[+b.dataset.preset];
+          if (!p) return;
+          ugc.bgColor = p.bg;
+          ugc.dotColor = p.dot;
+          if (bgInput) bgInput.value = ugc.bgColor;
+          if (dotInput) dotInput.value = ugc.dotColor;
+          if (bgHex) bgHex.textContent = ugc.bgColor.toUpperCase();
+          if (dotHex) dotHex.textContent = ugc.dotColor.toUpperCase();
+          saveUgcSettings();
+          updatePresetActive();
+          drawCard();
+        };
+      });
+    }
+
+    // Đồng bộ nút ratio
+    $$('#ratio-seg button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.ratio === ugc.ratio)));
+  }
+
+  function updatePresetActive() {
+    const bg = (ugc.bgColor || '').toLowerCase();
+    const dot = (ugc.dotColor || '').toLowerCase();
+    $$('#preset-list [data-preset]').forEach((b) => {
+      const p = COLOR_PRESETS[+b.dataset.preset];
+      b.classList.toggle('is-active', Boolean(p && p.bg.toLowerCase() === bg && p.dot.toLowerCase() === dot));
+    });
+  }
+
+  // ---------- UI & Thao tác Sticker Trang trí Tết
+  let activeStickerCategory = 'all';
+  let isCanvasDragInit = false;
+  let activeDragSticker = null;
+  let dragOffset = { x: 0, y: 0 };
+  let currentTicketBounds = null;
+
+  function renderStickerControls() {
+    const tray = $('#sticker-tray');
+    if (!tray) return;
+
+    // Filter tabs
+    const tabs = $$('.sticker-tab');
+    tabs.forEach((tab) => {
+      tab.onclick = () => {
+        activeStickerCategory = tab.dataset.cat || 'all';
+        tabs.forEach((t) => {
+          const isActive = t === tab;
+          t.classList.toggle('is-active', isActive);
+          t.setAttribute('aria-selected', String(isActive));
+        });
+        updateStickerTray();
+      };
+    });
+
+    // Nút Gợi ý đẹp (random 3 sticker hài hòa)
+    const randBtn = $('#btn-random-stickers');
+    if (randBtn) {
+      randBtn.onclick = () => applyRandomStickers();
+    }
+
+    // Nút Xóa hết sticker
+    const clearBtn = $('#btn-clear-stickers');
+    if (clearBtn) {
+      clearBtn.onclick = () => {
+        if (!ugc.stickers || !ugc.stickers.length) return;
+        ugc.stickers = [];
+        saveUgcSettings();
+        updateStickerTray();
+        drawCard();
+        toast('Đã gỡ tất cả sticker trên vé', 'ok', 'trash');
+      };
+    }
+
+    updateStickerTray();
+    setupCanvasStickerDrag();
+  }
+
+  function updateStickerTray() {
+    const tray = $('#sticker-tray');
+    const badge = $('#sticker-active-count');
+    const tabBadge = $('#sticker-tab-badge');
+    if (!tray) return;
+
+    const count = (ugc.stickers || []).length;
+    const activeIds = new Set((ugc.stickers || []).map((s) => s.id));
+    if (badge) badge.textContent = `${count}/16`;
+    if (tabBadge) {
+      tabBadge.textContent = count;
+      tabBadge.hidden = count === 0;
+    }
+
+    const filtered = STICKER_CATALOG.filter((s) => {
+      if (activeStickerCategory === 'all') return true;
+      return s.category === activeStickerCategory;
+    });
+
+    tray.innerHTML = filtered.map((s) => {
+      const isActive = activeIds.has(s.id);
+      return `
+        <button type="button" class="sticker-item ${isActive ? 'is-active' : ''}" data-sticker-id="${s.id}" title="${s.name} (${s.tag}) - Chạm để ${isActive ? 'gỡ' : 'dán'}">
+          <img src="${s.src}" alt="${s.name}" loading="lazy">
+          <span class="sticker-badge"><i class="ph-bold ph-check" aria-hidden="true"></i></span>
+          <span class="sticker-name">${s.tag}</span>
+        </button>
+      `;
+    }).join('');
+
+    $$('#sticker-tray [data-sticker-id]').forEach((btn) => {
+      btn.onclick = () => {
+        const id = btn.dataset.stickerId;
+        toggleSticker(id);
+      };
+    });
+  }
+
+  function toggleSticker(id) {
+    if (!Array.isArray(ugc.stickers)) ugc.stickers = [];
+    const existingIndex = ugc.stickers.findIndex((s) => s.id === id);
+    if (existingIndex >= 0) {
+      ugc.stickers.splice(existingIndex, 1);
+      saveUgcSettings();
+      updateStickerTray();
+      drawCard();
+      toast('Đã gỡ sticker', 'info', 'x');
+    } else {
+      const def = STICKER_CATALOG.find((s) => s.id === id);
+      if (!def) return;
+      const slotIndex = ugc.stickers.length % STICKER_DEFAULT_SLOTS.length;
+      const baseSlot = STICKER_DEFAULT_SLOTS[slotIndex];
+      const jitterX = (Math.random() - 0.5) * 0.04;
+      const jitterY = (Math.random() - 0.5) * 0.04;
+      ugc.stickers.push({
+        id: def.id,
+        src: def.src,
+        name: def.name,
+        relX: Math.max(0.06, Math.min(0.94, baseSlot.relX + jitterX)),
+        relY: Math.max(0.06, Math.min(0.94, baseSlot.relY + jitterY)),
+        relScale: baseSlot.relScale,
+        rot: baseSlot.rot
+      });
+      saveUgcSettings();
+      updateStickerTray();
+      drawCard();
+      toast(`Đã dán ${def.name} lên vé!`, 'ok', 'sticker');
+    }
+  }
+
+  function applyRandomStickers() {
+    const carps = STICKER_CATALOG.filter((s) => s.category === 'fish');
+    const lotuses = STICKER_CATALOG.filter((s) => s.category === 'lotus');
+    const c1 = carps[Math.floor(Math.random() * carps.length)];
+    const c2 = carps[(Math.floor(Math.random() * (carps.length - 1)) + 1) % carps.length];
+    const l1 = lotuses[Math.floor(Math.random() * lotuses.length)];
+
+    ugc.stickers = [
+      { id: c1.id, src: c1.src, name: c1.name, relX: 0.88, relY: 0.08, relScale: 0.22, rot: 14 },
+      { id: l1.id, src: l1.src, name: l1.name, relX: 0.12, relY: 0.94, relScale: 0.20, rot: -12 },
+      { id: c2.id, src: c2.src, name: c2.name, relX: 0.88, relY: 0.92, relScale: 0.20, rot: 8 }
+    ];
+    saveUgcSettings();
+    updateStickerTray();
+    drawCard();
+    toast('Đã dán 3 sticker gợi ý đẹp mắt!', 'ok', 'sparkle');
+  }
+
+  function setupCanvasStickerDrag() {
+    const cv = $('#ugc-canvas');
+    if (!cv || isCanvasDragInit) return;
+    isCanvasDragInit = true;
+
+    function getCanvasPos(e) {
+      const rect = cv.getBoundingClientRect();
+      const scaleX = cv.width / rect.width;
+      const scaleY = cv.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    function hitTestSticker(pos) {
+      if (!currentTicketBounds || !ugc.stickers || !ugc.stickers.length) return null;
+      const { ticketX, ticketY, ticketW, ticketH } = currentTicketBounds;
+      for (let i = ugc.stickers.length - 1; i >= 0; i--) {
+        const s = ugc.stickers[i];
+        const cx = ticketX + s.relX * ticketW;
+        const cy = ticketY + s.relY * ticketH;
+        const stickerW = ticketW * (s.relScale || 0.20);
+        const radius = stickerW * 0.65;
+        const dist = Math.hypot(pos.x - cx, pos.y - cy);
+        if (dist <= radius) {
+          return { sticker: s, cx, cy };
+        }
+      }
+      return null;
+    }
+
+    cv.addEventListener('pointerdown', (e) => {
+      const pos = getCanvasPos(e);
+      const hit = hitTestSticker(pos);
+      if (hit) {
+        activeDragSticker = hit.sticker;
+        dragOffset.x = pos.x - hit.cx;
+        dragOffset.y = pos.y - hit.cy;
+        cv.classList.add('is-dragging-sticker');
+        try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+      }
+    });
+
+    cv.addEventListener('pointermove', (e) => {
+      const pos = getCanvasPos(e);
+      if (activeDragSticker && currentTicketBounds) {
+        const { ticketX, ticketY, ticketW, ticketH } = currentTicketBounds;
+        const targetX = pos.x - dragOffset.x;
+        const targetY = pos.y - dragOffset.y;
+        activeDragSticker.relX = (targetX - ticketX) / ticketW;
+        activeDragSticker.relY = (targetY - ticketY) / ticketH;
+        drawCard();
+      } else {
+        const hit = hitTestSticker(pos);
+        cv.classList.toggle('is-hovering-sticker', Boolean(hit));
+      }
+    });
+
+    const endDrag = (e) => {
+      if (activeDragSticker) {
+        activeDragSticker = null;
+        cv.classList.remove('is-dragging-sticker');
+        saveUgcSettings();
+        try { cv.releasePointerCapture(e.pointerId); } catch (err) {}
+      }
+    };
+
+    cv.addEventListener('pointerup', endDrag);
+    cv.addEventListener('pointercancel', endDrag);
+  }
+
+  function wrapTextIntoTwoLines(ctx, text, maxW) {
+    let str = (text || '').trim();
+    if (!str) return [''];
+    if (ctx.measureText(str).width <= maxW) return [str];
+    const words = str.split(/\s+/);
+    let line1 = '';
+    let splitIndex = -1;
+    for (let i = 0; i < words.length; i++) {
+      const candidate = line1 ? line1 + ' ' + words[i] : words[i];
+      if (ctx.measureText(candidate).width <= maxW) {
+        line1 = candidate;
+        splitIndex = i;
+      } else {
+        break;
+      }
+    }
+    if (splitIndex === -1 || splitIndex >= words.length - 1) {
+      let single = str;
+      while (single.length > 2 && ctx.measureText(single + '…').width > maxW) {
+        single = single.slice(0, -1).trim();
+      }
+      return [single + '…'];
+    }
+    let line2 = words.slice(splitIndex + 1).join(' ');
+    if (ctx.measureText(line2).width > maxW) {
+      while (line2.length > 2 && ctx.measureText(line2 + '…').width > maxW) {
+        line2 = line2.slice(0, -1).trim();
+      }
+      line2 += '…';
+    }
+    return [line1, line2];
+  }
+
+  // ---------- Helpers vẽ canvas
   const loadImg = (src) => new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+
+  function drawImageCover(ctx, img, x, y, w, h, radius = 0) {
+    if (!img || !img.width || !img.height) return;
+    ctx.save();
+    ctx.beginPath();
+    if (radius > 0 && ctx.roundRect) {
+      ctx.roundRect(x, y, w, h, radius);
+    } else {
+      ctx.rect(x, y, w, h);
+    }
+    ctx.clip();
+    const sc = Math.max(w / img.width, h / img.height);
+    const dw = img.width * sc, dh = img.height * sc;
+    const dx = x + (w - dw) / 2, dy = y + (h - dh) / 2;
+    ctx.drawImage(img, dx, dy, dw, dh);
+    ctx.restore();
+  }
+
+  function fitSingleLineText(ctx, text, x, y, maxW) {
+    let str = (text || '').trim();
+    if (!str) return;
+    if (ctx.measureText(str).width <= maxW) {
+      ctx.fillText(str, x, y);
+      return;
+    }
+    while (str.length > 2 && ctx.measureText(str + '…').width > maxW) {
+      str = str.slice(0, -1).trim();
+    }
+    ctx.fillText(str + '…', x, y);
+  }
+
+  function pseudoRnd(col, row, seed = 1) {
+    const n = Math.sin(col * 12.9898 + row * 78.233 + seed * 37.719) * 43758.5453;
+    return n - Math.floor(n);
+  }
+
+  function drawPolkaDotsBackground(ctx, W, H, bgColor, dotColor, tall) {
+    ctx.fillStyle = bgColor || '#faeb77';
+    ctx.fillRect(0, 0, W, H);
+
+    const baseR = tall ? 30 : 27;
+    const stepX = tall ? 195 : 180;
+    const stepY = tall ? 165 : 155;
+
+    let rowIndex = 0;
+    for (let cy = -baseR; cy <= H + stepY; cy += stepY) {
+      const xOffset = (rowIndex % 2 === 0) ? 0 : (stepX / 2);
+      let colIndex = 0;
+      for (let cx = -stepX; cx <= W + stepX; cx += stepX) {
+        // Jitter nhẹ vị trí tạo cảm giác thủ công tự nhiên
+        const jx = (pseudoRnd(colIndex, rowIndex, 11) - 0.5) * 18;
+        const jy = (pseudoRnd(colIndex, rowIndex, 12) - 0.5) * 18;
+        const x = cx + xOffset + jx;
+        const y = cy + jy;
+
+        // Size không đều: biến thiên từ ~0.7x đến 1.35x
+        const rFactor = 0.70 + pseudoRnd(colIndex, rowIndex, 13) * 0.65;
+        const dotR = baseR * rFactor;
+
+        const typeVal = pseudoRnd(colIndex, rowIndex, 14);
+
+        if (typeVal > 0.88) {
+          // Vòng tròn rỗng (donut / outline)
+          ctx.save();
+          ctx.strokeStyle = dotColor || '#4ec5cb';
+          ctx.lineWidth = Math.max(3.5, dotR * 0.22);
+          ctx.beginPath();
+          ctx.arc(x, y, dotR * 0.95, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        } else if (typeVal < 0.07) {
+          // Điểm xuyết ngôi sao lấp lánh (sparkle)
+          drawSparkle(ctx, x, y, dotR * 1.1, dotColor || '#4ec5cb', dotColor || '#4ec5cb');
+        } else {
+          // Chấm bi đặc kích thước không đều
+          ctx.fillStyle = dotColor || '#4ec5cb';
+          ctx.beginPath();
+          ctx.arc(x, y, dotR, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Chấm nhỏ ngẫu nhiên (accent tiny dot) xen kẽ tạo hiệu ứng confetti
+        if (pseudoRnd(colIndex, rowIndex, 15) > 0.82) {
+          const tinyX = cx + xOffset + (stepX * 0.45) + (pseudoRnd(colIndex, rowIndex, 16) - 0.5) * 20;
+          const tinyY = cy + (stepY * 0.45) + (pseudoRnd(colIndex, rowIndex, 17) - 0.5) * 20;
+          ctx.fillStyle = dotColor || '#4ec5cb';       ctx.beginPath();
+          ctx.arc(tinyX, tinyY, Math.round(baseR * 0.28), 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        colIndex++;
+      }
+      rowIndex++;
+    }
+
+    // Điểm xuyết sparkle 4 cánh nhẹ nhàng ở viền
+    drawSparkle(ctx, W * 0.88, tall ? H * 0.94 : H * 0.9, tall ? 34 : 26, dotColor, 'rgba(255,255,255,0.72)');
+    drawSparkle(ctx, W * 0.12, tall ? H * 0.06 : H * 0.08, tall ? 26 : 20, dotColor, 'rgba(255,255,255,0.72)');
+  }
+
+  function drawSparkle(ctx, cx, cy, size, col1, col2) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = col2 || '#fff';
+    ctx.beginPath();
+    for (let i = 0; i < 4; i++) {
+      const ang = (i * Math.PI) / 2;
+      ctx.lineTo(Math.cos(ang) * size, Math.sin(ang) * size);
+      ctx.lineTo(Math.cos(ang + Math.PI / 4) * (size * 0.28), Math.sin(ang + Math.PI / 4) * (size * 0.28));
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawPhotoPlaceholder(ctx, x, y, w, h, r, title, sub, inkMuted) {
+    ctx.save();
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, w, h, r || 6);
+    else ctx.rect(x, y, w, h);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.fill();
+    ctx.strokeStyle = inkMuted || 'rgba(0, 0, 0, 0.2)';
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1.0;
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = inkMuted || '#333';
+    const cy = y + h / 2;
+    const titleSz = Math.max(12, Math.round(w * 0.07));
+    ctx.font = '600 ' + titleSz + 'px "Be Vietnam Pro", sans-serif';
+    ctx.fillText(title, x + w / 2, cy - (sub ? titleSz * 0.58 : 0));
+    if (sub) {
+      const subSz = Math.max(10, Math.round(titleSz * 0.78));
+      ctx.font = 'italic 400 ' + subSz + 'px "EB Garamond", serif';
+      ctx.fillText(sub, x + w / 2, cy + titleSz * 0.72);
+    }
+    ctx.restore();
+  }
+
+  // ---------- Vẽ Chuyện Nhà Đêm 23: Nền chấm bi tùy chỉnh màu, 5 khung vé switchable, 6 ảnh & 4 giá trị
   let drawing = 0;
   async function drawCard() {
     const ticket = ++drawing;
@@ -2392,88 +3038,239 @@
     if (!cv || $('#letter-open').hidden) return;
     const W = 1080, H = ugc.ratio === '9:16' ? 1920 : 1080, tall = H > W;
     try {
-      await Promise.all([document.fonts.load('700 60px "Playfair Display"'), document.fonts.load('italic 400 40px "EB Garamond"'), document.fonts.load('600 30px "Be Vietnam Pro"')]);
+      await Promise.all([
+        document.fonts.load('700 60px "Playfair Display"'),
+        document.fonts.load('italic 600 40px "EB Garamond"'),
+        document.fonts.load('600 30px "Be Vietnam Pro"'),
+        document.fonts.load('800 30px "Be Vietnam Pro"')
+      ]);
     } catch (e) { /* dùng font dự phòng */ }
-    const photos = (await Promise.all(MOMENT_SLOTS.filter((k) => moments[k]).slice(0, 4).map((k) => loadImg(moments[k])))).filter(Boolean);
-    const paper = await loadImg('images/giay-cu.jpg');
-    if (ticket !== drawing) return; // đã có lần vẽ mới hơn
+
+    const frameCfg = FRAME_CONFIG[ugc.frame] || FRAME_CONFIG['1'];
+    const activeStickers = Array.isArray(ugc.stickers) ? ugc.stickers : [];
+    const [frameImg, loadedPhotos, loadedStickerImgs] = await Promise.all([
+      loadImg(frameCfg.src),
+      Promise.all(MOMENT_SLOTS.map(async (slot) => {
+        if (!moments[slot]) return null;
+        return await loadImg(moments[slot]);
+      })),
+      Promise.all(activeStickers.map(async (s) => {
+        return await loadImg(s.src);
+      }))
+    ]);
+
+    const photoMap = {};
+    MOMENT_SLOTS.forEach((slot, idx) => {
+      if (loadedPhotos[idx]) photoMap[slot] = loadedPhotos[idx];
+    });
+
+    if (ticket !== drawing) return; // Đã có lần vẽ mới hơn
     cv.width = W; cv.height = H;
     const ctx = cv.getContext('2d');
     const serif = (w, sz, it) => `${it ? 'italic ' : ''}${w} ${sz}px "EB Garamond", Georgia, serif`;
-    const disp = (w, sz) => `${w} ${sz}px "Playfair Display", Georgia, serif`;
     const sans = (w, sz) => `${w} ${sz}px "Be Vietnam Pro", system-ui, sans-serif`;
-    const RED = '#9b2a17', INK = '#3a2614';
 
-    // Giấy cũ + viền son kép
-    if (paper) ctx.drawImage(paper, 0, 0, W, H); else { ctx.fillStyle = '#efdfbd'; ctx.fillRect(0, 0, W, H); }
-    const vg = ctx.createRadialGradient(W / 2, H / 2, W * 0.35, W / 2, H / 2, W * 0.85);
-    vg.addColorStop(0, 'rgba(120,70,25,0)'); vg.addColorStop(1, 'rgba(120,70,25,.28)');
-    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = RED; ctx.lineWidth = 6; ctx.strokeRect(44, 44, W - 88, H - 88);
-    ctx.lineWidth = 2; ctx.strokeRect(60, 60, W - 120, H - 120);
+    // 1. Vẽ nền chấm bi
+    drawPolkaDotsBackground(ctx, W, H, ugc.bgColor, ugc.dotColor, tall);
 
-    ctx.textAlign = 'center'; ctx.fillStyle = RED;
-    let y = tall ? 210 : 128;
-    ctx.font = sans(700, 26); ctx.fillText('CHUYỆN NHÀ TÁO  ·  ĐÊM 23 THÁNG CHẠP', W / 2, y);
-    y += tall ? 100 : 74;
-    ctx.fillStyle = '#3b1f0e'; ctx.font = disp(800, tall ? 86 : 66); ctx.fillText('Chuyện Nhà Đêm 23', W / 2, y);
-    y += tall ? 66 : 48;
-    ctx.fillStyle = INK; ctx.font = serif(400, tall ? 40 : 34, true);
-    ctx.fillText(`Nhà của ${(pass && pass.nickname) || 'người giữ lửa'} kính gửi`, W / 2, y);
+    // 2. Kích thước và vị trí tấm vé (tỉ lệ 2290 x 3090 trong khung 2400 x 3200)
+    const ticketW = tall ? 980 : Math.round(920 * (2290 / 3090));
+    const ticketH = tall ? Math.round(ticketW * (3090 / 2290)) : 920;
+    const ticketX = Math.round((W - ticketW) / 2);
+    const ticketY = tall ? Math.round((H - ticketH) / 2 - 30) : Math.round((H - ticketH) / 2 - 15);
+    const scale = ticketW / 2290;
 
-    // Bốn giá trị, mỗi giá trị một lời
-    const rowH = tall ? 170 : 116, left = 130, textX = 250;
-    y += tall ? 64 : 34;
-    VALUES.forEach((v, k) => {
-      const cy = y + rowH / 2;
-      ctx.fillStyle = RED; ctx.beginPath(); ctx.arc(left + 30, cy, tall ? 42 : 34, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#fbe9c4'; ctx.font = disp(700, tall ? 40 : 32); ctx.textBaseline = 'middle';
-      ctx.fillText(['I', 'II', 'III', 'IV'][k], left + 30, cy + 2); ctx.textBaseline = 'alphabetic';
-      ctx.textAlign = 'left';
-      ctx.fillStyle = RED; ctx.font = sans(700, tall ? 30 : 25); ctx.fillText(v.name.toUpperCase(), textX, cy - (tall ? 22 : 16));
-      ctx.fillStyle = INK; ctx.font = serif(400, tall ? 40 : 33, true);
-      wrap(ctx, lineOf(k), textX, cy + (tall ? 30 : 22), W - textX - 120, tall ? 46 : 38, 2);
-      ctx.textAlign = 'center';
-      if (k < 3) { ctx.strokeStyle = 'rgba(110,62,25,.3)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(textX, y + rowH); ctx.lineTo(W - 120, y + rowH); ctx.stroke(); }
-      y += rowH;
+    // Lưu bounding box tấm vé phục vụ kéo thả sticker trực tiếp
+    currentTicketBounds = { ticketX, ticketY, ticketW, ticketH };
+
+    // 3. Đổ bóng & Vẽ Khung vé (Layer 2)
+    const drawX = ticketX - 55 * scale;
+    const drawY = ticketY - 55 * scale;
+    const drawW = 2400 * scale;
+    const drawH = 3200 * scale;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+    ctx.shadowBlur = Math.round(32 * (scale / 0.42));
+    ctx.shadowOffsetY = Math.round(14 * (scale / 0.42));
+    if (frameImg) ctx.drawImage(frameImg, drawX, drawY, drawW, drawH);
+    ctx.restore();
+
+    // 4. Nội dung hiển thị trên khung (Layer 3)
+    // 4a. Lời gửi của nhà dưới logo CHUYỆN NHÀ TÁO
+    const nick = (pass && pass.nickname) ? pass.nickname : 'người giữ lửa';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = frameCfg.ink;
+    ctx.font = serif(600, Math.round(48 * scale), true);
+    ctx.fillText(`Nhà của ${nick} kính gửi Táo`, ticketX + ticketW / 2, drawY + 520 * scale);
+
+    // 4b. 6 Ô ảnh khoảnh khắc (Top card: 2 hàng x 3 cột)
+    const PHOTO_BOXES = [
+      { slot: '1',  name: 'Hướng Thiện', x: 202,  y: 580,  w: 644, h: 558 },
+      { slot: '2',  name: 'Mái Ấm',      x: 878,  y: 580,  w: 644, h: 558 },
+      { slot: '3',  name: 'Nếp Nhà',     x: 1554, y: 580,  w: 644, h: 558 },
+      { slot: '4',  name: 'Tốt Lành',    x: 202,  y: 1186, w: 644, h: 558 },
+      { slot: 'x1', name: 'Kỷ niệm 1',   x: 878,  y: 1186, w: 644, h: 558 },
+      { slot: 'x2', name: 'Kỷ niệm 2',   x: 1554, y: 1186, w: 644, h: 558 }
+    ];
+    const photoR = Math.round(28 * scale);
+    PHOTO_BOXES.forEach((box) => {
+      const bx = drawX + box.x * scale;
+      const by = drawY + box.y * scale;
+      const bw = box.w * scale;
+      const bh = box.h * scale;
+      const img = photoMap[box.slot];
+      if (img) {
+        drawImageCover(ctx, img, bx, by, bw, bh, photoR);
+      } else {
+        drawPhotoPlaceholder(ctx, bx, by, bw, bh, photoR, box.name, 'Chạm thêm ảnh', frameCfg.inkMuted);
+      }
     });
 
-    // Khoảnh khắc: ảnh dán kiểu polaroid
-    if (photos.length) {
-      const n = photos.length, size = tall ? 240 : 124, gap = tall ? 34 : 30;
-      const cols = tall ? Math.min(n, 2) : n, rows = Math.ceil(n / cols);
-      const totalW = cols * size + (cols - 1) * gap;
-      const py = y + (tall ? 56 : 26);
-      photos.forEach((im, k) => {
-        const c = k % cols, r = Math.floor(k / cols);
-        const x = W / 2 - totalW / 2 + c * (size + gap), yy = py + r * (size + gap + 30);
-        ctx.save();
-        ctx.translate(x + size / 2, yy + size / 2); ctx.rotate(((k % 2 ? 1 : -1) * (2 + k)) * Math.PI / 180);
-        ctx.shadowColor = 'rgba(60,30,10,.35)'; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
-        ctx.fillStyle = '#fbf6ea'; ctx.fillRect(-size / 2 - 10, -size / 2 - 10, size + 20, size + 40);
-        ctx.shadowColor = 'transparent';
-        const sc = Math.max(size / im.width, size / im.height);
-        ctx.beginPath(); ctx.rect(-size / 2, -size / 2, size, size); ctx.clip();
-        ctx.drawImage(im, -im.width * sc / 2, -im.height * sc / 2, im.width * sc, im.height * sc);
-        ctx.restore();
-      });
-      y = py + rows * (size + gap + 30);
+    // 4c. 4 Dòng nội dung 4 giá trị: Chữ to rõ, dồn trọn không gian cho lời gửi, tiêu đề chuyển thành tem nhận biết ở góc dưới round
+    const STRIP_Y = [2018, 2274, 2530, 2786];
+    const stripX = drawX + 202 * scale;
+    const stripW = 1996 * scale;
+    const stripH = 220 * scale;
+    const ROMAN_VALUES = ['I', 'II', 'III', 'IV'];
+
+    for (let k = 0; k < 4; k++) {
+      const sy = drawY + STRIP_Y[k] * scale;
+      const cy = sy + stripH / 2;
+      const padX = 48 * scale;
+      const contentX = stripX + padX;
+      const maxTextW = stripW - padX * 2;
+      const quoteText = `“${lineOf(k)}”`;
+
+      // 1. Cái tem nhận biết ở góc dưới của round (như tem bưu chính cổ điển)
+      const stampLabel = `${ROMAN_VALUES[k]} · ${VALUES[k].name.toUpperCase()}`;
+      const stampFont = sans(800, Math.max(10, Math.round(23 * scale)));
+      ctx.font = stampFont;
+      const tw = ctx.measureText(stampLabel).width;
+      const stampPadX = 13 * scale;
+      const stampW = tw + stampPadX * 2 + 14 * scale;
+      const stampH = Math.round(38 * scale);
+      const stampX = stripX + stripW - stampW - 20 * scale;
+      const stampY = sy + stripH - stampH - 12 * scale;
+
+      // Nền tem màu sáng tinh tế có bóng nhẹ
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+      ctx.shadowBlur = 6 * scale;
+      ctx.shadowOffsetY = 2 * scale;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(stampX, stampY, stampW, stampH, 6 * scale);
+      else ctx.rect(stampX, stampY, stampW, stampH);
+      ctx.fill();
+      ctx.restore();
+
+      // Viền nét đứt như mép tem thư
+      ctx.save();
+      ctx.strokeStyle = frameCfg.inkMuted;
+      ctx.lineWidth = Math.max(1, 1.2 * (scale / 0.42));
+      ctx.setLineDash([3 * (scale / 0.42), 2.5 * (scale / 0.42)]);
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(stampX + 2 * scale, stampY + 2 * scale, stampW - 4 * scale, stampH - 4 * scale, 5 * scale);
+      else ctx.rect(stampX + 2 * scale, stampY + 2 * scale, stampW - 4 * scale, stampH - 4 * scale);
+      ctx.stroke();
+      ctx.restore();
+
+      // Chữ trong tem
+      ctx.save();
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = frameCfg.ink;
+      ctx.font = stampFont;
+      ctx.fillText(`✦  ${stampLabel}`, stampX + stampPadX, stampY + stampH / 2);
+      ctx.restore();
+
+      // 2. Nội dung lời gửi: To rõ, chiếm trọn không gian trung tâm của round
+      const largeQuoteSz = Math.round(84 * scale);
+      ctx.font = serif(600, largeQuoteSz, true);
+      const fitsSingleLine = ctx.measureText(quoteText).width <= maxTextW;
+
+      if (fitsSingleLine) {
+        // Cỡ to 84*scale (~36px trên 9:16) chiếm trọn khung cực kỳ rõ ràng và nổi bật
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = frameCfg.ink;
+        ctx.font = serif(600, largeQuoteSz, true);
+        ctx.fillText(quoteText, contentX, cy - 6 * scale);
+      } else {
+        // Nếu câu dài: ngắt 2 dòng 62*scale, cân đối trung tâm
+        const mediumQuoteSz = Math.round(62 * scale);
+        ctx.font = serif(600, mediumQuoteSz, true);
+        const lines = wrapTextIntoTwoLines(ctx, quoteText, maxTextW);
+
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = frameCfg.ink;
+        ctx.font = serif(600, mediumQuoteSz, true);
+        ctx.fillText(lines[0], contentX, cy - 24 * scale);
+        if (lines[1]) {
+          ctx.fillText(lines[1], contentX, cy + 22 * scale);
+        }
+      }
     }
 
-    ctx.fillStyle = RED; ctx.font = sans(700, 26);
-    ctx.fillText('#ChuyenNhaTao  #YearInValues', W / 2, H - (tall ? 96 : 76));
-    renderCaptions();
-  }
-  function wrap(ctx, text, x, y, maxW, lh, maxLines = 99) {
-    const words = text.split(' '); let line = '', n = 0;
-    for (const w of words) {
-      const t = line ? line + ' ' + w : w;
-      if (ctx.measureText(t).width > maxW && line) {
-        if (++n >= maxLines) { ctx.fillText(line + '…', x, y); return; }
-        ctx.fillText(line, x, y); line = w; y += lh;
-      } else line = t;
+    // 5. Vẽ Sticker trang trí Tết (Layer 4 - dán trên mặt vé với bóng đổ chân thật)
+    if (activeStickers.length > 0 && loadedStickerImgs) {
+      activeStickers.forEach((s, idx) => {
+        const img = loadedStickerImgs[idx];
+        if (!img || !img.width || !img.height) return;
+        const cx = ticketX + s.relX * ticketW;
+        const cy = ticketY + s.relY * ticketH;
+        const stickerW = ticketW * (s.relScale || 0.20);
+        const aspect = img.height / img.width;
+        const stickerH = stickerW * aspect;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        if (s.rot) {
+          ctx.rotate((s.rot * Math.PI) / 180);
+        }
+
+        // Hiệu ứng bóng nổi chân thật cho sticker
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.24)';
+        ctx.shadowBlur = Math.round(14 * (scale / 0.42));
+        ctx.shadowOffsetX = Math.round(2 * (scale / 0.42));
+        ctx.shadowOffsetY = Math.round(7 * (scale / 0.42));
+
+        ctx.drawImage(img, -stickerW / 2, -stickerH / 2, stickerW, stickerH);
+        ctx.restore();
+      });
     }
-    ctx.fillText(line, x, y);
+
+    // 6. Tagline badge ở chân canvas
+    const tagText = '#ChuyenNhaTao   #YearInValues';
+    const tagFontSize = tall ? 22 : 18;
+    ctx.font = sans(700, tagFontSize);
+    const tw = ctx.measureText(tagText).width;
+    const badgePadX = 24, badgePadY = 9;
+    const badgeW = tw + badgePadX * 2;
+    const badgeH = tagFontSize + badgePadY * 2;
+    const bx = W / 2 - badgeW / 2;
+    const by = (tall ? H - 90 : H - 55) - badgePadY;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.16)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, badgeW, badgeH, 999);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = '#1e1c24';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = sans(700, tagFontSize);
+    ctx.fillText(tagText, W / 2, by + badgePadY + tagFontSize * 0.85);
+
+    renderCaptions();
   }
 
   function captionsFor() {
@@ -2498,6 +3295,7 @@
 
   $$('#ratio-seg button').forEach((b) => b.addEventListener('click', () => {
     ugc.ratio = b.dataset.ratio;
+    saveUgcSettings();
     $$('#ratio-seg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
     drawCard();
   }));
@@ -3155,9 +3953,12 @@
           seam.classList.add('is-active');
           targetSection.classList.add('cards-ready');
           if (hasGsap && !reduceMotion) {
-            gsap.to(['#register', '#ticket-slot'], {
-              y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power2.out', overwrite: 'auto'
-            });
+            const cards = ['#register', '#ticket-slot'].map(sel => $(sel)).filter(Boolean);
+            if (cards.length) {
+              gsap.to(cards, {
+                y: 0, opacity: 1, duration: 0.5, stagger: 0.08, ease: 'power2.out', overwrite: 'auto'
+              });
+            }
           }
         } else {
           // Khi cuộn ngược lên phía trên quyển sách (seam nằm dưới đáy màn hình)
@@ -3195,49 +3996,79 @@
     onToggle: (self) => $('#site-header').classList.toggle('is-solid', self.isActive || menu.classList.contains('is-open'))
   });
   ['doc-sach', 'tram-trai-nghiem', 'la-so'].forEach((id) => {
+    const el = $('#' + id);
+    if (!el) return;
     ScrollTrigger.create({
-      trigger: '#' + id, start: 'top 50%', end: 'bottom 50%',
+      trigger: el, start: 'top 50%', end: 'bottom 50%',
       onToggle: (self) => $$(`.nav-links a[href="#${id}"]`).forEach((a) => a.classList.toggle('is-active', self.isActive))
     });
   });
 
   if (!reduceMotion) {
-    // Hero intro
-    gsap.timeline({ defaults: { ease: 'power3.out' } })
-      .from('#hero-title .word', { yPercent: 110, duration: 0.9, stagger: 0.06 }, 0.15)
-      .from('[data-hero-fade]', { y: 18, opacity: 0, duration: 0.7, stagger: 0.12 }, 0.35);
+    // Hero intro: xuất hiện các dòng chữ thương hiệu và phần tử phụ
+    const heroWords = $$('#hero-title .brand-line, #hero-title .word');
+    const heroFade = $$('[data-hero-fade]');
+    if (heroWords.length || heroFade.length) {
+      const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+      if (heroWords.length) {
+        heroTl.from(heroWords, { yPercent: 60, opacity: 0, duration: 0.9, stagger: 0.12 }, 0.15);
+      }
+      if (heroFade.length) {
+        heroTl.from(heroFade, { y: 18, opacity: 0, duration: 0.7, stagger: 0.12 }, 0.35);
+      }
+    }
 
-    // Cuộn khỏi hero: tấm nền chữ trôi lên nhẹ
-    gsap.to('.hero-plate', {
-      y: -60, opacity: 0, ease: 'none',
-      scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom 10%', scrub: true }
-    });
+    // Cuộn khỏi hero: tấm nền/khối chữ trôi lên nhẹ theo thiết kế .hero-content
+    const heroPlate = $('.hero-content, .hero-plate');
+    if (heroPlate && $('#hero')) {
+      gsap.to(heroPlate, {
+        y: -60, opacity: 0, ease: 'none',
+        scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom 10%', scrub: true }
+      });
+    }
     // Cuộn qua footer: camera bay lên theo đàn đèn trời và cá chép
-    ScrollTrigger.create({
-      trigger: '.site-footer', start: 'top bottom', end: 'bottom bottom', scrub: true,
-      onUpdate: (self) => window.carpScene && window.carpScene.setScroll(self.progress)
-    });
+    if ($('.site-footer')) {
+      ScrollTrigger.create({
+        trigger: '.site-footer', start: 'top bottom', end: 'bottom bottom', scrub: true,
+        onUpdate: (self) => window.carpScene && window.carpScene.setScroll(self.progress)
+      });
+    }
 
     // Hiện dần theo nhóm (UI/UX Pro Max: stagger 300–450ms)
-    gsap.set('.reveal', { opacity: 0, y: 28 });
-    ScrollTrigger.batch('.reveal', {
-      start: 'top 88%', once: true,
-      onEnter: (els) => gsap.to(els, { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: 'power3.out', overwrite: true })
-    });
+    const revealEls = $$('.reveal');
+    if (revealEls.length) {
+      gsap.set(revealEls, { opacity: 0, y: 28 });
+      ScrollTrigger.batch(revealEls, {
+        start: 'top 88%', once: true,
+        onEnter: (els) => gsap.to(els, { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: 'power3.out', overwrite: true })
+      });
+    }
 
-    gsap.from('.flow-line', { scaleX: 0, duration: 0.9, stagger: 0.2, ease: 'power2.inOut', scrollTrigger: { trigger: '.flow', start: 'top 85%' } });
-    gsap.from('.flow .ico', { scale: 0.6, opacity: 0, duration: 0.5, stagger: 0.15, ease: 'back.out(1.6)', scrollTrigger: { trigger: '.flow', start: 'top 85%' } });
+    const flowLines = $$('.flow-line');
+    if (flowLines.length && $('.flow')) {
+      gsap.from(flowLines, { scaleX: 0, duration: 0.9, stagger: 0.2, ease: 'power2.inOut', scrollTrigger: { trigger: '.flow', start: 'top 85%' } });
+    }
+    const flowIcons = $$('.flow .ico');
+    if (flowIcons.length && $('.flow')) {
+      gsap.from(flowIcons, { scale: 0.6, opacity: 0, duration: 0.5, stagger: 0.15, ease: 'back.out(1.6)', scrollTrigger: { trigger: '.flow', start: 'top 85%' } });
+    }
 
   }
 
   else {
     // Giảm chuyển động: chỉ mờ dần (không dịch chuyển, không parallax, không bay camera)
-    gsap.from('[data-hero-fade], #hero-title', { opacity: 0, duration: 0.8, stagger: 0.1, ease: 'none' });
-    gsap.set('.reveal', { opacity: 0 });
-    ScrollTrigger.batch('.reveal', {
-      start: 'top 90%', once: true,
-      onEnter: (els) => gsap.to(els, { opacity: 1, duration: 0.6, stagger: 0.05, ease: 'none', overwrite: true })
-    });
+    const heroElements = $$('[data-hero-fade], #hero-title, #hero-title .brand-line');
+    if (heroElements.length) {
+      gsap.from(heroElements, { opacity: 0, duration: 0.8, stagger: 0.1, ease: 'none' });
+    }
+    const revealEls = $$('.reveal');
+    if (revealEls.length) {
+      gsap.set(revealEls, { opacity: 0 });
+      ScrollTrigger.batch(revealEls, {
+        start: 'top 90%', once: true,
+        onEnter: (els) => gsap.to(els, { opacity: 1, duration: 0.6, stagger: 0.05, ease: 'none', overwrite: true })
+      });
+    }
   }
 
   // Font tải xong làm đổi chiều cao chữ → tính lại vị trí trigger
@@ -3289,34 +4120,53 @@
     }
 
     // Ban đầu:
-    gsap.set(words, { opacity: 0, y: -26, scale: 0.88 });
+    gsap.set(words, { opacity: 0, y: 32, scale: 0.9, filter: 'blur(8px)' });
     gsap.set(fishWrap, { x: -window.innerWidth * 0.9, y: 30, rotation: 12, opacity: 0 });
     gsap.set(hatWrap, { y: -Math.max(window.innerHeight * 0.6, 320), rotation: -12, opacity: 0 });
     if (footerHint) gsap.set(footerHint, { opacity: 0, y: 15 });
 
     introMasterTl = gsap.timeline();
 
-    // 1. Các khối chữ xuất hiện dạng nảy mượt (stagger)
+    // 1. Ba khối chữ "HUYỆN", "NHÀ", "TÁO" từ từ xuất hiện lướt êm, nở nhẹ và tan dần sương mờ
     introMasterTl.to(words, {
       opacity: 1,
       y: 0,
       scale: 1,
-      duration: 0.55,
-      stagger: 0.1,
-      ease: 'back.out(2.2)'
-    });
+      filter: 'blur(0px)',
+      duration: 1.15,
+      stagger: 0.22,
+      ease: 'power3.out'
+    }, 0.1);
 
-    // 2. Kích hoạt hiệu ứng nhảy nhót đồng bộ dạng sóng (sync-dancing)
-    introMasterTl.add(() => {
-      words.forEach(el => el.classList.add('sync-dancing'));
-    }, 0.4);
+    // Nhịp thở bồng bềnh êm ái cho 3 khối chữ
+    introMasterTl.to('.intro-word-huyen', {
+      y: -6,
+      duration: 1.4,
+      repeat: 1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    }, 0.7);
+    introMasterTl.to('.intro-word-nha', {
+      y: -5,
+      duration: 1.5,
+      repeat: 1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    }, 0.85);
+    introMasterTl.to('.intro-word-tao', {
+      y: -5,
+      duration: 1.5,
+      repeat: 1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    }, 0.95);
 
-    // 3. Con cá chép bơi từ bên trái qua làm thành chữ C
+    // 2. Con cá chép bơi từ bên trái qua làm thành chữ C (bắt đầu sau khi 3 chữ đã dần hình thành)
     introMasterTl.to(fishWrap, {
       opacity: 1,
-      duration: 0.35,
+      duration: 0.45,
       ease: 'power1.out'
-    }, 0.3);
+    }, 0.75);
 
     introMasterTl.to(fishWrap, {
       x: 0,
@@ -3334,7 +4184,7 @@
           gsap.set(fish, { y: 0, rotation: 0 });
         }
       }
-    }, 0.3);
+    }, 0.75);
 
     // Khi cá tới nơi: nảy nhẹ như đỗ nước
     introMasterTl.to(fish, {
@@ -3344,23 +4194,23 @@
       yoyo: true,
       repeat: 1,
       ease: 'power1.out'
-    }, 1.85);
+    }, 2.3);
 
-    // 4. Cái nón dấu ^ rơi xuống ngay chữ E
+    // 3. Cái nón dấu ^ rơi xuống ngay chữ E
     introMasterTl.to(hatWrap, {
       opacity: 1,
       y: 0,
       rotation: 0,
       duration: 1.05,
       ease: 'bounce.out'
-    }, 1.25);
+    }, 1.7);
 
     // Hiệu ứng sóng va chạm khi nón đáp xuống chữ E
     if (impactWave) {
       introMasterTl.fromTo(impactWave, 
         { scale: 0.2, opacity: 0.9 },
         { scale: 2.2, opacity: 0, duration: 0.45, ease: 'power2.out' },
-        2.05
+        2.5
       );
     }
     introMasterTl.to(hat, {
@@ -3370,56 +4220,53 @@
       yoyo: true,
       repeat: 1,
       ease: 'power1.out'
-    }, 2.05);
+    }, 2.5);
 
-    // 5. Kết thúc tạo hình: Tất cả các chữ + Cá + Nón cùng nhảy bổng đồng loạt chúc mừng!
-    introMasterTl.add(() => {
-      words.forEach(el => el.classList.remove('sync-dancing'));
-    }, 2.3);
-
-    introMasterTl.to(['.intro-word', fishWrap, hatWrap], {
+    // 4. Kết thúc tạo hình: Tất cả các chữ + Cá + Nón cùng nhảy bổng đồng loạt chúc mừng!
+    const introGroup = [...words, fishWrap, hatWrap].filter(Boolean);
+    introMasterTl.to(introGroup, {
       y: -26,
       scaleY: 1.14,
       scaleX: 0.92,
       duration: 0.28,
       ease: 'power2.out'
-    }, 2.35);
+    }, 2.85);
 
-    introMasterTl.to(['.intro-word', fishWrap, hatWrap], {
+    introMasterTl.to(introGroup, {
       y: 0,
       scaleY: 0.92,
       scaleX: 1.08,
       duration: 0.18,
       ease: 'power2.in'
-    }, 2.63);
+    }, 3.13);
 
-    introMasterTl.to(['.intro-word', fishWrap, hatWrap], {
+    introMasterTl.to(introGroup, {
       scaleY: 1,
       scaleX: 1,
       duration: 0.32,
       ease: 'elastic.out(1.2, 0.4)'
-    }, 2.81);
+    }, 3.31);
 
     // Vệt sáng lấp lánh quét qua toàn bộ chữ
     if (shimmer) {
       introMasterTl.fromTo(shimmer,
         { x: '-140%', opacity: 0.8 },
         { x: '180%', opacity: 1, duration: 0.8, ease: 'power2.inOut' },
-        2.5
+        3.0
       );
     }
 
     if (footerHint) {
-      introMasterTl.to(footerHint, { opacity: 0.9, y: 0, duration: 0.5 }, 2.4);
+      introMasterTl.to(footerHint, { opacity: 0.9, y: 0, duration: 0.5 }, 2.9);
     }
 
-    // 6. Mở ra trang chủ: mờ dần nền kem và phóng nhẹ
+    // 5. Mở ra trang chủ: mờ dần nền kem và phóng nhẹ
     introMasterTl.to(overlay, {
       opacity: 0,
       scale: 1.06,
       duration: 0.85,
       ease: 'power2.inOut',
-      delay: 1.4,
+      delay: 1.2,
       onComplete: dismissIntro
     });
   }

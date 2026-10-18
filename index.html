@@ -22,9 +22,14 @@
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css">
-  <link rel="preload" href="images/intro/intro_fish.png" as="image">
-  <link rel="preload" href="images/intro/intro_hat.png" as="image">
-  <link rel="preload" href="fish.stl" as="fetch" crossorigin>
+  <link rel="preload" href="images/intro/intro_fish.png?v=7" as="image">
+  <link rel="preload" href="images/intro/word_huyen.png?v=10" as="image">
+  <link rel="preload" href="images/intro/word_nha.png?v=8" as="image">
+  <link rel="preload" href="images/intro/word_tao.png?v=8" as="image">
+  <link rel="preload" href="images/intro/intro_hat.png?v=6" as="image">
+  <link rel="preload" href="fish.stl" as="fetch" crossorigin="anonymous">
+  <link rel="preload" href="images/passport/biapassport.png" as="image">
+  <link rel="preload" href="images/passport/biasaupassport.png" as="image">
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
 <body>
@@ -56,13 +61,13 @@
         <img src="images/intro/word_tao.png?v=8" class="intro-word intro-word-tao" alt="TÁO" draggable="false">
 
         <!-- Con cá chép bơi từ trái sang tạo thành chữ C -->
-        <div class="intro-fish-wrapper" id="intro-fish-wrapper">
+        <div class="intro-fish-wrapper" id="intro-fish-wrapper" style="opacity: 0;">
           <div class="fish-water-swirl" id="fish-water-swirl"></div>
           <img src="images/intro/intro_fish.png?v=7" class="intro-fish" id="intro-fish" alt="Cá chép chữ C" draggable="false">
         </div>
 
         <!-- Chiếc nón cánh chuồn dấu ^ rớt xuống ngay chữ E -->
-        <div class="intro-hat-wrapper" id="intro-hat-wrapper">
+        <div class="intro-hat-wrapper" id="intro-hat-wrapper" style="opacity: 0;">
           <img src="images/intro/intro_hat.png?v=6" class="intro-hat" id="intro-hat" alt="Nón cánh chuồn dấu ^" draggable="false">
           <div class="hat-impact-wave" id="hat-impact-wave"></div>
         </div>
@@ -340,20 +345,20 @@
 
           <!-- Đủ điều kiện: soạn Chuyện Nhà Đêm 23 + ảnh khoảnh khắc + xem trước -->
           <div class="ugc-grid" id="letter-open" hidden>
-            <div>
+            <div class="ugc-controls">
+              <!-- Bốn lời gửi ông Táo -->
               <div class="card letter-edit" id="letter-edit"></div>
 
-              <div class="card customize">
-                <h3>Khoảnh khắc ở sự kiện</h3>
-                <p class="help">Ảnh bạn chụp ở từng trạm (thêm được ngay trong hộ chiếu) và vài ảnh khác. Ảnh chỉ xử lý trên máy của bạn.</p>
-                <div class="moments" id="moments"></div>
-                <div>
-                  <p class="help" style="margin-bottom:8px" id="ratio-label">Khổ ảnh</p>
-                  <div class="seg" role="group" aria-labelledby="ratio-label" id="ratio-seg">
-                    <button type="button" data-ratio="1:1" aria-pressed="true">Vuông 1:1</button>
-                    <button type="button" data-ratio="9:16" aria-pressed="false">Story 9:16</button>
+              <!-- Gợi ý nội dung sao chép đăng kèm -->
+              <div class="card ugc-captions-card">
+                <div class="captions-head">
+                  <div class="theme-group-title">
+                    <i class="ph ph-copy" aria-hidden="true"></i>
+                    <span>Gợi ý lời đăng (Caption)</span>
                   </div>
+                  <p class="help">Chạm vào một câu bên dưới để sao chép nhanh lời chia sẻ đăng kèm ảnh lên mạng xã hội.</p>
                 </div>
+                <div class="captions" id="captions"></div>
               </div>
             </div>
 
@@ -363,12 +368,149 @@
                 <p class="result-desc" id="result-desc">Bốn giá trị, bốn lời gửi ông Táo.</p>
               </div>
               <div class="canvas-wrap"><canvas id="ugc-canvas" width="1080" height="1080" aria-label="Xem trước Chuyện Nhà Đêm 23 gửi Táo"></canvas></div>
+
+              <!-- Khoảnh khắc ảnh: đặt ngay trên bảng thiết kế để người dùng thêm ảnh thuận tiện -->
+              <div class="moments-block">
+                <div class="theme-group-title">
+                  <i class="ph ph-camera-plus" aria-hidden="true"></i>
+                  <span>Khoảnh khắc trên vé (6 ảnh)</span>
+                </div>
+                <p class="help">Chạm từng ô để tải ảnh từ máy bạn vào 6 vị trí trên vé (4 trạm trải nghiệm & 2 kỷ niệm).</p>
+                <div class="moments" id="moments"></div>
+              </div>
+
+              <!-- Bảng tùy biến giao diện: Thanh Menu Tab Thiết Kế ngay dưới hình ảnh -->
+              <div class="ugc-theme-panel" id="ugc-studio">
+                <div class="theme-panel-head">
+                  <div class="theme-group-title">
+                    <i class="ph ph-sparkle" aria-hidden="true"></i>
+                    <span>Tùy chỉnh giao diện vé</span>
+                  </div>
+                  <p class="help">Chạm từng tab để chuyển công cụ: chọn khung hình, phối màu & chấm bi, dán sticker và chỉnh khổ ảnh.</p>
+                </div>
+
+                <!-- Thanh Menu Tab Thiết Kế (Segmented Studio Tabs) -->
+                <div class="design-tabs" role="tablist" aria-label="Công cụ thiết kế vé">
+                  <button type="button" class="design-tab is-active" data-tab="frames" role="tab" aria-selected="true" aria-controls="pane-frames" id="tab-frames">
+                    <i class="ph ph-frame-corners" aria-hidden="true"></i>
+                    <span class="design-tab-label">Khung vé</span>
+                  </button>
+                  <button type="button" class="design-tab" data-tab="colors" role="tab" aria-selected="false" aria-controls="pane-colors" id="tab-colors">
+                    <i class="ph ph-paint-brush" aria-hidden="true"></i>
+                    <span class="design-tab-label">Màu & Bi</span>
+                  </button>
+                  <button type="button" class="design-tab" data-tab="stickers" role="tab" aria-selected="false" aria-controls="pane-stickers" id="tab-stickers">
+                    <i class="ph ph-sticker" aria-hidden="true"></i>
+                    <span class="design-tab-label">Sticker</span>
+                    <span class="design-tab-badge" id="sticker-tab-badge" hidden>0</span>
+                  </button>
+                  <button type="button" class="design-tab" data-tab="ratio" role="tab" aria-selected="false" aria-controls="pane-ratio" id="tab-ratio">
+                    <i class="ph ph-crop" aria-hidden="true"></i>
+                    <span class="design-tab-label">Khổ ảnh</span>
+                  </button>
+                </div>
+
+                <!-- Khung nội dung từng tab -->
+                <div class="design-panes">
+                  <!-- Tab 1: Chọn Khung Nội Dung (1 -> 5) -->
+                  <div class="design-pane is-active" id="pane-frames" role="tabpanel" aria-labelledby="tab-frames">
+                    <div class="theme-group-head-compact">
+                      <span class="pane-note">Chọn 1 trong 5 kiểu khung vé:</span>
+                    </div>
+                    <div class="frame-selector" id="frame-selector" role="radiogroup" aria-label="Chọn khung nội dung"></div>
+                  </div>
+
+                  <!-- Tab 2: Nền Chấm Bi: Màu nền & Màu bi & Gợi ý phối màu -->
+                  <div class="design-pane" id="pane-colors" role="tabpanel" aria-labelledby="tab-colors" hidden>
+                    <div class="theme-subhead">
+                      <span class="pane-note">Đổi màu nền và chấm bi:</span>
+                      <button type="button" class="btn btn-ghost btn-sm" id="btn-swap-colors" title="Đảo ngược màu nền và màu bi">
+                        <i class="ph ph-arrows-left-right" aria-hidden="true"></i>
+                        <span>Đảo màu</span>
+                      </button>
+                    </div>
+
+                    <div class="color-pickers-row">
+                      <div class="color-field">
+                        <span class="color-field-label">Màu nền</span>
+                        <label class="color-picker-box" id="ugc-bg-box" for="ugc-bg-color">
+                          <input type="color" id="ugc-bg-color" value="#faeb77" aria-label="Chọn màu nền">
+                          <span class="color-code" id="ugc-bg-hex">#FAEB77</span>
+                        </label>
+                      </div>
+
+                      <div class="color-field">
+                        <span class="color-field-label">Màu chấm bi</span>
+                        <label class="color-picker-box" id="ugc-dot-box" for="ugc-dot-color">
+                          <input type="color" id="ugc-dot-color" value="#4ec5cb" aria-label="Chọn màu chấm bi">
+                          <span class="color-code" id="ugc-dot-hex">#4EC5CB</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="preset-section">
+                      <span class="preset-title">Phối màu gợi ý:</span>
+                      <div class="preset-list" id="preset-list"></div>
+                    </div>
+                  </div>
+
+                  <!-- Tab 3: Sticker Trang trí Tết (16 mẫu: 8 Cá Chép, 8 Hoa Sen) -->
+                  <div class="design-pane" id="pane-stickers" role="tabpanel" aria-labelledby="tab-stickers" hidden>
+                    <div class="theme-subhead">
+                      <div class="sticker-info-bar">
+                        <span class="pane-note">Chạm dán & kéo thả trên vé:</span>
+                        <span class="sticker-count-badge" id="sticker-active-count">0/16</span>
+                      </div>
+                      <div class="sticker-actions">
+                        <button type="button" class="btn btn-ghost btn-sm" id="btn-random-stickers" title="Gợi ý dán sticker ngẫu nhiên đẹp mắt">
+                          <i class="ph ph-sparkle" aria-hidden="true"></i>
+                          <span>Gợi ý đẹp</span>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-stickers" title="Xóa tất cả sticker đã dán">
+                          <i class="ph ph-trash" aria-hidden="true"></i>
+                          <span>Xóa hết</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Filter tabs: Tất cả, Cá Chép, Hoa Sen -->
+                    <div class="sticker-tabs" role="tablist" aria-label="Phân loại sticker">
+                      <button type="button" class="sticker-tab is-active" data-cat="all" role="tab" aria-selected="true">
+                        <i class="ph ph-squares-four" aria-hidden="true"></i> Tất cả (16)
+                      </button>
+                      <button type="button" class="sticker-tab" data-cat="fish" role="tab" aria-selected="false">
+                        <i class="ph ph-fish" aria-hidden="true"></i> Cá Chép (8)
+                      </button>
+                      <button type="button" class="sticker-tab" data-cat="lotus" role="tab" aria-selected="false">
+                        <i class="ph ph-flower-lotus" aria-hidden="true"></i> Hoa Sen (8)
+                      </button>
+                    </div>
+
+                    <!-- Khay cuộn sticker mượt mà cho mobile -->
+                    <div class="sticker-tray-wrap">
+                      <div class="sticker-tray" id="sticker-tray" role="list" aria-label="Danh sách sticker"></div>
+                    </div>
+                  </div>
+
+                  <!-- Tab 4: Khổ ảnh -->
+                  <div class="design-pane" id="pane-ratio" role="tabpanel" aria-labelledby="tab-ratio" hidden>
+                    <div class="theme-group-head-compact">
+                      <span class="pane-note">Chọn tỷ lệ hình ảnh tải về:</span>
+                    </div>
+                    <div class="seg" role="group" aria-labelledby="tab-ratio" id="ratio-seg">
+                      <button type="button" data-ratio="1:1" aria-pressed="true"><i class="ph ph-square" aria-hidden="true"></i> Vuông 1:1</button>
+                      <button type="button" data-ratio="9:16" aria-pressed="false"><i class="ph ph-device-mobile" aria-hidden="true"></i> Story 9:16</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Thao tác tải & chia sẻ -->
               <div class="share-actions">
                 <button class="btn btn-primary" type="button" id="btn-download"><i class="ph ph-download-simple" aria-hidden="true"></i> Tải Chuyện Nhà Đêm 23 về máy</button>
                 <button class="btn btn-ghost" type="button" id="btn-share-fb"><i class="ph ph-facebook-logo" aria-hidden="true"></i> Facebook</button>
                 <button class="btn btn-ghost" type="button" id="btn-share-tt"><i class="ph ph-tiktok-logo" aria-hidden="true"></i> TikTok</button>
               </div>
-              <div class="captions" id="captions"></div>
               <p class="rules">Thể lệ tóm tắt: đăng Chuyện Nhà Đêm 23 ở chế độ công khai, kèm #ChuyenNhaTao #YearInValues. <span class="pending">Thể lệ đầy đủ đang được chốt (mục 2.4).</span></p>
             </aside>
           </div>
