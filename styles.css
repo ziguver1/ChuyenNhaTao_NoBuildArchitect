@@ -3189,8 +3189,8 @@ body::after {
     width: 100%;
   }
   .share-actions .btn-ghost {
-    flex: 1 1 calc(50% - 4px);
-    min-width: 120px;
+    flex: 1 1 calc(33.333% - 6px);
+    min-width: 90px;
   }
 }
 
@@ -3219,8 +3219,8 @@ body::after {
 /* =========================================================================
    VÒNG QUAY MAY MẮN (sau mỗi dấu trạm)
    ========================================================================= */
-.wheel-wrap { position: relative; width: min(290px, 74vw); aspect-ratio: 1; margin: 10px auto 0; }
-.wheel { width: 100%; height: 100%; border-radius: 50%; box-shadow: 0 16px 30px -14px rgba(90, 20, 5, .6), 0 0 0 5px #f3d27a, 0 0 0 7px #7a1a0e; will-change: transform; }
+.wheel-wrap { position: relative; width: min(290px, 74vw); height: min(290px, 74vw); max-width: 290px; max-height: 290px; aspect-ratio: 1; margin: 10px auto 0; }
+.wheel { width: 100%; height: 100%; display: block; border-radius: 50%; box-shadow: 0 16px 30px -14px rgba(90, 20, 5, .6), 0 0 0 5px #f3d27a, 0 0 0 7px #7a1a0e; will-change: transform; }
 .wheel svg { display: block; width: 100%; height: 100%; }
 /* Kim chỉ: giọt đỏ viền vàng, gắn bông hoa đào */
 .wheel-pin { position: absolute; z-index: 2; top: -22px; left: 50%; width: 38px; transform: translateX(-50%); filter: drop-shadow(0 3px 2px rgba(60, 10, 0, .4)); }

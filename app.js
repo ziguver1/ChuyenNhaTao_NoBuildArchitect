@@ -123,7 +123,18 @@
    * Esc hoặc nút đầu tiên khi nhấn Enter = huỷ, nên không bao giờ xoá nhầm.
    * ==================================================================== */
   const dlg = $('#dlg');
-  function ask({ title, html, tone = '', buttons }) {
+  let dlgAbort = null;
+  function ask({ title, html, tone = '', buttons, dismissible = true }) {
+    if (dlgAbort) {
+      try { dlgAbort.abort(); } catch (e) { /* ignore */ }
+      dlgAbort = null;
+    }
+    if (dlg && dlg.open) {
+      try { dlg.close(''); } catch (e) { /* ignore */ }
+    }
+    dlgAbort = new AbortController();
+    const { signal } = dlgAbort;
+
     return new Promise((resolve) => {
       dlg.className = 'dlg' + (tone ? ' dlg-' + tone : '');
       dlg.innerHTML = `<form method="dialog" class="dlg-box">
@@ -136,7 +147,9 @@
       const done = (v) => {
         if (!settled) {
           settled = true;
-          if (dlg.open) dlg.close(v || '');
+          if (dlg && dlg.open) {
+            try { dlg.close(v || ''); } catch (e) { /* ignore */ }
+          }
           resolve(v || '');
         }
       };
@@ -144,19 +157,29 @@
       if (f) f.addEventListener('submit', (e) => {
         e.preventDefault();
         done(e.submitter ? e.submitter.value : dlg.returnValue);
-      });
+      }, { signal });
       $('.dlg-actions', dlg)?.addEventListener('click', (e) => {
         const btn = e.target.closest('button');
         if (btn && !btn.disabled) {
           done(btn.dataset.dlgVal || btn.value || '');
         }
-      });
+      }, { signal });
       dlg.addEventListener('click', (e) => {
-        if (e.target === dlg) done('');
-      });
-      dlg.addEventListener('cancel', () => done(''), { once: true });
-      dlg.addEventListener('close', () => done(dlg.returnValue), { once: true });
-      dlg.showModal();
+        if (dismissible && e.target === dlg) done('');
+      }, { signal });
+      dlg.addEventListener('cancel', (e) => {
+        if (!dismissible) {
+          e.preventDefault();
+          return;
+        }
+        done('');
+      }, { signal });
+      dlg.addEventListener('close', () => done(dlg.returnValue), { signal, once: true });
+      try {
+        dlg.showModal();
+      } catch (err) {
+        if (!dlg.open) dlg.setAttribute('open', '');
+      }
       const dlgBox = $('.dlg-box', dlg);
       if (hasGsap && !reduceMotion && dlgBox) gsap.from(dlgBox, { y: 18, opacity: 0, duration: 0.3, ease: 'power2.out' });
     });
@@ -1442,10 +1465,12 @@
         synced: !offline
       };
       store.set('pass', pass);
+      savePassToHistory(pass);
       if (!offline) store.set('registry', [...new Set([...store.get('registry', []), plain(nickname)])]);
       measure('register');
       store.set('new_pass', false);
       renderRegister();
+      if (!offline) pushPass().catch(() => {});
       startPolling();
       track('form_submit');
       track(consent ? 'consent_accepted' : 'consent_declined');
@@ -1463,32 +1488,173 @@
     }, 700);
   });
 
-  // Lấy lại thẻ cũ bằng email hoặc mã thẻ (góp ý 4b, PDF A7). Bản thật sẽ tra trên máy chủ.
+  // Lưu thẻ vào danh sách đã tạo/đồng bộ trên máy này để tra cứu lại và dự phòng
+  function savePassToHistory(p) {
+    if (!p || !p.id) return;
+    try {
+      const history = store.get('saved_passes', []);
+      const idx = history.findIndex((x) => x && (x.id === p.id || (p.offlineId && x.offlineId === p.offlineId)));
+      if (idx >= 0) history[idx] = Object.assign({}, history[idx], p);
+      else history.unshift(p);
+      store.set('saved_passes', history.slice(0, 10));
+    } catch (e) { /* ignore */ }
+  }
+
+  // Khôi phục thẻ từ máy chủ (hoặc bộ nhớ máy)
+  async function restorePass(raw, silent) {
+    const v = String(raw || '').trim();
+    if (!v) return false;
+    const isEmail = v.includes('@');
+    track('restore_request', { by: isEmail ? 'email' : 'code_or_name' });
+
+    // 1. Kiểm tra nếu thẻ này đang mở trên máy
+    if (!isEmail && pass && (pass.id === v.toUpperCase() || pass.offlineId === v.toUpperCase() || plain(pass.nickname) === plain(v))) {
+      toast('Thẻ này đang mở trên máy rồi.', 'info', 'identification-card');
+      setTimeout(() => ($('#passport-bar') || $('#ticket-slot')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }), 300);
+      return true;
+    }
+
+    // 2. Nếu người dùng nhập email: kiểm tra xem trên máy này có thẻ lưu email đó không
+    if (isEmail) {
+      const history = store.get('saved_passes', []);
+      const found = (pass && pass.email && pass.email.toLowerCase() === v.toLowerCase()) ? pass
+        : history.find((x) => x && x.email && x.email.toLowerCase() === v.toLowerCase());
+      if (found) {
+        pass = found;
+        store.set('pass', pass);
+        store.set('new_pass', false);
+        renderRegister();
+        renderTicket(true);
+        renderCheckout();
+        startPolling();
+        toast(`Đã khôi phục thành công thẻ ${pass.id} (${pass.nickname})!`, 'ok', 'identification-card');
+        setTimeout(() => ($('#passport-bar') || $('#ticket-slot')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }), 300);
+        return true;
+      }
+      toast('Hệ thống không lưu công khai email trên máy chủ để bảo mật. Bạn hãy nhập mã thẻ (dạng TAO-XXXXXX) hoặc tên nickname nhé.', 'info', 'shield-check');
+      return false;
+    }
+
+    // 3. Chuẩn hóa mã thẻ hoặc tra cứu theo Nickname / Tên
+    let code = v.toUpperCase();
+    // Nếu người dùng chỉ gõ 6 ký tự đuôi (VD: D5KBP8 thay vì TAO-D5KBP8), tự động thêm tiền tố TAO-
+    if (/^[A-Z0-9]{6}$/.test(code)) {
+      code = 'TAO-' + code;
+    }
+
+    const isCode = /^(TAO|OFF)-[A-Z0-9]{6}$/.test(code);
+    if (!isCode) {
+      // Người dùng nhập Nickname / Tên: Tra cứu trong danh sách thẻ đã lưu trên máy
+      const history = store.get('saved_passes', []);
+      const foundNick = (pass && plain(pass.nickname) === plain(v)) ? pass
+        : history.find((x) => x && plain(x.nickname) === plain(v));
+      if (foundNick) {
+        pass = foundNick;
+        store.set('pass', pass);
+        store.set('new_pass', false);
+        renderRegister();
+        renderTicket(true);
+        renderCheckout();
+        startPolling();
+        toast(`Đã khôi phục thành công thẻ ${pass.id} (${pass.nickname})!`, 'ok', 'identification-card');
+        setTimeout(() => ($('#passport-bar') || $('#ticket-slot')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }), 300);
+        return true;
+      }
+
+      toast('Vui lòng nhập mã thẻ (VD: TAO-ABC123 hoặc 6 ký tự đuôi), hoặc tên nickname đã dùng tạo thẻ.', 'err', 'warning-circle');
+      return false;
+    }
+
+    if (!silent) toast('Đang tra cứu thẻ ' + code + ' trên hệ thống…', 'info', 'spinner');
+
+    let serverData = null;
+    try {
+      const r = await fetch('/api/pass?id=' + encodeURIComponent(code), { cache: 'no-store' });
+      if (r.ok && isJson(r)) {
+        serverData = await r.json();
+      }
+    } catch (e) { /* server unreachable or offline */ }
+
+    // Tìm thấy trên máy chủ: đồng bộ vào máy người dùng
+    if (serverData && serverData.pid) {
+      const serverStamps = serverData.stamps || {};
+      const serverPrizes = serverData.prizes || {};
+      const serverGiven = serverData.given || {};
+      pass = {
+        id: serverData.pid,
+        nickname: serverData.name || 'Người thương',
+        email: (pass && pass.id === serverData.pid) ? pass.email : null,
+        consent: true,
+        stamps: Object.keys(serverStamps).map(Number).sort((a, b) => a - b),
+        stampedAt: serverStamps,
+        giftCode: serverData.gift || ('QUA-' + randCode(4)),
+        claimed: Boolean(serverData.claimed),
+        synced: true,
+        serverPrizes: serverPrizes,
+        given: serverGiven,
+        spins: Object.fromEntries(
+          Object.entries(serverPrizes).map(([st, pz]) => [st, { prize: pz, at: serverStamps[st] || Date.now() }])
+        )
+      };
+      store.set('pass', pass);
+      store.set('new_pass', false);
+      savePassToHistory(pass);
+      setServer(true);
+      renderRegister();
+      renderTicket(true);
+      renderCheckout();
+      startPolling();
+      toast(`Đã đồng bộ thành công thẻ ${pass.id} (${pass.nickname})!`, 'ok', 'seal-check');
+      setTimeout(() => ($('#passport-bar') || $('#ticket-slot')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }), 300);
+      return true;
+    }
+
+    // Không thấy trên máy chủ (hoặc đang offline): thử tìm trong lịch sử thẻ máy này
+    const history = store.get('saved_passes', []);
+    const localFound = history.find((x) => x && (x.id === code || x.offlineId === code));
+    if (localFound) {
+      pass = localFound;
+      store.set('pass', pass);
+      store.set('new_pass', false);
+      renderRegister();
+      renderTicket(true);
+      renderCheckout();
+      startPolling();
+      toast(`Đã khôi phục thẻ ${pass.id} từ bộ nhớ máy!`, 'ok', 'identification-card');
+      setTimeout(() => ($('#passport-bar') || $('#ticket-slot')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }), 300);
+      if (navigator.onLine) pushPass();
+      return true;
+    }
+
+    toast(`Không tìm thấy thẻ có mã ${code} trên hệ thống. Bạn vui lòng kiểm tra lại mã hoặc tạo thẻ mới nhé.`, 'err', 'warning-circle');
+    return false;
+  }
+
+  // Lấy lại thẻ cũ bằng email, mã thẻ hoặc tên nickname
   async function openRestore() {
     const p = ask({
       title: 'Lấy lại thẻ đã tạo',
-      html: `<p>Nhập <strong>email</strong> bạn dùng khi đăng ký, hoặc <strong>mã thẻ</strong> (dạng TAO-XXXXXX hoặc OFF-XXXXXX).</p>
-        <label class="dlg-label" for="dlg-restore">Email hoặc mã thẻ</label>
-        <input class="input" id="dlg-restore" autocomplete="off" spellcheck="false" placeholder="ban@email.com hoặc TAO-ABC123">
+      html: `<p>Nhập <strong>mã thẻ</strong> (dạng TAO-XXXXXX hoặc 6 ký tự), <strong>tên nickname</strong> hoặc <strong>email</strong> bạn đã dùng.</p>
+        <label class="dlg-label" for="dlg-restore">Mã thẻ, tên hoặc email</label>
+        <input class="input" id="dlg-restore" autocomplete="off" spellcheck="false" placeholder="TAO-D5KBP8, Bé Na hoặc email">
         <p class="error-text" id="dlg-restore-err" aria-live="polite"></p>`,
       buttons: [{ label: 'Huỷ', value: 'cancel', cls: 'btn-quiet' }, { label: 'Lấy lại thẻ', value: 'ok', cls: 'btn-primary', id: 'dlg-restore-ok' }]
     });
     const input = $('#dlg-restore');
-    input.focus();
+    if (input) input.focus();
     // Kiểm tra định dạng trước khi đóng hộp thoại
-    $('#dlg-restore-ok').addEventListener('click', (e) => {
-      const v = input.value.trim();
-      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) || /^(TAO|OFF)-[A-Z0-9]{6}$/i.test(v);
-      if (!ok) { e.preventDefault(); $('#dlg-restore-err').innerHTML = '<i class="ph ph-warning-circle" aria-hidden="true"></i>Email chưa đúng, hoặc mã thẻ chưa đủ dạng TAO- và 6 ký tự.'; input.focus(); }
+    $('#dlg-restore-ok')?.addEventListener('click', (e) => {
+      const v = input ? input.value.trim() : '';
+      if (!v || v.length < 2) {
+        e.preventDefault();
+        const err = $('#dlg-restore-err');
+        if (err) err.innerHTML = '<i class="ph ph-warning-circle" aria-hidden="true"></i>Vui lòng nhập mã thẻ, tên hoặc email (ít nhất 2 ký tự).';
+        if (input) input.focus();
+      }
     });
     if (await p !== 'ok') return;
-    const v = input.value.trim();
-    const isEmail = v.includes('@');
-    track('restore_request', { by: isEmail ? 'email' : 'code' });
-    if (!isEmail && pass && (pass.id === v.toUpperCase() || pass.offlineId === v.toUpperCase())) { toast('Thẻ này đang mở trên máy rồi.', 'info'); return; }
-    toast(isEmail
-      ? 'Nếu email này đã đăng ký, chúng tôi sẽ gửi đường dẫn lấy lại thẻ vào hộp thư. Bản thử nghiệm chưa gửi được thư, nhân sự check-in sẽ hỗ trợ bạn.'
-      : 'Bản thử nghiệm chưa kết nối máy chủ nên chưa tải lại được thẻ. Đưa mã này cho nhân sự check-in để được hỗ trợ.', 'info', 'lifebuoy');
+    const v = input ? input.value.trim() : '';
+    await restorePass(v);
   }
   $('#btn-restore').addEventListener('click', openRestore);
 
@@ -1995,12 +2161,22 @@
     setTimeout(() => { sound.pop(true); tetFx.burst(w.left + w.width / 2, w.top + w.height * 0.25, true); for (let i = 0; i < 26; i++) tetFx.petal(false, true); }, t + 220);
   }
 
+  let isWheelSpinning = false;
+
   function openWheel(id) {
     if (!pass || !pass.stamps.includes(id) || spinOf(id)) return Promise.resolve();
     const st = STATIONS[id - 1];
+    isWheelSpinning = false;
+
+    // Đóng bất kỳ hộp thoại nào đang mở (như mã QR) để tránh lỗi showModal trên dialog đang mở
+    if (dlg && dlg.open) {
+      try { dlg.close(''); } catch (e) { /* ignore */ }
+    }
+
     const p = ask({
       tone: 'tet',
       title: 'Vòng quay may mắn',
+      dismissible: false, // Ngăn chặn bấm nhầm ra ngoài backdrop làm tắt vòng quay
       html: `<p class="tet-sub">${st.name} · Mỗi trạm được quay một lần, trúng gì nhận ngay tại trạm.</p>
         <div class="wheel-wrap">
           <span class="wheel-pin" aria-hidden="true"><svg viewBox="0 0 40 52"><path d="M20 50 L6 20 A14 14 0 1 1 34 20 Z" fill="#b8241c" stroke="#f3d27a" stroke-width="2.5"/>${blossom(20, 16, 7)}</svg></span>
@@ -2010,37 +2186,58 @@
         <button class="btn btn-tet btn-block" type="button" id="wheel-spin"><i class="ph ph-spiral" aria-hidden="true"></i> Quay lấy lộc</button>`,
       buttons: [{ label: 'Để sau', value: 'later', cls: 'btn-quiet', id: 'wheel-close' }]
     });
-    tetFx.mount(dlg);
-    p.then(() => tetFx.unmount());
-    $('#wheel-spin').addEventListener('click', () => spinWheel(id));
+
+    try { tetFx.mount(dlg); } catch (e) { /* ignore */ }
+    p.then(() => { isWheelSpinning = false; tetFx.unmount(); })
+     .catch(() => { isWheelSpinning = false; tetFx.unmount(); });
+
+    const spinBtn = $('#wheel-spin');
+    if (spinBtn) {
+      spinBtn.addEventListener('click', () => {
+        if (!isWheelSpinning) spinWheel(id);
+      });
+    }
     track('wheel_open', { station: id });
     return p;
   }
 
   function spinWheel(id) {
-    if (spinOf(id)) return;
-    sound.init(); // bấm Quay là thao tác của người chơi nên trình duyệt cho phép phát tiếng
+    if (spinOf(id) || isWheelSpinning) return;
+    isWheelSpinning = true;
+    try { sound.init(); } catch (e) { /* bấm Quay là thao tác của người chơi */ }
     const btn = $('#wheel-spin');
-    btn.disabled = true;
+    if (btn) btn.disabled = true;
+    const closeBtn = $('#wheel-close');
+    if (closeBtn) closeBtn.disabled = true; // Khóa nút Để sau trong lúc quay
+
     // Chọn ô theo tỉ lệ, rồi cho kim dừng ở một điểm ngẫu nhiên trong ô đó
-    const hadNone = Object.values(pass.spins || {}).some((x) => x.prize === 'none');
+    const hadNone = Object.values(pass.spins || {}).some((x) => x && x.prize === 'none');
     const pool = WHEEL.map((x, i) => i).filter((i) => !(hadNone && WHEEL[i].prize === 'none'));
     let r = Math.random() * pool.reduce((a, i) => a + WHEEL[i].share, 0), k = pool[0];
     for (const i of pool) { k = i; if (r < WHEEL[i].share) break; r -= WHEEL[i].share; }
+
     // Có kết quả máy chủ bốc (staff đóng dấu): kim dừng ở một ô đúng loại quà đó
     const fixed = pass.serverPrizes && pass.serverPrizes[id];
-    if (fixed) { const ks = WHEEL.map((x, i) => (x.prize === fixed ? i : -1)).filter((i) => i >= 0); k = ks[Math.floor(Math.random() * ks.length)]; }
+    if (fixed) {
+      const ks = WHEEL.map((x, i) => (x.prize === fixed ? i : -1)).filter((i) => i >= 0);
+      if (ks.length) k = ks[Math.floor(Math.random() * ks.length)];
+    }
     const at = segStart(k) + WHEEL[k].share * 3.6 * (0.15 + Math.random() * 0.7);
     const prize = WHEEL[k].prize;
-    // Lưu kết quả ngay khi bấm quay: đóng hộp thoại giữa chừng cũng không quay lại được
+
+    // Lưu kết quả ngay khi bấm quay
     pass.spins = Object.assign({}, pass.spins, { [id]: { prize, at: Date.now() } });
     store.set('pass', pass);
+    savePassToHistory(pass);
     if (!fixed) measure('spin', { st: id, prize });
     track('wheel_spin', { station: id, prize });
+
     const wheel = $('#wheel');
     const turn = 360 * (reduceMotion ? 1 : 6) + (360 - at);
+
     const reveal = () => {
-      const pz = PRIZES[prize], win = prize !== 'none';
+      isWheelSpinning = false;
+      const pz = PRIZES[prize] || PRIZES.sticker, win = prize !== 'none';
       const res = $('#wheel-result');
       if (res) {
         res.innerHTML = win
@@ -2049,28 +2246,47 @@
         res.className = 'wheel-result ' + (win ? 'is-win' : 'is-miss');
       }
       if (btn) btn.hidden = true;
-      const close = $('#wheel-close');
-      if (close) { close.textContent = 'Xong'; close.className = 'btn btn-tet'; }
-      if (win) { firecrackers(); toast(`Bạn trúng ${pz.label}!`, 'gold', 'gift'); } else sound.ting();
+      if (closeBtn) {
+        closeBtn.disabled = false;
+        closeBtn.textContent = 'Xong';
+        closeBtn.className = 'btn btn-tet';
+      }
+      try {
+        if (win) { firecrackers(); toast(`Bạn trúng ${pz.label}!`, 'gold', 'gift'); } else sound.ting();
+      } catch (e) { /* ignore audio error */ }
       ppRefresh([PP.visa(id)]);
       renderCheckout();
     };
+
     // Chốt kết quả đúng giờ dù trình duyệt vẽ chậm (chuyển ứng dụng, tab bị ẩn): dừng vòng ở đúng ô rồi hiện kết quả
     const dur = reduceMotion ? 0.6 : 4.6;
     let shown = false, lastSeg = -1;
     const finish = () => {
       if (shown) return;
       shown = true;
-      if (hasGsap) { gsap.killTweensOf(wheel); gsap.set(wheel, { rotation: turn }); } else wheel.style.transform = `rotate(${turn}deg)`;
+      if (hasGsap && wheel) {
+        try { gsap.killTweensOf(wheel); gsap.set(wheel, { rotation: turn }); } catch (e) {}
+      } else if (wheel) {
+        wheel.style.transform = `rotate(${turn}deg)`;
+      }
       reveal();
     };
+
     // Tiếng tích tắc mỗi khi kim lướt qua một ô
     const onUpdate = () => {
-      const rot = gsap.getProperty(wheel, 'rotation');
-      const seg = segAt(((360 - (rot % 360)) % 360 + 360) % 360);
-      if (seg !== lastSeg) { if (lastSeg !== -1) sound.tick(); lastSeg = seg; }
+      try {
+        if (!wheel) return;
+        const rot = typeof gsap !== 'undefined' ? gsap.getProperty(wheel, 'rotation') : null;
+        if (typeof rot === 'number' && !isNaN(rot)) {
+          const seg = segAt(((360 - (rot % 360)) % 360 + 360) % 360);
+          if (seg !== lastSeg) { if (lastSeg !== -1) sound.tick(); lastSeg = seg; }
+        }
+      } catch (e) { /* ignore sound or GSAP error */ }
     };
-    if (hasGsap) gsap.fromTo(wheel, { rotation: 0 }, { rotation: turn, duration: dur, ease: reduceMotion ? 'power1.out' : 'power4.out', onUpdate, onComplete: finish });
+
+    if (hasGsap && wheel) {
+      gsap.fromTo(wheel, { rotation: 0 }, { rotation: turn, duration: dur, ease: reduceMotion ? 'power1.out' : 'power4.out', onUpdate, onComplete: finish });
+    }
     setTimeout(finish, dur * 1000 + 400);
   }
 
@@ -2106,6 +2322,7 @@
     pass.stamps.push(id);
     pass.stampedAt = Object.assign({}, pass.stampedAt, { [id]: ts || Date.now() });
     store.set('pass', pass);
+    savePassToHistory(pass);
     renderRegister();
     track('stamp_added', { station: id, by: fromServer ? 'staff' : 'self' });
     if (!fromServer) measure('stamp', { st: id });
@@ -2118,16 +2335,16 @@
     const cur = store.get('pp_page', 0);
     const visible = pp.flip ? (pp.flip.getOrientation() === 'landscape' ? [cur, cur % 2 ? cur + 1 : cur - 1] : [cur]) : [target];
     const wait = visible.includes(target) || reduceMotion ? 80 : 950;
-    // Đóng dấu liên tiếp nhanh: huỷ các lần lật / đóng dấu còn chờ của lần trước
-    pp.timers.forEach(clearTimeout); pp.timers = [];
-    const later = (fn, ms) => pp.timers.push(setTimeout(fn, ms));
     ppGo(target);
-    later(() => {
+
+    // Dùng setTimeout riêng biệt cho hoạt cảnh đóng dấu và mở vòng quay để không bị clearTimeout huỷ nhầm
+    setTimeout(() => {
       playStamp(st.id);
-      // Dấu đóng xong thì mở vòng quay; quay xong (hoặc để sau) mới sang trang hoàn thành
-      later(() => openWheel(st.id).then(() => {
-        if (complete) { ppGo(PP.done); setTimeout(() => playStamp('gold'), reduceMotion ? 80 : 950); }
-      }), reduceMotion ? 300 : 1100);
+      setTimeout(() => {
+        openWheel(st.id).then(() => {
+          if (complete) { ppGo(PP.done); setTimeout(() => playStamp('gold'), reduceMotion ? 80 : 950); }
+        });
+      }, reduceMotion ? 300 : 1100);
     }, wait);
 
     if (complete) {
@@ -3300,33 +3517,117 @@
     drawCard();
   }));
 
+  const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
   function cardBlob() { return new Promise((res) => $('#ugc-canvas').toBlob(res, 'image/png')); }
-  $('#btn-download').addEventListener('click', async () => {
+
+  // Tự động tải/lưu ảnh Chuyện Nhà Đêm 23 về máy
+  async function downloadCardImage() {
     const blob = await cardBlob();
+    if (!blob) return null;
+    const nick = (pass && pass.nickname) ? plain(pass.nickname).replace(/\s+/g, '-') : 'la-so';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `ChuyenNhaTao-la-so-${ugc.ratio.replace(':', 'x')}.png`;
-    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    a.download = `ChuyenNhaTao-${nick}-${ugc.ratio.replace(':', 'x')}.png`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
     track('download', { ratio: ugc.ratio, photos: momentCount() });
+    return blob;
+  }
+
+  $('#btn-download')?.addEventListener('click', async () => {
+    await downloadCardImage();
+    const text = captionsFor()[ugc.caption];
+    try { await navigator.clipboard.writeText(text); } catch (e) { /* ignore */ }
+    toast('Đã lưu ảnh vào máy và sao chép sẵn caption kèm hashtag!', 'ok', 'download-simple');
   });
+
+  // Mở ứng dụng điện thoại (Deep Link scheme) kèm fallback web
+  function openAppWithFallback(appScheme, webFallbackUrl) {
+    if (!isMobileDevice) {
+      window.open(webFallbackUrl, '_blank', 'noopener');
+      return;
+    }
+    const start = Date.now();
+    let hidden = false;
+    const onVisibility = () => { if (document.hidden) hidden = true; };
+    document.addEventListener('visibilitychange', onVisibility, { once: true });
+
+    // Gọi mở deep link sang app native
+    window.location.href = appScheme;
+
+    // Sau 1.8s nếu trang vẫn ở foreground (chưa cài app / không mở được app), tự chuyển sang web (dùng location.href để không bị chặn popup)
+    setTimeout(() => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (!hidden && Date.now() - start < 2600) {
+        window.location.href = webFallbackUrl;
+      }
+    }, 1800);
+  }
+
   async function share(network) {
     track('share_click', { network });
     const text = captionsFor()[ugc.caption];
-    const blob = await cardBlob();
-    const file = new File([blob], 'la-so-gui-tao.png', { type: 'image/png' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], text }); return; } catch (e) { if (e.name === 'AbortError') return; }
-    }
-    try { await navigator.clipboard.writeText(text); } catch (e) { /* bỏ qua */ }
+
+    // 1. Tự động tải ảnh về máy người dùng
+    await downloadCardImage();
+
+    // 2. Tự động sao chép caption kèm hashtag
+    try { await navigator.clipboard.writeText(text); } catch (e) { /* ignore */ }
+
+    // Đợi 400ms để trình duyệt khởi tạo luồng lưu ảnh và clipboard ổn định trước khi chuyển app
+    await new Promise((r) => setTimeout(r, 400));
+
+    // 3. Điều hướng mở App trực tiếp
     if (network === 'facebook') {
-      window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(location.origin + location.pathname), '_blank', 'noopener,width=640,height=560');
-      toast('Caption đã được sao chép. Tải Chuyện Nhà Đêm 23 về để đính kèm ảnh vào bài đăng.', 'info', 'facebook-logo');
-    } else {
-      toast('Caption đã được sao chép. Tải Chuyện Nhà Đêm 23 về, mở TikTok và đăng ảnh kèm caption nhé.', 'info', 'tiktok-logo');
+      const fbAppScheme = 'fb://feed';
+      const fbWebUrl = 'https://www.facebook.com/';
+      if (isMobileDevice) {
+        toast('Đã lưu ảnh & copy caption! Đang mở ứng dụng Facebook để bạn đăng bài...', 'ok', 'facebook-logo');
+        openAppWithFallback(fbAppScheme, fbWebUrl);
+      } else {
+        window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(location.origin + location.pathname), '_blank', 'noopener,width=640,height=560');
+        toast('Đã tải ảnh về máy và copy caption! Hãy đính kèm ảnh và đăng lên Facebook nhé.', 'ok', 'facebook-logo');
+      }
+    } else if (network === 'tiktok') {
+      const ttAppScheme = 'tiktok://';
+      const ttWebUrl = 'https://www.tiktok.com/upload';
+      if (isMobileDevice) {
+        toast('Đã lưu ảnh & copy caption! Đang mở ứng dụng TikTok để bạn chọn ảnh đăng...', 'ok', 'tiktok-logo');
+        openAppWithFallback(ttAppScheme, ttWebUrl);
+      } else {
+        window.open(ttWebUrl, '_blank', 'noopener');
+        toast('Đã tải ảnh về máy và copy caption! Hãy đăng ảnh và dán caption lên TikTok nhé.', 'ok', 'tiktok-logo');
+      }
     }
   }
-  $('#btn-share-fb').addEventListener('click', () => share('facebook'));
-  $('#btn-share-tt').addEventListener('click', () => share('tiktok'));
+
+  // Chia sẻ đa năng qua Share Sheet của điện thoại (Zalo, Messenger, Instagram, Airdrop...)
+  async function shareNative() {
+    track('share_click', { network: 'native' });
+    const text = captionsFor()[ugc.caption];
+    const blob = await cardBlob();
+    if (!blob) return;
+    const file = new File([blob], `ChuyenNhaTao-${(pass && pass.nickname) || 'dem23'}.png`, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], text, title: 'Chuyện Nhà Đêm 23' });
+        return;
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+      }
+    }
+    // Fallback nếu không hỗ trợ share file
+    await downloadCardImage();
+    try { await navigator.clipboard.writeText(text); } catch (e) { /* ignore */ }
+    toast('Đã lưu ảnh vào máy và sao chép sẵn caption kèm hashtag!', 'ok', 'share-network');
+  }
+
+  $('#btn-share-fb')?.addEventListener('click', () => share('facebook'));
+  $('#btn-share-tt')?.addEventListener('click', () => share('tiktok'));
+  $('#btn-share-more')?.addEventListener('click', shareNative);
 
   /* =========================================================================
    * Hiệu ứng nền Bụi vàng kim tuyến & Ánh hào quang lấp lánh (Golden Dust & Shimmer)
@@ -3645,12 +3946,15 @@
       unlockTest();
       setTimeout(() => $('#la-so')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' }), 350);
     }
-    const gate = qs.get('vao'), tram = qs.get('tram');
-    if (gate || tram) {
-      qs.delete('vao'); qs.delete('tram');
+    const gate = qs.get('vao'), tram = qs.get('tram'), the = qs.get('the');
+    if (gate || tram || the) {
+      qs.delete('vao'); qs.delete('tram'); qs.delete('the');
       history.replaceState(null, '', location.pathname + (qs.toString() ? '?' + qs : '') + location.hash);
     }
     if (gate) enterGate(gate);
+    if (the) {
+      setTimeout(() => restorePass(the, false), 350);
+    }
     if (tram && server.on) {
       toast('Ở sự kiện, nhân sự sẽ quét mã QR trên hộ chiếu của bạn để đóng dấu.', 'info', 'qr-code');
     } else if (tram) {
@@ -4021,10 +4325,40 @@
     // Cuộn khỏi hero: tấm nền/khối chữ trôi lên nhẹ theo thiết kế .hero-content
     const heroPlate = $('.hero-content, .hero-plate');
     if (heroPlate && $('#hero')) {
-      gsap.to(heroPlate, {
-        y: -60, opacity: 0, ease: 'none',
-        scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom 10%', scrub: true }
-      });
+      // Dùng fromTo tường minh để không bị kẹt opacity: 0 khi màn hình ngắn (iPhone SE), reload lúc cuộn hoặc cuộn ngược về đỉnh
+      gsap.fromTo(heroPlate,
+        { y: 0, opacity: 1 },
+        {
+          y: -60, opacity: 0, ease: 'none',
+          scrollTrigger: {
+            trigger: '#hero',
+            start: 'top top',
+            end: 'bottom 10%',
+            scrub: true,
+            invalidateOnRefresh: true,
+            onLeaveBack: () => {
+              gsap.set(heroPlate, { y: 0, opacity: 1 });
+              if (heroWords.length) gsap.set(heroWords, { opacity: 1, yPercent: 0 });
+            },
+            onUpdate: (self) => {
+              if (self.progress <= 0.02 || window.scrollY <= 15) {
+                gsap.set(heroPlate, { y: 0, opacity: 1 });
+                if (heroWords.length) gsap.set(heroWords, { opacity: 1, yPercent: 0 });
+              }
+            }
+          }
+        }
+      );
+
+      // Lớp bảo vệ bổ sung: khi người dùng cuộn hẳn về đỉnh trang (scrollY <= 15), đảm bảo title luôn hiện 100%
+      window.addEventListener('scroll', () => {
+        if (window.scrollY <= 15) {
+          if (parseFloat(getComputedStyle(heroPlate).opacity) < 0.98) {
+            gsap.set(heroPlate, { y: 0, opacity: 1 });
+            if (heroWords.length) gsap.set(heroWords, { opacity: 1, yPercent: 0 });
+          }
+        }
+      }, { passive: true });
     }
     // Cuộn qua footer: camera bay lên theo đàn đèn trời và cá chép
     if ($('.site-footer')) {
