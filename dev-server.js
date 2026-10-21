@@ -47,6 +47,7 @@ if (forceLocalRedis || (!isRealUrl(process.env.KV_REST_API_URL) && !isRealUrl(pr
     switch (cmd) {
       case 'HSET': { const h = (db.h[k] = db.h[k] || {}); for (let i = 0; i < a.length; i += 2) h[a[i]] = a[i + 1]; return 1; }
       case 'HSETNX': { const h = (db.h[k] = db.h[k] || {}); if (a[0] in h) return 0; h[a[0]] = a[1]; return 1; }
+      case 'HGET': return (db.h[k] && db.h[k][a[0]]) ?? null;
       case 'HINCRBY': { const h = (db.h[k] = db.h[k] || {}); h[a[0]] = String(Number(h[a[0]] || 0) + Number(a[1])); return Number(h[a[0]]); }
       case 'HGETALL': return Object.entries(db.h[k] || {}).flat();
       case 'SADD': (db.s[k] = db.s[k] || new Set()).add(a[0]); return 1;
@@ -118,7 +119,13 @@ http.createServer(async (req, res) => {
     try { req.body = raw ? JSON.parse(raw) : undefined; } catch (e) { req.body = raw; }
     res.status = (c) => { res.statusCode = c; return res; };
     res.json = (b) => { res.setHeader('Content-Type', 'application/json; charset=utf-8'); res.end(JSON.stringify(b)); return res; };
-    try { await require(path.join(ROOT, 'api', m[1] + '.js'))(req, res); } catch (e) { console.error(e); res.statusCode = 500; res.end('error'); }
+    try {
+      const apiFile = path.join(ROOT, 'api', m[1] + '.js');
+      const storeFile = path.join(ROOT, 'api', '_store.js');
+      try { delete require.cache[require.resolve(apiFile)]; } catch (e) {}
+      try { delete require.cache[require.resolve(storeFile)]; } catch (e) {}
+      await require(apiFile)(req, res);
+    } catch (e) { console.error(e); res.statusCode = 500; res.end('error'); }
     return;
   }
   // File tĩnh

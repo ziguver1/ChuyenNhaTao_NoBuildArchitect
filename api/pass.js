@@ -5,18 +5,59 @@
 //        Mỗi thẻ sai 8 lần thì khoá 15 phút.
 // Mã thẻ đóng vai trò "chìa khoá" của người chơi: ai có mã mới đọc được thẻ, và chỉ đọc chứ không sửa được dấu.
 // Redis: pass:{pid} hash  pid, name, vid, created, gift, st{n} (giờ đóng dấu), prize{n}, given{n}, claimed
-const { configured, redis, toObject, readBody, PID_RE, passView, stampCmds, stationOfCode } = require('./_store');
+const { configured, redis, toObject, readBody, PID_RE, passView, stampCmds, stationOfCode, plainName } = require('./_store');
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (!configured()) return res.status(503).json({ configured: false });
 
   if (req.method === 'GET') {
-    const id = String(req.query?.id || new URL(req.url, 'http://x').searchParams.get('id') || '').toUpperCase();
-    if (!PID_RE.test(id)) return res.status(400).json({ error: 'id' });
-    const [h] = await redis([['HGETALL', `pass:${id}`]]);
-    const view = passView(toObject(h));
-    return view ? res.status(200).json(view) : res.status(404).json({ error: 'notfound' });
+    const rawId = req.query?.id || new URL(req.url, 'http://x').searchParams.get('id');
+    const rawName = req.query?.name || req.query?.nickname || new URL(req.url, 'http://x').searchParams.get('name') || new URL(req.url, 'http://x').searchParams.get('nickname');
+
+    // 1. Tra cứu theo ID (TAO-XXXXXX hoặc OFF-XXXXXX)
+    if (rawId) {
+      let id = String(rawId).trim().toUpperCase();
+      if (/^[A-Z0-9]{6}$/.test(id)) id = 'TAO-' + id;
+      if (!PID_RE.test(id)) return res.status(400).json({ error: 'id' });
+      const [h] = await redis([['HGETALL', `pass:${id}`]]);
+      const view = passView(toObject(h));
+      return view ? res.status(200).json(view) : res.status(404).json({ error: 'notfound' });
+    }
+
+    // 2. Tra cứu theo Tên / Nickname (VD: "Bé Nhím")
+    if (rawName) {
+      const qName = String(rawName).trim();
+      if (qName.length < 2) return res.status(400).json({ error: 'name_short' });
+      const norm = plainName(qName);
+
+      // Cách 1: Tìm nhanh qua index name2pid
+      const [indexedPid] = await redis([['HGET', 'name2pid', norm]]);
+      if (indexedPid) {
+        const [h] = await redis([['HGETALL', `pass:${indexedPid}`]]);
+        const view = passView(toObject(h));
+        if (view) return res.status(200).json(view);
+      }
+
+      // Cách 2: Quét danh sách passes gần nhất để tìm tên khớp (khớp có dấu hoặc không dấu)
+      const [allPids] = await redis([['ZREVRANGE', 'passes', '0', '500']]);
+      if (Array.isArray(allPids) && allPids.length > 0) {
+        const pipeline = allPids.map(pid => ['HGETALL', `pass:${pid}`]);
+        const results = await redis(pipeline);
+        for (const rawHash of results) {
+          const obj = toObject(rawHash);
+          if (obj.pid && obj.name && (obj.name.trim().toLowerCase() === qName.toLowerCase() || plainName(obj.name) === norm)) {
+            // Lưu lại index name2pid để lần sau tra cứu 0ms
+            await redis([['HSET', 'name2pid', norm, obj.pid]]);
+            return res.status(200).json(passView(obj));
+          }
+        }
+      }
+
+      return res.status(404).json({ error: 'notfound', name: qName });
+    }
+
+    return res.status(400).json({ error: 'missing_id_or_name' });
   }
 
   if (req.method === 'POST' && (readBody(req) || {}).action === 'code') {
@@ -53,7 +94,10 @@ module.exports = async (req, res) => {
       if (vid && o.vid === vid) return res.status(200).json(passView(o));
       return res.status(409).json({ error: 'exists' });
     }
-    const cmds = [['HSET', key, 'name', name, 'created', String(Date.now())]];
+    const cmds = [
+      ['HSET', key, 'name', name, 'created', String(Date.now())],
+      ['HSET', 'name2pid', plainName(name), pid]
+    ];
     if (vid) cmds.push(['HSET', key, 'vid', vid], ['HSET', `u:${vid}`, 'pid', pid, 'name', name], ['HSET', 'pid2vid', pid, vid]);
     if (gift) cmds.push(['HSET', key, 'gift', gift]);
     cmds.push(['ZADD', 'passes', String(Date.now()), pid], ['HGETALL', key]);

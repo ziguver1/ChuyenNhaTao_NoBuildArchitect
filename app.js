@@ -1442,7 +1442,7 @@
         ]
       });
       track('nickname_conflict', { choice: choice || 'dismiss' });
-      if (choice === 'restore') { openRestore(); return; }
+      if (choice === 'restore') { openRestore(nickname); return; }
       if (choice !== 'suffix') { fName.focus(); fName.select(); return; }
       nickname = suffix;
     }
@@ -1535,41 +1535,21 @@
       return false;
     }
 
-    // 3. Chuẩn hóa mã thẻ hoặc tra cứu theo Nickname / Tên
+    // 3. Phân biệt Mã thẻ (TAO-XXXXXX hoặc 6 ký tự đuôi) hay Tên nickname
     let code = v.toUpperCase();
-    // Nếu người dùng chỉ gõ 6 ký tự đuôi (VD: D5KBP8 thay vì TAO-D5KBP8), tự động thêm tiền tố TAO-
     if (/^[A-Z0-9]{6}$/.test(code)) {
       code = 'TAO-' + code;
     }
-
     const isCode = /^(TAO|OFF)-[A-Z0-9]{6}$/.test(code);
-    if (!isCode) {
-      // Người dùng nhập Nickname / Tên: Tra cứu trong danh sách thẻ đã lưu trên máy
-      const history = store.get('saved_passes', []);
-      const foundNick = (pass && plain(pass.nickname) === plain(v)) ? pass
-        : history.find((x) => x && plain(x.nickname) === plain(v));
-      if (foundNick) {
-        pass = foundNick;
-        store.set('pass', pass);
-        store.set('new_pass', false);
-        renderRegister();
-        renderTicket(true);
-        renderCheckout();
-        startPolling();
-        toast(`Đã khôi phục thành công thẻ ${pass.id} (${pass.nickname})!`, 'ok', 'identification-card');
-        setTimeout(() => ($('#passport-bar') || $('#ticket-slot')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }), 300);
-        return true;
-      }
 
-      toast('Vui lòng nhập mã thẻ (VD: TAO-ABC123 hoặc 6 ký tự đuôi), hoặc tên nickname đã dùng tạo thẻ.', 'err', 'warning-circle');
-      return false;
+    if (!silent) {
+      toast(isCode ? `Đang tra cứu thẻ ${code} trên hệ thống…` : `Đang tìm thẻ của “${v}” trên hệ thống…`, 'info', 'spinner');
     }
-
-    if (!silent) toast('Đang tra cứu thẻ ' + code + ' trên hệ thống…', 'info', 'spinner');
 
     let serverData = null;
     try {
-      const r = await fetch('/api/pass?id=' + encodeURIComponent(code), { cache: 'no-store' });
+      const queryParam = isCode ? ('id=' + encodeURIComponent(code)) : ('name=' + encodeURIComponent(v));
+      const r = await fetch('/api/pass?' + queryParam, { cache: 'no-store' });
       if (r.ok && isJson(r)) {
         serverData = await r.json();
       }
@@ -1582,7 +1562,7 @@
       const serverGiven = serverData.given || {};
       pass = {
         id: serverData.pid,
-        nickname: serverData.name || 'Người thương',
+        nickname: serverData.name || v,
         email: (pass && pass.id === serverData.pid) ? pass.email : null,
         consent: true,
         stamps: Object.keys(serverStamps).map(Number).sort((a, b) => a - b),
@@ -1611,7 +1591,10 @@
 
     // Không thấy trên máy chủ (hoặc đang offline): thử tìm trong lịch sử thẻ máy này
     const history = store.get('saved_passes', []);
-    const localFound = history.find((x) => x && (x.id === code || x.offlineId === code));
+    const localFound = isCode
+      ? history.find((x) => x && (x.id === code || x.offlineId === code))
+      : history.find((x) => x && plain(x.nickname) === plain(v));
+
     if (localFound) {
       pass = localFound;
       store.set('pass', pass);
@@ -1620,28 +1603,36 @@
       renderTicket(true);
       renderCheckout();
       startPolling();
-      toast(`Đã khôi phục thẻ ${pass.id} từ bộ nhớ máy!`, 'ok', 'identification-card');
+      toast(`Đã khôi phục thẻ ${pass.id} (${pass.nickname}) từ bộ nhớ máy!`, 'ok', 'identification-card');
       setTimeout(() => ($('#passport-bar') || $('#ticket-slot')).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' }), 300);
       if (navigator.onLine) pushPass();
       return true;
     }
 
-    toast(`Không tìm thấy thẻ có mã ${code} trên hệ thống. Bạn vui lòng kiểm tra lại mã hoặc tạo thẻ mới nhé.`, 'err', 'warning-circle');
+    if (isCode) {
+      toast(`Không tìm thấy thẻ có mã ${code} trên hệ thống. Bạn vui lòng kiểm tra lại mã hoặc tạo thẻ mới nhé.`, 'err', 'warning-circle');
+    } else {
+      toast(`Không tìm thấy thẻ nào có tên “${v}” trên hệ thống. Bạn vui lòng kiểm tra lại tên hoặc nhập mã thẻ (dạng TAO-XXXXXX) nhé.`, 'err', 'warning-circle');
+    }
     return false;
   }
 
   // Lấy lại thẻ cũ bằng email, mã thẻ hoặc tên nickname
-  async function openRestore() {
+  async function openRestore(preset) {
+    const defaultVal = typeof preset === 'string' ? preset.trim() : '';
     const p = ask({
       title: 'Lấy lại thẻ đã tạo',
       html: `<p>Nhập <strong>mã thẻ</strong> (dạng TAO-XXXXXX hoặc 6 ký tự), <strong>tên nickname</strong> hoặc <strong>email</strong> bạn đã dùng.</p>
         <label class="dlg-label" for="dlg-restore">Mã thẻ, tên hoặc email</label>
-        <input class="input" id="dlg-restore" autocomplete="off" spellcheck="false" placeholder="TAO-D5KBP8, Bé Na hoặc email">
+        <input class="input" id="dlg-restore" autocomplete="off" spellcheck="false" value="${esc(defaultVal)}" placeholder="TAO-D5KBP8, Bé Na hoặc email">
         <p class="error-text" id="dlg-restore-err" aria-live="polite"></p>`,
       buttons: [{ label: 'Huỷ', value: 'cancel', cls: 'btn-quiet' }, { label: 'Lấy lại thẻ', value: 'ok', cls: 'btn-primary', id: 'dlg-restore-ok' }]
     });
     const input = $('#dlg-restore');
-    if (input) input.focus();
+    if (input) {
+      input.focus();
+      if (defaultVal) input.select();
+    }
     // Kiểm tra định dạng trước khi đóng hộp thoại
     $('#dlg-restore-ok')?.addEventListener('click', (e) => {
       const v = input ? input.value.trim() : '';
@@ -1656,7 +1647,7 @@
     const v = input ? input.value.trim() : '';
     await restorePass(v);
   }
-  $('#btn-restore').addEventListener('click', openRestore);
+  $('#btn-restore').addEventListener('click', () => openRestore());
 
   // ----------------------------------------------------------------------
   // Hộ chiếu thông hành (lật trang, StPageFlip). 10 trang:

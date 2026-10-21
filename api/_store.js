@@ -124,4 +124,6 @@ async function checkKey(req, keys) {
   return { ok: false, status: 401 };
 }
 
-module.exports = { configured, redis, toObject, readBody, PID_RE, rollPrize, PRIZE_KEYS, passView, checkKey, stampCmds, stationCode, stationOfCode, CODE_STEP };
+const plainName = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toUpperCase().trim();
+
+module.exports = { configured, redis, toObject, readBody, PID_RE, rollPrize, PRIZE_KEYS, passView, checkKey, stampCmds, stationCode, stationOfCode, CODE_STEP, plainName };
