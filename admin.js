@@ -10,7 +10,7 @@
 
   // Giữ khớp với app.js (GATE_CODE, STATIONS, PRIZES, số trang sách)
   const GATE_CODE = 'CONG23';
-  const STATIONS = [['Trạm Hướng Thiện', 'HUONG1'], ['Trạm Mái Ấm', 'MAIAM2'], ['Trạm Nếp Nhà', 'NEPNH3'], ['Trạm Tốt Lành', 'TOTLA4']];
+  const STATIONS = [['Trạm Tôn Kính', 'TONKI1'], ['Trạm Mái Ấm', 'MAIAM2'], ['Trạm Nhìn Lại', 'NHINL3'], ['Trạm Hướng Thiện', 'HUONG4']];
   const PRIZE_LABEL = { sticker: 'Sticker', keychain: 'Móc khoá', blindbox: 'Blindbox', none: 'Không trúng' };
   const PAGE_COUNT = 22;
   const pageName = (p) => p == null ? '—' : p === 0 ? 'Bìa' : p === 1 ? 'Lời mở đầu' : p === 2 ? 'Mục lục'

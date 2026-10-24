@@ -26,3 +26,6 @@ Huong_dan_*.docx
 .env
 scratch/
 
+# File backup tạm thời
+*.backup.js
+app.backup.js

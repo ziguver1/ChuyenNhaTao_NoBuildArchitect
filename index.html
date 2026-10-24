@@ -22,14 +22,12 @@
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css?v=2.1">
-  <link rel="preload" href="images/intro/intro_fish.png?v=7" as="image">
-  <link rel="preload" href="images/intro/word_huyen.png?v=10" as="image">
-  <link rel="preload" href="images/intro/word_nha.png?v=8" as="image">
-  <link rel="preload" href="images/intro/word_tao.png?v=8" as="image">
-  <link rel="preload" href="images/intro/intro_hat.png?v=6" as="image">
-  <link rel="preload" href="fish.stl" as="fetch" crossorigin="anonymous">
-  <link rel="preload" href="images/passport/biapassport.png" as="image">
-  <link rel="preload" href="images/passport/biasaupassport.png" as="image">
+  <link rel="preload" href="images/intro/intro_fish.webp?v=7" as="image">
+  <link rel="preload" href="images/intro/word_huyen.webp?v=10" as="image">
+  <link rel="preload" href="images/intro/word_nha.webp?v=8" as="image">
+  <link rel="preload" href="images/intro/word_tao.webp?v=8" as="image">
+  <link rel="preload" href="images/intro/intro_hat.webp?v=6" as="image">
+  <link rel="preload" href="images/visual/key_visual.webp" as="image">
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
 <body>
@@ -52,23 +50,23 @@
     <div class="intro-stage" id="intro-stage">
       <div class="intro-logo-canvas" id="intro-logo-canvas">
         <!-- Cụm chữ Hàng 1: HUYỆN (liền khối 3D nguyên bản) -->
-        <img src="images/intro/word_huyen.png?v=10" class="intro-word intro-word-huyen" alt="HUYỆN" draggable="false">
+        <img src="images/intro/word_huyen.webp?v=10" class="intro-word intro-word-huyen" alt="HUYỆN" draggable="false">
 
         <!-- Cụm chữ Hàng 2: NHÀ (ngôi nhà 3D nguyên bản) -->
-        <img src="images/intro/word_nha.png?v=8" class="intro-word intro-word-nha" alt="NHÀ" draggable="false">
+        <img src="images/intro/word_nha.webp?v=8" class="intro-word intro-word-nha" alt="NHÀ" draggable="false">
 
         <!-- Cụm chữ Hàng 2: TÁO (chữ Táo 3D nguyên bản) -->
-        <img src="images/intro/word_tao.png?v=8" class="intro-word intro-word-tao" alt="TÁO" draggable="false">
+        <img src="images/intro/word_tao.webp?v=8" class="intro-word intro-word-tao" alt="TÁO" draggable="false">
 
         <!-- Con cá chép bơi từ trái sang tạo thành chữ C -->
         <div class="intro-fish-wrapper" id="intro-fish-wrapper" style="opacity: 0;">
           <div class="fish-water-swirl" id="fish-water-swirl"></div>
-          <img src="images/intro/intro_fish.png?v=7" class="intro-fish" id="intro-fish" alt="Cá chép chữ C" draggable="false">
+          <img src="images/intro/intro_fish.webp?v=7" class="intro-fish" id="intro-fish" alt="Cá chép chữ C" draggable="false">
         </div>
 
         <!-- Chiếc nón cánh chuồn dấu ^ rớt xuống ngay chữ E -->
         <div class="intro-hat-wrapper" id="intro-hat-wrapper" style="opacity: 0;">
-          <img src="images/intro/intro_hat.png?v=6" class="intro-hat" id="intro-hat" alt="Nón cánh chuồn dấu ^" draggable="false">
+          <img src="images/intro/intro_hat.webp?v=6" class="intro-hat" id="intro-hat" alt="Nón cánh chuồn dấu ^" draggable="false">
           <div class="hat-impact-wave" id="hat-impact-wave"></div>
         </div>
 
@@ -92,7 +90,7 @@
   <header class="site-header" id="site-header">
     <div class="container">
       <a class="brand" href="#top" aria-label="Chuyện Nhà Táo, về đầu trang">
-        <img class="brand-logo" src="images/logo/logo.png?v=2" alt="Chuyện Nhà Táo" width="auto" height="48">
+        <img class="brand-logo" src="images/logo/logo.webp?v=2" alt="Chuyện Nhà Táo" width="auto" height="48">
       </a>
 
       <nav class="nav-links" aria-label="Điều hướng chính">
@@ -134,7 +132,7 @@
          ================================================================= -->
     <section class="hero theme-dark" id="hero" aria-labelledby="hero-title">
       <div class="hero-backdrop" aria-hidden="true">
-        <img class="hero-bg-img" src="images/visual/key_visual.png" alt="Chuyện Nhà Táo - Key Visual" decoding="async">
+        <img class="hero-bg-img" src="images/visual/key_visual.webp" alt="Chuyện Nhà Táo - Key Visual" decoding="async">
         <div class="hero-overlay"></div>
       </div>
       <div class="container hero-container">
@@ -656,6 +654,6 @@
   <!-- StPageFlip: lật trang sách 3D (PDF S02 gợi ý StPageFlip/Turn.js) -->
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js" defer></script>
   <script src="ca-chep.js" defer></script>
-  <script src="app.js?v=2.2" defer></script>
+  <script type="module" src="js/main.js?v=3.0"></script>
 </body>
 </html>
