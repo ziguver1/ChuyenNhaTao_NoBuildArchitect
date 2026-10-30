@@ -6,6 +6,8 @@ export const VALUES = [
   {
     name: 'Tôn Kính',
     icon: 'flower-lotus',
+    chapterIdx: 1, // Chương II: Tôn Kính trong sách (index 1)
+    stationId: 1,  // Trạm 1: Trạm Tôn Kính trong passport
     lines: [
       'Giữ nén hương ông bà vẫn thắp mỗi chiều cuối năm.',
       'Trân trọng nếp nhà và cội nguồn tổ tiên.',
@@ -15,6 +17,8 @@ export const VALUES = [
   {
     name: 'Mái Ấm',
     icon: 'bowl-food',
+    chapterIdx: 0, // Chương I: Mái Ấm trong sách (index 0)
+    stationId: 2,  // Trạm 2: Trạm Mái Ấm trong passport
     lines: [
       'Bữa cơm nào cũng có người chờ nhau về.',
       'Nói với nhau nhẹ nhàng hơn một chút.',
@@ -24,6 +28,8 @@ export const VALUES = [
   {
     name: 'Nhìn Lại',
     icon: 'sparkle',
+    chapterIdx: 2, // Chương III: Nhìn Lại trong sách (index 2)
+    stationId: 3,  // Trạm 3: Trạm Nhìn Lại trong passport
     lines: [
       'Tự nhìn lại bản thân một năm qua bằng sự thật lòng.',
       'Năm nay nhà mình dám nhận lỗi và sửa sai.',
@@ -33,6 +39,8 @@ export const VALUES = [
   {
     name: 'Hướng Thiện',
     icon: 'fire',
+    chapterIdx: 3, // Chương IV: Hướng Thiện trong sách (index 3)
+    stationId: 4,  // Trạm 4: Trạm Hướng Thiện trong passport
     lines: [
       'Gieo thêm việc thiện, lan tỏa điều lành cho người quanh mình.',
       'Khát vọng vươn lên, sống hướng thiện mỗi ngày.',

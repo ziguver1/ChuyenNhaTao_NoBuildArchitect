@@ -139,8 +139,16 @@ export function renderLock(g) {
     </ol>
     <ul class="lock-values" aria-label="Tiến độ từng giá trị">
       ${VALUES.map((v, k) => {
-        const read = book.done.has(k),
-          stamped = !!(pass && pass.stamps.includes(k + 1));
+        // Ánh xạ chính xác theo cấu hình của từng giá trị (thay vì lấy tuần tự k):
+        // Mái Ấm: Chương I trong sách (ch: 0), Trạm 2 trong passport (st: 2)
+        // Tôn Kính: Chương II trong sách (ch: 1), Trạm 1 trong passport (st: 1)
+        // Nhìn Lại: Chương III trong sách (ch: 2), Trạm 3 trong passport (st: 3)
+        // Hướng Thiện: Chương IV trong sách (ch: 3), Trạm 4 trong passport (st: 4)
+        const chapterIdx = v.chapterIdx !== undefined ? v.chapterIdx : (v.name === 'Mái Ấm' ? 0 : v.name === 'Tôn Kính' ? 1 : k);
+        const stationId = v.stationId !== undefined ? v.stationId : (v.name === 'Mái Ấm' ? 2 : v.name === 'Tôn Kính' ? 1 : k + 1);
+
+        const read = book.done.has(chapterIdx),
+          stamped = !!(pass && pass.stamps.includes(stationId));
         return `<li class="${stamped ? 'is-done' : ''}"><i class="ph${
           stamped ? '-fill' : ''
         } ph-${v.icon}" aria-hidden="true"></i><span>${v.name}</span>
