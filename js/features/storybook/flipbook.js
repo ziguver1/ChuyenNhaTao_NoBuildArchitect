@@ -120,12 +120,6 @@ export function buildPageHTML() {
               <p class="locked-page-text"><i class="ph ph-paint-brush"></i> ${c.lockedReason}</p>
               <p class="locked-page-hint">Mời bạn quay lại thưởng thức trọn vẹn <strong>Chương I: Mái Ấm</strong> để mở Huy chương Mái Ấm trước nhé!</p>
             </div>
-            <div class="locked-page-actions">
-              <button class="btn btn-primary locked-read-c1-btn" type="button" data-goto="${CHAPTERS[0].startPage}">
-                <i class="ph ph-book-open" aria-hidden="true"></i>
-                <span>Đọc Chương I: Mái Ấm</span>
-              </button>
-            </div>
           </div>
         </div>${folio(c.lockedPage)}`;
     }

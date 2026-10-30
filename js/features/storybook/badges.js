@@ -39,13 +39,7 @@ export function getBadgePageHTML(i) {
         <span class="pg-medal-lock-badge" title="Chưa mở" aria-label="Chưa mở"><i class="ph-fill ph-lock-key" aria-hidden="true"></i></span>
       </div>
       <h3 class="pg-title">${c.badge.name}</h3>
-      <p class="pg-prose">Chương này đang được đội ngũ họa sĩ hoàn thiện tranh minh họa. Hãy đón đọc Chương 1 để nhận Huy hiệu Mái Ấm trước nhé!</p>
-      <div class="badge-actions-group">
-        <button class="btn btn-primary" type="button" data-goto="${CHAPTERS[0].startPage}">
-          <i class="ph ph-book-open" aria-hidden="true"></i>
-          <span>Về đọc Chương I: Mái Ấm</span>
-        </button>
-      </div>`;
+      <p class="pg-prose">Chương này đang được đội ngũ họa sĩ hoàn thiện tranh minh họa. Hãy đón đọc Chương 1 để nhận Huy hiệu Mái Ấm trước nhé!</p>`;
   }
 
   // Khi chưa đóng dấu vào sách: hiển thị khung mộc chờ, chưa hiện ảnh huy chương
@@ -74,15 +68,24 @@ export function getBadgePageHTML(i) {
       <span>Xem lại</span>
     </button>
     <p class="pg-kicker">Huy hiệu chương ${i + 1}</p>
-    <div class="pg-medal is-on">
+    <div class="pg-medal is-on" style="--medal-url: url('${medalImg}')">
       <div class="pg-medal-aura" aria-hidden="true"></div>
-      <div class="pg-medal-glints" aria-hidden="true">
-        <span class="glint g-1">✦</span>
-        <span class="glint g-2">✦</span>
-        <span class="glint g-3">★</span>
-        <span class="glint g-4">✦</span>
-      </div>
       <img class="pg-medal-img" src="${medalImg}" alt="${c.badge.name}" width="160" height="160" loading="lazy">
+      <div class="pg-medal-shine" aria-hidden="true"></div>
+      <div class="pg-medal-glints" aria-hidden="true">
+        <span class="glint g-face" aria-hidden="true">
+          <svg viewBox="0 0 32 32" class="glint-svg"><path d="M16 0C16 8.5 23.5 16 32 16C23.5 16 16 23.5 16 32C16 23.5 8.5 16 0 16C8.5 16 16 8.5 16 0Z" fill="#fff7d6"/><circle cx="16" cy="16" r="3.5" fill="#ffffff"/></svg>
+        </span>
+        <span class="glint g-top-right" aria-hidden="true">
+          <svg viewBox="0 0 32 32" class="glint-svg"><path d="M16 0C16 8.5 23.5 16 32 16C23.5 16 16 23.5 16 32C16 23.5 8.5 16 0 16C8.5 16 16 8.5 16 0Z" fill="#fff7d6"/><circle cx="16" cy="16" r="3.5" fill="#ffffff"/></svg>
+        </span>
+        <span class="glint g-bottom-left" aria-hidden="true">
+          <svg viewBox="0 0 32 32" class="glint-svg"><path d="M16 0C16 8.5 23.5 16 32 16C23.5 16 16 23.5 16 32C16 23.5 8.5 16 0 16C8.5 16 16 8.5 16 0Z" fill="#fff7d6"/><circle cx="16" cy="16" r="3.5" fill="#ffffff"/></svg>
+        </span>
+        <span class="glint g-bottom-right" aria-hidden="true">
+          <svg viewBox="0 0 32 32" class="glint-svg"><path d="M16 0C16 8.5 23.5 16 32 16C23.5 16 16 23.5 16 32C16 23.5 8.5 16 0 16C8.5 16 16 8.5 16 0Z" fill="#fff7d6"/><circle cx="16" cy="16" r="3.5" fill="#ffffff"/></svg>
+        </span>
+      </div>
     </div>
     <h3 class="pg-title">${c.badge.name}</h3>
     <p class="pg-prose" id="badge-prose-${i}">${c.badge.desc}</p>
@@ -246,6 +249,7 @@ export function showMedalRewardPopup(i) {
 export function stampMedalIntoBookPage(i) {
   const c = CHAPTERS[i];
   if (!c) return;
+  const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.webp`;
 
   // Lật sang trang huy hiệu
   navToPage(c.badgePage);
@@ -274,13 +278,35 @@ export function stampMedalIntoBookPage(i) {
       medalEl.classList.remove('is-stamping');
       void medalEl.offsetWidth; // Force reflow
       medalEl.classList.add('is-stamping', 'is-on');
+      medalEl.style.setProperty('--medal-url', `url('${medalImg}')`);
 
-      // Thêm các tia lấp lánh ánh kim vàng nhẹ nhàng lên huy chương nếu chưa có
+      // Quét ánh sáng kim loại vàng trực tiếp trên bề mặt huy chương (dùng mask theo ảnh cắt bg)
+      if (!medalEl.querySelector('.pg-medal-shine')) {
+        const shine = document.createElement('div');
+        shine.className = 'pg-medal-shine';
+        shine.setAttribute('aria-hidden', 'true');
+        medalEl.appendChild(shine);
+      }
+
+      // Thêm các tia lấp lánh ánh kim vàng to rõ ngay trên mặt huy chương nếu chưa có
       if (!medalEl.querySelector('.pg-medal-glints')) {
         const glints = document.createElement('div');
         glints.className = 'pg-medal-glints';
         glints.setAttribute('aria-hidden', 'true');
-        glints.innerHTML = '<span class="glint g-1">✦</span><span class="glint g-2">✦</span><span class="glint g-3">★</span><span class="glint g-4">✦</span>';
+        glints.innerHTML = `
+          <span class="glint g-face" aria-hidden="true">
+            <svg viewBox="0 0 32 32" class="glint-svg"><path d="M16 0C16 8.5 23.5 16 32 16C23.5 16 16 23.5 16 32C16 23.5 8.5 16 0 16C8.5 16 16 8.5 16 0Z" fill="#fff7d6"/><circle cx="16" cy="16" r="3.5" fill="#ffffff"/></svg>
+          </span>
+          <span class="glint g-top-right" aria-hidden="true">
+            <svg viewBox="0 0 32 32" class="glint-svg"><path d="M16 0C16 8.5 23.5 16 32 16C23.5 16 16 23.5 16 32C16 23.5 8.5 16 0 16C8.5 16 16 8.5 16 0Z" fill="#fff7d6"/><circle cx="16" cy="16" r="3.5" fill="#ffffff"/></svg>
+          </span>
+          <span class="glint g-bottom-left" aria-hidden="true">
+            <svg viewBox="0 0 32 32" class="glint-svg"><path d="M16 0C16 8.5 23.5 16 32 16C23.5 16 16 23.5 16 32C16 23.5 8.5 16 0 16C8.5 16 16 8.5 16 0Z" fill="#fff7d6"/><circle cx="16" cy="16" r="3.5" fill="#ffffff"/></svg>
+          </span>
+          <span class="glint g-bottom-right" aria-hidden="true">
+            <svg viewBox="0 0 32 32" class="glint-svg"><path d="M16 0C16 8.5 23.5 16 32 16C23.5 16 16 23.5 16 32C16 23.5 8.5 16 0 16C8.5 16 16 8.5 16 0Z" fill="#fff7d6"/><circle cx="16" cy="16" r="3.5" fill="#ffffff"/></svg>
+          </span>
+        `;
         medalEl.appendChild(glints);
       }
 

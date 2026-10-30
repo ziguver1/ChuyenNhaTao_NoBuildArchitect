@@ -575,6 +575,10 @@ body::after {
   filter: drop-shadow(0 10px 18px rgba(150, 85, 20, 0.32)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
   animation: medalCoinLuster 4.8s ease-in-out infinite alternate;
 }
+.pg-medal.is-locked .pg-medal-img {
+  filter: grayscale(100%) contrast(1.1) brightness(0.92) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.16));
+  opacity: 0.88;
+}
 @keyframes medalCoinLuster {
   0% {
     filter: drop-shadow(0 8px 16px rgba(150, 85, 20, 0.3)) drop-shadow(0 0 10px rgba(255, 215, 100, 0.28));
@@ -587,7 +591,59 @@ body::after {
   }
 }
 
-/* Ánh lấp lánh nhẹ nhàng trên đồng tiền vàng đã mở khóa */
+/* Quét ánh sáng kim loại vàng trực tiếp trên bề mặt huy chương (dùng mask theo ảnh cắt bg) */
+.pg-medal-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  -webkit-mask-image: var(--medal-url);
+  mask-image: var(--medal-url);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  overflow: hidden;
+}
+.pg-medal-shine::after {
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -40%;
+  width: 180%;
+  height: 180%;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 235, 140, 0.25) 44%,
+    rgba(255, 255, 245, 0.8) 50%,
+    rgba(255, 215, 90, 0.4) 56%,
+    transparent 65%
+  );
+  transform: translateX(-110%) rotate(25deg);
+  animation: medalSurfaceSweep 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes medalSurfaceSweep {
+  0%, 25% {
+    transform: translateX(-110%) rotate(25deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateX(110%) rotate(25deg);
+    opacity: 1;
+  }
+  60%, 100% {
+    transform: translateX(110%) rotate(25deg);
+    opacity: 0;
+  }
+}
+
+/* Ánh lấp lánh nở to rõ ngay trên mặt huy chương */
 .pg-medal-glints {
   position: absolute;
   inset: 0;
@@ -596,40 +652,65 @@ body::after {
 }
 .pg-medal-glints .glint {
   position: absolute;
-  color: #fff6cc;
-  text-shadow:
-    0 0 4px #ffd966,
-    0 0 10px rgba(255, 215, 0, 0.85),
-    0 0 16px rgba(255, 190, 40, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
   transform: scale(0.2) rotate(0deg);
-  animation: coinGlintTwinkle 6.4s ease-in-out infinite;
-  line-height: 1;
-  user-select: none;
+  animation: coinGlintTwinkle 6s ease-in-out infinite;
   pointer-events: none;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 50, 0.95))
+          drop-shadow(0 0 14px rgba(255, 180, 20, 0.75));
 }
-.pg-medal-glints .g-1 {
-  top: 38%;
-  right: 18%;
-  font-size: 15px;
+.pg-medal-glints .glint-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Ngay chính giữa mặt huy chương: to và rực rỡ nhất */
+.pg-medal-glints .g-face {
+  top: 48%;
+  left: 45%;
+  width: 38px;
+  height: 38px;
+  margin-top: -19px;
+  margin-left: -19px;
+  animation-delay: 2.2s;
+  filter: drop-shadow(0 0 8px rgba(255, 230, 80, 1))
+          drop-shadow(0 0 18px rgba(255, 185, 30, 0.85));
+}
+
+/* Góc trên bên phải vành huy chương */
+.pg-medal-glints .g-top-right {
+  top: 36%;
+  left: 66%;
+  width: 28px;
+  height: 28px;
+  margin-top: -14px;
+  margin-left: -14px;
   animation-delay: 0.4s;
 }
-.pg-medal-glints .g-2 {
-  bottom: 16%;
-  left: 22%;
-  font-size: 13px;
-  animation-delay: 2.0s;
+
+/* Góc dưới bên trái viền đồng tiền vàng */
+.pg-medal-glints .g-bottom-left {
+  top: 72%;
+  left: 32%;
+  width: 28px;
+  height: 28px;
+  margin-top: -14px;
+  margin-left: -14px;
+  animation-delay: 3.8s;
 }
-.pg-medal-glints .g-3 {
-  top: 34%;
-  left: 22%;
-  font-size: 12px;
-  animation-delay: 3.6s;
-}
-.pg-medal-glints .g-4 {
-  bottom: 20%;
-  right: 20%;
-  font-size: 14px;
+
+/* Góc dưới bên phải viền đồng tiền vàng */
+.pg-medal-glints .g-bottom-right {
+  top: 68%;
+  left: 68%;
+  width: 24px;
+  height: 24px;
+  margin-top: -12px;
+  margin-left: -12px;
   animation-delay: 5.0s;
 }
 
@@ -639,23 +720,26 @@ body::after {
     transform: scale(0.2) rotate(0deg);
   }
   6% {
-    opacity: 0.95;
+    opacity: 1;
     transform: scale(1.15) rotate(45deg);
   }
   10% {
-    opacity: 0.65;
-    transform: scale(0.85) rotate(75deg);
+    opacity: 0.75;
+    transform: scale(0.9) rotate(75deg);
   }
   14% {
-    opacity: 0.15;
-    transform: scale(0.35) rotate(105deg);
+    opacity: 0.2;
+    transform: scale(0.4) rotate(100deg);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pg-medal.is-on .pg-medal-img {
+  .pg-medal.is-on .pg-medal-img,
+  .pg-medal-shine::after,
+  .pg-medal-glints .glint {
     animation: none !important;
   }
+  .pg-medal-shine,
   .pg-medal-glints {
     display: none !important;
   }
@@ -1025,8 +1109,15 @@ body::after {
   transform: scale(0.3) !important;
   pointer-events: none;
 }
-.pg-medal.is-awaiting-stamp .pg-medal-aura {
+.pg-medal.is-awaiting-stamp .pg-medal-aura,
+.pg-medal.is-awaiting-stamp .pg-medal-shine,
+.pg-medal.is-awaiting-stamp .pg-medal-glints {
   opacity: 0 !important;
+  pointer-events: none;
+}
+.pg-medal.is-locked .pg-medal-shine,
+.pg-medal.is-locked .pg-medal-glints {
+  display: none !important;
 }
 
 /* Khung viền mộc chờ đóng dấu thanh nhã trên nền giấy */
@@ -1171,7 +1262,8 @@ body::after {
   filter: drop-shadow(0 6px 12px rgba(160, 90, 15, 0.35));
 }
 .pg-badges .badge:not(.is-unlocked) .badge-thumb-img {
-  filter: grayscale(1) opacity(0.3) contrast(0.85);
+  filter: grayscale(100%) contrast(1.08) brightness(0.92);
+  opacity: 0.78;
 }
 .pg-badges .badge .badge-lock-ico {
   position: absolute;
