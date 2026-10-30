@@ -509,12 +509,12 @@ body::after {
 
 /* Trang huy hiệu chương */
 .pg-body.pg-badge-page {
-  padding: 16px 20px 20px;
+  padding: 14px 20px 18px;
   gap: 0;
   align-items: center;
-  justify-content: safe center;
+  justify-content: center;
   text-align: center;
-  overflow-y: auto;
+  overflow: hidden !important;
   scrollbar-width: none;
 }
 .pg-body.pg-badge-page::-webkit-scrollbar {
@@ -533,8 +533,8 @@ body::after {
 }
 .pg-medal {
   position: relative;
-  width: min(260px, 82%);
-  height: 260px;
+  width: min(235px, 78%);
+  height: 235px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -542,8 +542,8 @@ body::after {
 }
 .pg-medal-aura {
   position: absolute;
-  width: 290px;
-  height: 290px;
+  width: 270px;
+  height: 270px;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -552,9 +552,9 @@ body::after {
   z-index: 1;
 }
 .pg-medal.is-on .pg-medal-aura {
-  background: radial-gradient(circle, rgba(243, 210, 122, 0.48) 0%, rgba(207, 159, 56, 0.2) 50%, rgba(207, 159, 56, 0) 72%);
-  filter: blur(12px);
-  animation: medalGlowPulse 3s ease-in-out infinite alternate;
+  background: radial-gradient(circle, rgba(255, 225, 125, 0.44) 0%, rgba(225, 175, 55, 0.2) 48%, rgba(207, 159, 56, 0) 72%);
+  filter: blur(14px);
+  animation: medalGlowPulse 3.5s ease-in-out infinite alternate;
 }
 .pg-medal.is-locked .pg-medal-aura {
   background: radial-gradient(circle, rgba(80, 50, 20, 0.06) 0%, transparent 68%);
@@ -573,10 +573,137 @@ body::after {
 }
 .pg-medal.is-on .pg-medal-img {
   filter: drop-shadow(0 10px 18px rgba(150, 85, 20, 0.32)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.1));
+  animation: medalCoinLuster 4.8s ease-in-out infinite alternate;
 }
-.pg-medal.is-locked .pg-medal-img {
-  filter: grayscale(1) opacity(0.3) contrast(0.85);
+@keyframes medalCoinLuster {
+  0% {
+    filter: drop-shadow(0 8px 16px rgba(150, 85, 20, 0.3)) drop-shadow(0 0 10px rgba(255, 215, 100, 0.28));
+  }
+  50% {
+    filter: drop-shadow(0 11px 22px rgba(160, 90, 20, 0.4)) drop-shadow(0 0 20px rgba(255, 225, 120, 0.6));
+  }
+  100% {
+    filter: drop-shadow(0 8px 16px rgba(150, 85, 20, 0.3)) drop-shadow(0 0 10px rgba(255, 215, 100, 0.28));
+  }
 }
+
+/* Ánh lấp lánh nhẹ nhàng trên đồng tiền vàng đã mở khóa */
+.pg-medal-glints {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+.pg-medal-glints .glint {
+  position: absolute;
+  color: #fff6cc;
+  text-shadow:
+    0 0 4px #ffd966,
+    0 0 10px rgba(255, 215, 0, 0.85),
+    0 0 16px rgba(255, 190, 40, 0.5);
+  opacity: 0;
+  transform: scale(0.2) rotate(0deg);
+  animation: coinGlintTwinkle 6.4s ease-in-out infinite;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+}
+.pg-medal-glints .g-1 {
+  top: 38%;
+  right: 18%;
+  font-size: 15px;
+  animation-delay: 0.4s;
+}
+.pg-medal-glints .g-2 {
+  bottom: 16%;
+  left: 22%;
+  font-size: 13px;
+  animation-delay: 2.0s;
+}
+.pg-medal-glints .g-3 {
+  top: 34%;
+  left: 22%;
+  font-size: 12px;
+  animation-delay: 3.6s;
+}
+.pg-medal-glints .g-4 {
+  bottom: 20%;
+  right: 20%;
+  font-size: 14px;
+  animation-delay: 5.0s;
+}
+
+@keyframes coinGlintTwinkle {
+  0%, 18%, 100% {
+    opacity: 0;
+    transform: scale(0.2) rotate(0deg);
+  }
+  6% {
+    opacity: 0.95;
+    transform: scale(1.15) rotate(45deg);
+  }
+  10% {
+    opacity: 0.65;
+    transform: scale(0.85) rotate(75deg);
+  }
+  14% {
+    opacity: 0.15;
+    transform: scale(0.35) rotate(105deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-medal.is-on .pg-medal-img {
+    animation: none !important;
+  }
+  .pg-medal-glints {
+    display: none !important;
+  }
+}
+
+/* Nút Xem lại hiệu ứng mở khóa nhỏ gọn ở góc trên bên phải */
+.badge-replay-corner-btn {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #8c5b16;
+  background: rgba(255, 250, 240, 0.92);
+  border: 1px solid rgba(184, 138, 48, 0.35);
+  border-radius: var(--radius-pill, 999px);
+  box-shadow: 0 2px 6px rgba(90, 50, 20, 0.08);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  line-height: 1.2;
+}
+.badge-replay-corner-btn i {
+  font-size: 13px;
+  color: #d4931a;
+  transition: transform 0.3s ease;
+}
+.badge-replay-corner-btn:hover {
+  background: #ffffff;
+  border-color: rgba(184, 138, 48, 0.7);
+  color: #693f06;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(90, 50, 20, 0.14);
+}
+.badge-replay-corner-btn:hover i {
+  transform: rotate(20deg) scale(1.15);
+}
+.badge-replay-corner-btn:active {
+  transform: translateY(0) scale(0.96);
+}
+
 .pg-medal-lock-badge {
   position: absolute;
   z-index: 3;
@@ -635,6 +762,12 @@ body::after {
   padding: 0 20px;
   font-size: 15.5px;
   margin-top: 2px;
+}
+.badge-actions-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 6px;
 }
 
 /* =========================================================================
@@ -727,63 +860,61 @@ body::after {
   100% { transform: translateY(-9px) rotate(1deg); }
 }
 
-/* Hào quang xoay trải dài ra tận góc màn hình */
+/* Hào quang tia sáng thanh lịch, thưa nhẹ, chuyển động xoay uyển chuyển */
 .medal-sunburst {
   position: absolute;
-  top: var(--coin-cy, 55%);
-  left: var(--coin-cx, 50%);
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
   width: 250vmax;
   height: 250vmax;
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
+  /* 12 chùm tia sáng hoàng kim mảnh mai, thanh thoát: mỗi tia chỉ rộng ~8deg, cách nhau 22deg thông thoáng */
   background: repeating-conic-gradient(
     from 0deg,
-    rgba(255, 218, 115, 0.22) 0deg 6deg,
-    transparent 6deg 12deg
+    transparent 0deg,
+    rgba(255, 230, 145, 0.14) 4deg,
+    rgba(255, 218, 110, 0.22) 7deg 9deg,
+    rgba(255, 230, 145, 0.14) 12deg,
+    transparent 16deg,
+    transparent 30deg
   );
-  mask-image: radial-gradient(circle, rgba(0, 0, 0, 0.95) 10%, rgba(0, 0, 0, 0.5) 45%, transparent 75%);
-  -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 0.95) 10%, rgba(0, 0, 0, 0.5) 45%, transparent 75%);
-  animation: sunburstRotate 32s linear infinite;
+  /* Mờ dần nhẹ nhàng từ tâm ra viền, tan đều vào nền đêm ấm áp */
+  mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 10%, rgba(0, 0, 0, 0.55) 35%, rgba(0, 0, 0, 0.15) 58%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle, rgba(0, 0, 0, 1) 10%, rgba(0, 0, 0, 0.55) 35%, rgba(0, 0, 0, 0.15) 58%, transparent 72%);
+  animation: sunburstRotate 48s linear infinite;
 }
 @keyframes sunburstRotate {
   0% { transform: translate(-50%, -50%) rotate(0deg); }
   100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Vòng hào quang bám khít vừa vặn theo mặt tròn của Huy Chương */
-.medal-aura-ring {
+/* Quầng sáng ấm áp tỏa nhẹ phía sau huy chương (không dùng viền tròn cứng) */
+.medal-glow-aura {
   position: absolute;
-  top: var(--coin-cy, 55%);
-  left: var(--coin-cx, 50%);
-  width: var(--coin-dia, 65%);
-  height: var(--coin-dia, 65%);
+  top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
+  width: min(290px, 80vw);
+  height: min(290px, 80vw);
   border-radius: 50%;
-  border: 2px solid rgba(255, 220, 130, 0.75);
-  box-shadow: 0 0 25px rgba(255, 195, 75, 0.65), inset 0 0 16px rgba(255, 195, 75, 0.35);
+  background: radial-gradient(circle, rgba(255, 220, 120, 0.40) 0%, rgba(240, 175, 45, 0.16) 42%, transparent 72%);
+  filter: blur(24px);
   pointer-events: none;
   z-index: 1;
-  opacity: 0;
-  animation: medalAuraPulse 3s ease-out infinite;
+  animation: medalAuraBreathe 3.6s ease-in-out infinite alternate;
 }
-.medal-aura-ring.ring-1 {
-  animation-delay: 0s;
+@keyframes medalAuraBreathe {
+  0% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.7; }
+  100% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
 }
-.medal-aura-ring.ring-2 {
-  border-color: rgba(255, 175, 45, 0.45);
-  animation-delay: 1s;
-}
-.medal-aura-ring.ring-3 {
-  border-color: rgba(255, 225, 130, 0.25);
-  animation-delay: 2s;
-}
-@keyframes medalAuraPulse {
-  0% { transform: translate(-50%, -50%) scale(0.96); opacity: 0; }
-  12% { opacity: 0.95; }
-  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.55; }
-  100% { transform: translate(-50%, -50%) scale(1.22); opacity: 0; }
+
+/* Bỏ các vòng tròn cứng gây khó canh chỉnh */
+.medal-aura-ring,
+.medal-modal-sheen {
+  display: none !important;
 }
 
 /* Ảnh huy chương nằm ở tầng giữa */
@@ -796,67 +927,13 @@ body::after {
   pointer-events: none;
 }
 
-/* Ô tròn hiệu ứng bóng/ánh sáng phủ vừa khít mặt tròn của Huy Chương */
-.medal-modal-sheen {
-  position: absolute;
-  top: var(--coin-cy, 55%);
-  left: var(--coin-cx, 50%);
-  width: var(--coin-dia, 65%);
-  height: var(--coin-dia, 65%);
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  overflow: hidden;
-  z-index: 3;
-  pointer-events: none;
-}
-.medal-modal-sheen::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: linear-gradient(
-    125deg,
-    transparent 38%,
-    rgba(255, 255, 255, 0.18) 45%,
-    rgba(255, 255, 255, 0.72) 50%,
-    rgba(255, 255, 255, 0.18) 55%,
-    transparent 62%
-  );
-  transform: translate(-100%, -100%);
-  opacity: 0;
-  animation: medalSheenSweep 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-@keyframes medalSheenSweep {
-  0% {
-    transform: translate(-100%, -100%);
-    opacity: 0;
-  }
-  5% {
-    opacity: 1;
-  }
-  42% {
-    transform: translate(100%, 100%);
-    opacity: 1;
-  }
-  45% {
-    transform: translate(100%, 100%);
-    opacity: 0;
-  }
-  46%, 100% {
-    transform: translate(-100%, -100%);
-    opacity: 0;
-  }
-}
-
-/* Ngôi sao lấp lánh bay quanh viền tròn huy chương */
+/* Ngôi sao lấp lánh bay quanh huy chương */
 .medal-sparkles {
   position: absolute;
-  top: var(--coin-cy, 55%);
-  left: var(--coin-cx, 50%);
-  width: calc(var(--coin-dia, 65%) + 40px);
-  height: calc(var(--coin-dia, 65%) + 40px);
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 4;
@@ -942,24 +1019,80 @@ body::after {
   transform: scale(0.96);
 }
 
-/* Hiệu ứng in huy chương vào trang sách */
-.pg-medal.is-stamping {
-  animation: medalStampImpact 0.75s cubic-bezier(0.2, 0.9, 0.3, 1.3) forwards;
+/* Trạng thái đang chờ in huy chương vào trang sách: huy chương hoàn toàn chưa xuất hiện */
+.pg-medal.is-awaiting-stamp .pg-medal-img {
+  opacity: 0 !important;
+  transform: scale(0.3) !important;
+  pointer-events: none;
+}
+.pg-medal.is-awaiting-stamp .pg-medal-aura {
+  opacity: 0 !important;
+}
+
+/* Khung viền mộc chờ đóng dấu thanh nhã trên nền giấy */
+.pg-stamp-slot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 175px;
+  height: 175px;
+  border-radius: 50%;
+  border: 2px dashed rgba(184, 138, 48, 0.45);
+  background: rgba(245, 235, 215, 0.22);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.pg-stamp-slot i {
+  font-size: 32px;
+  color: rgba(184, 138, 48, 0.55);
+  animation: stampIconFloat 2s ease-in-out infinite alternate;
+}
+.pg-stamp-slot span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(140, 95, 30, 0.65);
+}
+@keyframes stampIconFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-3px); }
+}
+
+/* Khi đã in thành công (is-on) hoặc đang in (is-stamping) thì biến mất khung chờ */
+.pg-medal.is-on .pg-stamp-slot,
+.pg-medal.is-stamping .pg-stamp-slot {
+  opacity: 0 !important;
+  transform: translate(-50%, -50%) scale(0.7) !important;
+  pointer-events: none;
+}
+
+/* Hiệu ứng dập dấu mộc huy chương rơi đanh chắc từ trên cao xuống */
+.pg-medal.is-stamping .pg-medal-img {
+  opacity: 1 !important;
+  animation: medalStampImpact 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 @keyframes medalStampImpact {
   0% {
-    transform: scale(2.4) rotate(-8deg);
-    filter: brightness(2) drop-shadow(0 0 50px rgba(255, 215, 100, 1));
+    transform: scale(2.6) rotate(-8deg);
+    filter: brightness(2.2) drop-shadow(0 0 45px rgba(255, 215, 100, 1));
     opacity: 0;
   }
-  45% {
+  38% {
     transform: scale(0.92) rotate(2deg);
-    filter: brightness(1.6) drop-shadow(0 0 30px rgba(255, 215, 100, 0.8));
+    filter: brightness(1.5) drop-shadow(0 0 25px rgba(255, 200, 80, 0.9));
     opacity: 1;
   }
-  70% {
-    transform: scale(1.06) rotate(-1deg);
-    filter: brightness(1.2);
+  68% {
+    transform: scale(1.05) rotate(-1deg);
+    filter: brightness(1.15);
   }
   100% {
     transform: scale(1) rotate(0);
@@ -1093,7 +1226,7 @@ body::after {
 
 /* Dự phòng khi thư viện không tải: trang xếp ngang, vuốt để xem */
 .flip-stage.is-fallback .flipbook { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
-.flip-stage.is-fallback .pg { flex: 0 0 min(88vw, 440px); height: 600px; scroll-snap-align: start; border-radius: 10px; }
+.flip-stage.is-fallback .pg { flex: 0 0 min(92vw, 450px); height: calc(min(92vw, 450px) * 1.343); scroll-snap-align: start; border-radius: 10px; }
 
 @media (max-width: 560px) {
   .pg-prose { font-size: 14px; line-height: 1.6; }
@@ -4326,6 +4459,363 @@ body::after {
     font-size: 12.5px;
   }
 }
+
+/* ==========================================================================
+   STORYBOOK · COMIC PAGES & LOCKED CHAPTER SHOWCASE
+   ========================================================================== */
+
+/* 1. Trang ảnh truyện tranh / picture book: FULL 100% TRANG SÁCH */
+.pg-full-comic {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #ffffff; /* Đồng màu nền trắng giấy tranh để liền mạch tuyệt đối */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.pg-full-comic-img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain; /* Tuyệt đối không dùng cover để tránh bị cắt xén lề 2 bên và mất chữ thoại */
+  object-position: center;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* 2. Trang lời mở đầu tinh gọn, không scroll */
+.pg-body.pg-intro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px 28px 40px;
+  overflow: hidden !important;
+}
+
+.intro-compact {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.intro-compact .pg-kicker {
+  margin-bottom: 2px;
+}
+
+.intro-compact .pg-title {
+  font-size: clamp(20px, 3.2vw, 24px);
+  margin-bottom: 4px;
+}
+
+.intro-compact .pg-prose {
+  font-size: clamp(13px, 1.8vw, 14.5px);
+  line-height: 1.55;
+  color: #4a342a;
+  margin-bottom: 6px;
+}
+
+.intro-compact .pg-quote {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(14px, 2vw, 16px);
+  color: var(--cinnabar);
+  padding: 8px 14px;
+  border-left: 2px solid var(--cinnabar);
+  background: rgba(184, 36, 28, 0.04);
+  border-radius: 0 6px 6px 0;
+  line-height: 1.4;
+  margin: 4px 0 0;
+}
+
+.intro-compact .pg-quote small {
+  display: block;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  font-style: normal;
+}
+
+/* 3. Trang mục lục tinh gọn, không scroll */
+.pg-body.pg-toc-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px 24px 38px;
+  overflow: hidden !important;
+}
+
+.toc-compact {
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+}
+
+.toc-compact .pg-kicker {
+  margin-bottom: 6px;
+}
+
+.pg-toc-body .pg-toc {
+  gap: 1px;
+}
+
+.pg-toc-body .pg-toc button {
+  min-height: 40px;
+  padding: 6px 4px;
+  gap: 10px;
+  grid-template-columns: 28px 1fr auto;
+}
+
+.pg-toc-body .toc-n {
+  width: 26px;
+  height: 26px;
+  font-size: 12px;
+}
+
+.pg-toc-body .toc-t {
+  font-size: 14.5px;
+  line-height: 1.25;
+}
+
+.pg-toc-body .toc-t small {
+  font-size: 11.5px;
+  line-height: 1.2;
+}
+
+.pg-toc-body .toc-p {
+  font-size: 13px;
+}
+
+/* 4. Chỉ dẫn lật sách nổi bên ngoài cuốn sách */
+.flip-floating-guide {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  pointer-events: none;
+}
+
+.flip-floating-guide .guide-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  border-radius: 30px;
+  background: rgba(255, 252, 244, 0.94);
+  border: 1px solid rgba(184, 138, 48, 0.35);
+  box-shadow: 0 4px 16px rgba(42, 23, 16, 0.08);
+  font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #7a4620;
+  letter-spacing: 0.2px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: floatHintPulse 3.5s ease-in-out infinite;
+}
+
+.flip-floating-guide .guide-pill i {
+  color: #b8241c;
+  font-size: 15px;
+}
+
+@keyframes floatHintPulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Tối ưu không gian hiển thị sách trên thiết bị di động:
+   Giảm khoảng thụt lề 2 bên màn hình để cuốn sách mở rộng tối đa, loại bỏ cảm giác bị cách 2 bên */
+@media (max-width: 600px) {
+  #doc-sach .container {
+    padding-inline: 8px;
+  }
+  .flip-stage {
+    padding: 6px 0 16px;
+    margin-top: 2px;
+  }
+  .flip-stage::after {
+    left: 4%;
+    right: 4%;
+  }
+  .flip-floating-guide {
+    margin-bottom: 8px;
+  }
+  .flip-controls {
+    margin-top: 6px;
+    gap: 12px;
+  }
+}
+
+/* 2. Trang báo khóa cho các chương chưa ra mắt */
+.pg-locked-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 22px 50px;
+  text-align: center;
+  background-color: #faf5ed;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.locked-page-card {
+  width: 100%;
+  max-width: 350px;
+  padding: 24px 18px 20px;
+  border: 1.5px dashed rgba(184, 138, 48, 0.45);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.85);
+  box-shadow: 0 4px 20px rgba(60, 30, 10, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.locked-page-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: #fbf0dc;
+  color: #8c5b16;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  margin-bottom: 14px;
+}
+
+.locked-page-art-zone {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.locked-icon-shield {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5d482, #b88a30);
+  color: #2a1710;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  box-shadow: 0 4px 16px rgba(184, 138, 48, 0.35);
+}
+
+.locked-glow-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px dashed rgba(184, 138, 48, 0.35);
+  animation: spinSlow 20s linear infinite;
+}
+
+.locked-page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 4px 0 2px;
+}
+
+.locked-page-meaning {
+  font-size: 13px;
+  color: var(--accent-ink);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.locked-page-box {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(42, 23, 16, 0.08);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.locked-page-text {
+  font-size: 13px;
+  color: #4a342a;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.locked-page-hint {
+  font-size: 12px;
+  color: #8c5b16;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.locked-read-c1-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* 3. Tab chương & Mục lục khóa */
+.chapter-tab.is-locked {
+  opacity: 0.88;
+}
+
+.chapter-tab.is-locked .n i {
+  color: #b88a30;
+}
+
+.toc-locked-item button {
+  opacity: 0.82;
+}
+
+.toc-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.toc-badge-lock {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #faeeda;
+  color: #8c5b16;
+  letter-spacing: 0.2px;
+}
+
+.badge.is-chapter-locked {
+  opacity: 0.75;
+}
+
 
 
 

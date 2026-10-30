@@ -22,33 +22,85 @@ export function setStorybookNav(goPageFn, syncTabsFn, renderListenFn) {
 }
 
 /**
+ * Trả về cấu trúc HTML của trang huy hiệu bên trong sách
+ */
+export function getBadgePageHTML(i) {
+  const c = CHAPTERS[i];
+  if (!c) return '';
+  const on = book.done.has(i);
+  const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.webp`;
+
+  if (c.locked) {
+    return `
+      <p class="pg-kicker">Huy hiệu chương ${i + 1} · Tạm khóa</p>
+      <div class="pg-medal is-locked">
+        <div class="pg-medal-aura" aria-hidden="true"></div>
+        <img class="pg-medal-img" src="${medalImg}" alt="${c.badge.name}" width="160" height="160" loading="lazy">
+        <span class="pg-medal-lock-badge" title="Chưa mở" aria-label="Chưa mở"><i class="ph-fill ph-lock-key" aria-hidden="true"></i></span>
+      </div>
+      <h3 class="pg-title">${c.badge.name}</h3>
+      <p class="pg-prose">Chương này đang được đội ngũ họa sĩ hoàn thiện tranh minh họa. Hãy đón đọc Chương 1 để nhận Huy hiệu Mái Ấm trước nhé!</p>
+      <div class="badge-actions-group">
+        <button class="btn btn-primary" type="button" data-goto="${CHAPTERS[0].startPage}">
+          <i class="ph ph-book-open" aria-hidden="true"></i>
+          <span>Về đọc Chương I: Mái Ấm</span>
+        </button>
+      </div>`;
+  }
+
+  // Khi chưa đóng dấu vào sách: hiển thị khung mộc chờ, chưa hiện ảnh huy chương
+  if (!on) {
+    return `
+      <p class="pg-kicker">Huy hiệu chương ${i + 1}</p>
+      <div class="pg-medal is-awaiting-stamp">
+        <div class="pg-medal-aura" aria-hidden="true"></div>
+        <div class="pg-stamp-slot" aria-hidden="true">
+          <i class="ph ph-stamp"></i>
+          <span>Chỗ in huy hiệu</span>
+        </div>
+        <img class="pg-medal-img" src="${medalImg}" alt="${c.badge.name}" width="160" height="160" loading="lazy">
+      </div>
+      <h3 class="pg-title">${c.badge.name}</h3>
+      <p class="pg-prose" id="badge-prose-${i}">Đọc trọn vẹn 5 trang truyện của chương để mở huy hiệu này.</p>
+      <div class="badge-actions-group" id="badge-actions-${i}">
+        <button class="btn btn-primary" type="button" data-claim-chapter="${i}"><i class="ph-fill ph-medal" aria-hidden="true"></i> Nhận ${c.badge.name}</button>
+      </div>`;
+  }
+
+  // Khi đã đóng dấu thành công vào trang sách
+  return `
+    <button class="badge-replay-corner-btn" type="button" data-replay-medal="${i}" title="Xem lại hiệu ứng mở khóa" aria-label="Xem lại hiệu ứng mở khóa">
+      <i class="ph-fill ph-sparkle" aria-hidden="true"></i>
+      <span>Xem lại</span>
+    </button>
+    <p class="pg-kicker">Huy hiệu chương ${i + 1}</p>
+    <div class="pg-medal is-on">
+      <div class="pg-medal-aura" aria-hidden="true"></div>
+      <div class="pg-medal-glints" aria-hidden="true">
+        <span class="glint g-1">✦</span>
+        <span class="glint g-2">✦</span>
+        <span class="glint g-3">★</span>
+        <span class="glint g-4">✦</span>
+      </div>
+      <img class="pg-medal-img" src="${medalImg}" alt="${c.badge.name}" width="160" height="160" loading="lazy">
+    </div>
+    <h3 class="pg-title">${c.badge.name}</h3>
+    <p class="pg-prose" id="badge-prose-${i}">${c.badge.desc}</p>
+    <div class="badge-actions-group" id="badge-actions-${i}">
+      <button class="btn btn-primary" type="button" data-goto="${P.summary}">Xem bộ huy hiệu <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+    </div>`;
+}
+
+/**
  * Hiển thị trang huy hiệu bên trong sách
  */
 export function renderBadgePage(i, animate) {
   const c = CHAPTERS[i];
   if (!c) return;
-  const on = book.done.has(i);
-  const last = i === CHAPTERS.length - 1;
   const pg = $('#badge-page-' + i);
   if (!pg) return;
 
-  const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.png`;
-  pg.innerHTML = `
-    <p class="pg-kicker">Huy hiệu chương ${i + 1}</p>
-    <div class="pg-medal ${on ? 'is-on' : 'is-locked'}">
-      <div class="pg-medal-aura" aria-hidden="true"></div>
-      <img class="pg-medal-img" src="${medalImg}" alt="${c.badge.name}" width="160" height="160" loading="lazy">
-      ${!on ? '<span class="pg-medal-lock-badge" title="Chưa mở" aria-label="Chưa mở"><i class="ph-fill ph-lock-simple" aria-hidden="true"></i></span>' : ''}
-    </div>
-    <h3 class="pg-title">${c.badge.name}</h3>
-    <p class="pg-prose">${on ? c.badge.desc : 'Nghe câu chuyện ở trang bên để mở huy hiệu này.'}</p>
-    ${
-      on
-        ? last
-          ? `<button class="btn btn-primary" type="button" data-goto="${P.summary}">Xem bộ huy hiệu <i class="ph ph-arrow-right" aria-hidden="true"></i></button>`
-          : `<button class="btn btn-primary" type="button" data-goto="${P.art(i + 1)}">Sang chương ${i + 2} <i class="ph ph-arrow-right" aria-hidden="true"></i></button>`
-        : `<button class="btn btn-ghost" type="button" data-goto="${P.game(i)}"><i class="ph ph-arrow-left" aria-hidden="true"></i> Về câu chuyện</button>`
-    }`;
+  pg.innerHTML = getBadgePageHTML(i);
 
   const pgMedal = $('.pg-medal', pg);
   if (animate && hasGsap && !reduceMotion && pgMedal && window.gsap) {
@@ -66,25 +118,20 @@ export function renderBadgePage(i, animate) {
  * Hoàn thành 1 chương sách, kích hoạt mở huy hiệu
  */
 export function completeChapter(i) {
-  const first = !book.done.has(i);
-  book.done.add(i);
-  store.set('chapters_done', [...book.done]);
-  track('chapter_complete', { chapter: i + 1 });
-
-  if (first) {
-    measure('listen', { ch: i + 1 });
-    track('badge_unlocked', { badge: CHAPTERS[i].badge.name });
+  // Đảm bảo trước khi dập mộc, trang sách ở trạng thái chờ in (hoàn toàn chưa có huy chương)
+  const pg = $('#badge-page-' + i);
+  if (pg) {
+    const medalEl = $('.pg-medal', pg);
+    if (medalEl) {
+      medalEl.classList.remove('is-on', 'is-stamping');
+      medalEl.classList.add('is-awaiting-stamp');
+    }
   }
-
-  if (typeof refreshListen === 'function') refreshListen(i, true);
-  renderBadgePage(i, false);
-  if (typeof refreshTabs === 'function') refreshTabs();
-  renderBadges();
   showMedalRewardPopup(i);
 }
 
 /**
- * Popup nhận Huy Chương kiểu game khi nghe kể xong
+ * Popup nhận Huy Chương kiểu game khi hoàn thành chương
  */
 export function showMedalRewardPopup(i) {
   const c = CHAPTERS[i];
@@ -98,24 +145,14 @@ export function showMedalRewardPopup(i) {
     medalImgEl.src = medalImg;
     medalImgEl.alt = c.badge.name;
   }
+  const congratsEl = $('#medal-modal-congrats');
+  if (congratsEl) {
+    congratsEl.textContent = `Chúc mừng bạn đã hoàn thành Chương ${i + 1} và nhận được ${c.badge.name}!`;
+  }
   const nameEl = $('#medal-modal-name');
   if (nameEl) nameEl.textContent = c.badge.name;
   const descEl = $('#medal-modal-desc');
   if (descEl) descEl.textContent = c.badge.desc;
-
-  const COIN_METRICS = [
-    { cx: '51.5%', cy: '59.5%', dia: '56%' },
-    { cx: '50.3%', cy: '50.7%', dia: '55%' },
-    { cx: '49%', cy: '58%', dia: '58%' },
-    { cx: '49.0%', cy: '60.0%', dia: '58%' }
-  ];
-  const m = COIN_METRICS[i] || { cx: '50%', cy: '55%', dia: '65%' };
-  const stage = $('.medal-modal-stage');
-  if (stage) {
-    stage.style.setProperty('--coin-cx', m.cx);
-    stage.style.setProperty('--coin-cy', m.cy);
-    stage.style.setProperty('--coin-dia', m.dia);
-  }
 
   modal.hidden = false;
   sound.init();
@@ -207,34 +244,98 @@ export function showMedalRewardPopup(i) {
  * Đóng dấu huy hiệu vào trang sách
  */
 export function stampMedalIntoBookPage(i) {
-  navToPage(P.badge(i));
+  const c = CHAPTERS[i];
+  if (!c) return;
 
+  // Lật sang trang huy hiệu
+  navToPage(c.badgePage);
+
+  // Đảm bảo trước khi dập mộc, trang sách hoàn toàn chưa có huy chương (giữ slot chờ mộc)
+  const pg = $('#badge-page-' + i);
+  if (pg) {
+    const medalEl = $('.pg-medal', pg);
+    if (medalEl) {
+      medalEl.classList.remove('is-on', 'is-stamping');
+      medalEl.classList.add('is-awaiting-stamp');
+    }
+  }
+
+  // Đợi trang sách lật xong (khoảng 320ms), sau đó DẬP MỘC ĐANH CHẮC rơi xuống!
   setTimeout(
     () => {
       sound.stamp(true);
-      const pg = $('#badge-page-' + i);
-      if (!pg) return;
-      const medalEl = $('.pg-medal', pg);
+      const targetPg = $('#badge-page-' + i);
+      if (!targetPg) return;
+      const medalEl = $('.pg-medal', targetPg);
       if (!medalEl) return;
 
+      // Kích hoạt hiệu ứng rơi dập mộc và hiển thị hào quang
+      medalEl.classList.remove('is-awaiting-stamp');
       medalEl.classList.remove('is-stamping');
-      void medalEl.offsetWidth;
-      medalEl.classList.add('is-stamping');
+      void medalEl.offsetWidth; // Force reflow
+      medalEl.classList.add('is-stamping', 'is-on');
 
+      // Thêm các tia lấp lánh ánh kim vàng nhẹ nhàng lên huy chương nếu chưa có
+      if (!medalEl.querySelector('.pg-medal-glints')) {
+        const glints = document.createElement('div');
+        glints.className = 'pg-medal-glints';
+        glints.setAttribute('aria-hidden', 'true');
+        glints.innerHTML = '<span class="glint g-1">✦</span><span class="glint g-2">✦</span><span class="glint g-3">★</span><span class="glint g-4">✦</span>';
+        medalEl.appendChild(glints);
+      }
+
+      // Sóng chấn động lan tỏa từ con dấu
       const wave = document.createElement('div');
       wave.className = 'stamp-shockwave';
       wave.setAttribute('aria-hidden', 'true');
       medalEl.appendChild(wave);
       setTimeout(() => wave.remove(), 1000);
 
+      // Pháo hoa nổ bung trên huy chương
       if (typeof window.tetFx !== 'undefined' && window.tetFx.burst) {
         const r = medalEl.getBoundingClientRect();
         window.tetFx.burst(r.left + r.width / 2, r.top + r.height / 2, false);
+        sound.pop(true);
       }
 
-      toast(`✦ ${CHAPTERS[i].badge.name} đã được in trang trọng vào sách!`, 'gold', 'medal');
+      // Lưu trạng thái hoàn thành
+      const first = !book.done.has(i);
+      book.done.add(i);
+      store.set('chapters_done', [...book.done]);
+      track('chapter_complete', { chapter: i + 1 });
+      if (first) {
+        measure('listen', { ch: i + 1 });
+        track('badge_unlocked', { badge: c.badge.name });
+      }
+
+      // Cập nhật lời văn & nút hành động sau khi in (chỉ giữ nút Xem bộ huy hiệu, loại bỏ cuộn thừa)
+      const proseEl = $('#badge-prose-' + i);
+      if (proseEl) proseEl.textContent = c.badge.desc;
+      const actionsEl = $('#badge-actions-' + i);
+      if (actionsEl) {
+        actionsEl.innerHTML = `
+          <button class="btn btn-primary" type="button" data-goto="${P.summary}">Xem bộ huy hiệu <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+        `;
+      }
+
+      // Gắn nút "Xem lại" tinh tế, nhỏ gọn ở góc trên bên phải trang sách
+      if (targetPg && !targetPg.querySelector('.badge-replay-corner-btn')) {
+        const replayBtn = document.createElement('button');
+        replayBtn.className = 'badge-replay-corner-btn';
+        replayBtn.type = 'button';
+        replayBtn.setAttribute('data-replay-medal', String(i));
+        replayBtn.title = 'Xem lại hiệu ứng mở khóa';
+        replayBtn.setAttribute('aria-label', 'Xem lại hiệu ứng mở khóa');
+        replayBtn.innerHTML = '<i class="ph-fill ph-sparkle" aria-hidden="true"></i><span>Xem lại</span>';
+        targetPg.prepend(replayBtn);
+      }
+
+      if (typeof refreshTabs === 'function') refreshTabs();
+      renderBadges();
+
+      toast(`✦ ${c.badge.name} đã được in trang trọng vào sách!`, 'gold', 'medal');
     },
-    book.flip ? 380 : 120
+    book.flip ? 320 : 100
   );
 }
 
@@ -248,15 +349,15 @@ export function renderBadges() {
   container.innerHTML = CHAPTERS.map((c, i) => {
     const on = book.done.has(i);
     const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.png`;
-    return `<button type="button" class="badge ${on ? 'is-unlocked' : ''}" data-badge="${i}" data-goto="${
-      on ? P.badge(i) : P.art(i)
+    return `<button type="button" class="badge ${on ? 'is-unlocked' : ''} ${c.locked ? 'is-chapter-locked' : ''}" data-badge="${i}" data-goto="${
+      on ? c.badgePage : c.startPage
     }">
       <span class="disc ${on ? 'is-on' : 'is-locked'}">
         <img src="${medalImg}" alt="${c.badge.name}" class="badge-thumb-img" loading="lazy">
-        ${!on ? '<span class="badge-lock-ico" aria-hidden="true"><i class="ph-fill ph-lock-simple"></i></span>' : ''}
+        ${!on ? `<span class="badge-lock-ico" aria-hidden="true"><i class="ph-fill ph-${c.locked ? 'lock-key' : 'lock-simple'}"></i></span>` : ''}
       </span>
       <h4>${c.badge.name}</h4>
-      <p>${on ? c.badge.desc : 'Đọc chương ' + (i + 1) + ' để mở'}</p>
+      <p>${on ? c.badge.desc : c.locked ? 'Chương đang biên soạn' : 'Đọc chương ' + (i + 1) + ' để mở'}</p>
     </button>`;
   }).join('');
 
@@ -274,8 +375,8 @@ export function renderBadges() {
   if (textEl) {
     textEl.textContent =
       n === 4
-        ? 'Tôn kính, mái ấm, nhìn lại và hướng thiện. Mang cả bốn giá trị ấy đến sự kiện và đóng dấu ở bốn trạm nhé.'
-        : 'Bốn trạm thực tế đang chờ bạn đóng dấu và nhận quà.';
+        ? 'Mái ấm, tôn kính, nhìn lại và hướng thiện. Mang cả bốn giá trị ấy đến sự kiện và đóng dấu ở bốn trạm nhé.'
+        : 'Hãy đọc hết Chương 1 để nhận Huy hiệu Mái Ấm và đến bốn trạm sự kiện đóng dấu nhé.';
   }
 
   if (typeof window.renderLetter === 'function' && $('#letter-lock')) {

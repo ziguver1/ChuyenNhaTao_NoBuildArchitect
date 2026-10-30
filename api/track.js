@@ -9,7 +9,7 @@
 const { configured, redis, PRIZE_KEYS } = require('./_store');
 
 const MAX_EVENTS = 200;
-const PAGE_COUNT = 22;
+const PAGE_COUNT = 30;
 
 function readBody(req) {
   if (req.body && typeof req.body === 'object') return req.body;

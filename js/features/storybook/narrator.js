@@ -97,8 +97,9 @@ export function voiceOver(btn, i) {
 export const tale = { i: null, timers: [], audio: null, playing: false };
 
 export function renderListen(i, done) {
-  const c = CHAPTERS[i],
-    L = c.listen;
+  const c = CHAPTERS[i];
+  if (!c || !c.listen) return;
+  const L = c.listen;
   const gameEl = $('#game-' + i);
   if (!gameEl) return;
 

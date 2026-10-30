@@ -6,12 +6,16 @@ import { store } from '../../core/storage.js';
 import { track } from '../../analytics/tracker.js';
 import { measure } from '../../analytics/meter.js';
 import { sound } from '../../core/audio.js';
+import { toast } from '../../core/toast.js';
 import { hasGsap, reduceMotion } from '../../core/motion.js';
 import { CHAPTERS, P, ROMAN, chapterOfPage, folio } from './chapters.data.js';
 import { book } from './storybook.state.js';
 import {
   renderBadgePage,
   renderBadges,
+  completeChapter,
+  showMedalRewardPopup,
+  getBadgePageHTML,
   setStorybookNav,
   initMedalConsoleHelpers
 } from './badges.js';
@@ -42,74 +46,95 @@ export function buildPageHTML() {
 
   pageHTML[P.intro] = `
     <div class="pg-body pg-intro">
-      <div>
+      <div class="intro-compact">
         <p class="pg-kicker">Lời mở đầu</p>
         <h3 class="pg-title">Gửi người giữ lửa</h3>
-        <p class="pg-prose">Ngày 23 tháng Chạp, ông Táo cưỡi cá chép về trời, kể lại một năm của mỗi gia đình. Cuốn sách nhỏ này mời bạn ngồi bên bếp lửa, đọc bốn câu chuyện về tôn kính, mái ấm, nhìn lại và hướng thiện.</p>
+        <p class="pg-prose">Ngày 23 tháng Chạp, ông Táo cưỡi cá chép về trời, kể lại một năm của mỗi gia đình. Cuốn sách nhỏ này mời bạn ngồi bên bếp lửa, cùng xem lại những câu chuyện về nếp nhà và hơi ấm đoàn viên.</p>
         <div class="pg-quote">
-          “Bếp đỏ giữ lửa, nếp nhà đoàn viên. Dù ngoài kia có bão giông, cuối năm vẫn có một ngọn lửa ấm đợi mình về.”
+          “Bếp đỏ giữ lửa, nếp nhà đoàn viên.”
           <small>— Chuyện Nhà Táo</small>
         </div>
-        <p class="pg-prose">Cuối mỗi chương có một câu chuyện nhỏ để bạn lắng nghe. Sách là phần đọc thêm, không bắt buộc: bạn có thể tạo thẻ thông hành ngay và đến sự kiện đi bốn trạm.</p>
       </div>
-      <p class="pg-hint"><i class="ph ph-hand-swipe-right" aria-hidden="true"></i> Kéo góc trang hoặc vuốt ngang để lật</p>
     </div>${folio(1)}`;
 
   pageHTML[P.toc] = `
-    <div class="pg-body">
-      <p class="pg-kicker">Mục lục</p>
-      <ol class="pg-toc">
-        ${CHAPTERS.map(
-          (c, i) =>
-            `<li><button type="button" data-goto="${P.art(i)}"><span class="toc-n">${
-              ROMAN[i]
-            }</span><span class="toc-t">${c.title}<small>${c.meaning}</small></span><span class="toc-p">${P.art(
-              i
-            )}</span></button></li>`
-        ).join('')}
-        <li><button type="button" data-goto="${P.summary}"><span class="toc-n"><i class="ph ph-medal" aria-hidden="true"></i></span><span class="toc-t">Bộ huy hiệu và sự kiện</span><span class="toc-p">${
-    P.summary
-  }</span></button></li>
-      </ol>
+    <div class="pg-body pg-toc-body">
+      <div class="toc-compact">
+        <p class="pg-kicker">Mục lục</p>
+        <ol class="pg-toc">
+          ${CHAPTERS.map(
+            (c, i) =>
+              `<li class="${c.locked ? 'toc-locked-item' : ''}">
+                <button type="button" data-goto="${c.startPage}">
+                  <span class="toc-n">${c.locked ? '<i class="ph-fill ph-lock-key" aria-hidden="true"></i>' : ROMAN[i]}</span>
+                  <span class="toc-t">
+                    <span class="toc-title-row">
+                      ${c.title}
+                      ${c.locked ? '<span class="toc-badge-lock">Khóa</span>' : ''}
+                    </span>
+                    <small>${c.meaning}</small>
+                  </span>
+                  <span class="toc-p">${c.locked ? '<i class="ph ph-lock-simple"></i>' : c.startPage}</span>
+                </button>
+              </li>`
+          ).join('')}
+          <li>
+            <button type="button" data-goto="${P.summary}">
+              <span class="toc-n"><i class="ph ph-medal" aria-hidden="true"></i></span>
+              <span class="toc-t">Bộ huy hiệu và sự kiện</span>
+              <span class="toc-p">${P.summary}</span>
+            </button>
+          </li>
+        </ol>
+      </div>
     </div>${folio(2)}`;
 
   CHAPTERS.forEach((c, i) => {
-    pageHTML[P.art(i)] = `
-      <div class="pg-art" style="--pos:${c.pos || 'center'}">
-        <figure class="pg-plate">
-          <img src="${c.img}" alt="${c.alt}" loading="lazy" decoding="async" onerror="this.remove()">
-          <i class="ph ph-${c.icon} pg-art-icon" aria-hidden="true"></i>
-          <figcaption>Hình ${ROMAN[i]}. ${c.alt}</figcaption>
-        </figure>
-        <p class="pg-seed"><small>Câu hỏi gieo</small>${c.seed}</p>
-      </div>${folio(P.art(i))}`;
-
-    pageHTML[P.text(i)] = `
-      <div class="pg-body pg-chapter-body">
-        <div>
-          <div class="pg-chapter-head">
-            <div class="pg-head-text">
-              <p class="pg-kicker">Chương ${ROMAN[i]} · ${c.meaning}</p>
-              <h3 class="pg-title">${c.title}</h3>
+    // 1. Nếu chương có danh sách ảnh -> full 100% trang sách, không nút, không lề
+    if (c.pages && c.pages.length > 0) {
+      c.pages.forEach((src, imgIdx) => {
+        const pageNum = c.imagePages[imgIdx];
+        pageHTML[pageNum] = `
+          <div class="pg-full-comic">
+            <img src="${src}" alt="Chương ${ROMAN[i]}: ${c.title} - Trang ${imgIdx + 1}" class="pg-full-comic-img" width="990" height="1330" loading="lazy" decoding="async">
+          </div>`;
+      });
+    } else {
+      // 2. Nếu chương bị khóa (chưa có ảnh)
+      pageHTML[c.lockedPage] = `
+        <div class="pg-body pg-locked-page">
+          <div class="locked-page-card">
+            <div class="locked-page-badge-pill">
+              <i class="ph-fill ph-lock-key" aria-hidden="true"></i>
+              <span>CHƯƠNG ${ROMAN[i]} · ĐANG BIÊN SOẠN</span>
             </div>
-            <button class="pg-voice-circle" type="button" data-voice="${i}" aria-label="Nghe đọc chương" title="Nghe đọc">
-              <i class="ph ph-speaker-high" aria-hidden="true"></i>
-            </button>
+            <div class="locked-page-art-zone">
+              <div class="locked-glow-ring" aria-hidden="true"></div>
+              <div class="locked-icon-shield">
+                <i class="ph-fill ph-lock-key" aria-hidden="true"></i>
+              </div>
+            </div>
+            <h3 class="locked-page-title">${c.title}</h3>
+            <p class="locked-page-meaning">${c.meaning}</p>
+            <div class="locked-page-box">
+              <p class="locked-page-text"><i class="ph ph-paint-brush"></i> ${c.lockedReason}</p>
+              <p class="locked-page-hint">Mời bạn quay lại thưởng thức trọn vẹn <strong>Chương I: Mái Ấm</strong> để mở Huy chương Mái Ấm trước nhé!</p>
+            </div>
+            <div class="locked-page-actions">
+              <button class="btn btn-primary locked-read-c1-btn" type="button" data-goto="${CHAPTERS[0].startPage}">
+                <i class="ph ph-book-open" aria-hidden="true"></i>
+                <span>Đọc Chương I: Mái Ấm</span>
+              </button>
+            </div>
           </div>
-          <p class="pg-prose pg-story">${c.story}</p>
-          <div class="pg-chapter-quote">
-            <p>“${c.badge.desc}”</p>
-          </div>
-        </div>
-      </div>${folio(P.text(i))}`;
+        </div>${folio(c.lockedPage)}`;
+    }
 
-    pageHTML[P.game(i)] = `<div class="pg-body"><p class="pg-kicker">Lắng nghe · Chương ${
-      ROMAN[i]
-    }</p><div class="game" id="game-${i}"></div></div>${folio(P.game(i))}`;
-
-    pageHTML[P.badge(i)] = `<div class="pg-body pg-badge-page" id="badge-page-${i}"></div>${folio(
-      P.badge(i)
-    )}`;
+    // Trang huy hiệu của chương
+    pageHTML[c.badgePage] = `
+      <div class="pg-body pg-badge-page" id="badge-page-${i}">
+        ${getBadgePageHTML(i)}
+      </div>${folio(c.badgePage)}`;
   });
 
   pageHTML[P.summary] = `
@@ -160,7 +185,15 @@ export function pageLabel(p) {
   if (p === P.cover) return 'Bìa sách';
   if (p === P.back) return 'Bìa sau';
   const ch = chapterOfPage(p);
-  const where = ch !== null ? `Chương ${ch + 1}` : p <= P.toc ? 'Lời mở đầu' : 'Tổng kết';
+  if (ch !== null) {
+    const c = CHAPTERS[ch];
+    if (p === c.badgePage) return `Chương ${ROMAN[ch]}: ${c.short} · Huy hiệu`;
+    if (c.locked) return `Chương ${ROMAN[ch]}: ${c.short} · Đang biên soạn`;
+    const imgIdx = c.imagePages.indexOf(p);
+    if (imgIdx >= 0) return `Chương ${ROMAN[ch]}: ${c.short} · Trang ${imgIdx + 1}/${c.pages.length}`;
+    return `Chương ${ROMAN[ch]}: ${c.short}`;
+  }
+  const where = p <= P.toc ? (p === 1 ? 'Lời mở đầu' : 'Mục lục') : 'Tổng kết';
   return `${where} · Trang ${p}/${P.count - 2}`;
 }
 
@@ -184,13 +217,14 @@ export function syncTabs() {
   const tabsEl = $('#chapter-tabs');
   if (!tabsEl) return;
   $$('.chapter-tab', tabsEl).forEach((t, i) => {
+    const c = CHAPTERS[i];
     t.setAttribute('aria-selected', String(i === book.idx));
     t.tabIndex = i === book.idx ? 0 : -1;
     const check = $('.ph-seal-check', t);
     if (check) check.hidden = !book.done.has(i);
     t.setAttribute(
       'aria-label',
-      `Chương ${i + 1}: ${CHAPTERS[i].short}${book.done.has(i) ? ', đã hoàn thành' : ''}`
+      `Chương ${i + 1}: ${c.short}${c.locked ? ', đang biên soạn' : book.done.has(i) ? ', đã hoàn thành' : ''}`
     );
   });
 }
@@ -232,6 +266,21 @@ export function onPageChange(p) {
     book.started.add(ch);
     track('chapter_start', { chapter: ch + 1 });
   }
+
+  // TỰ ĐỘNG TRAO HUY CHƯƠNG MÁI ẤM KHI ĐỌC HẾT 5 TRANG TRUYỆN TRANH CHƯƠNG 1
+  const ch0 = CHAPTERS[0];
+  if (ch0 && !book.done.has(0)) {
+    const lastImgPage = ch0.imagePages && ch0.imagePages.length
+      ? ch0.imagePages[ch0.imagePages.length - 1]
+      : 7; // Trang 5/5 tương ứng page 7
+    // Khi lật đến trang cuối (Trang 5) hoặc lật sang trang Huy hiệu
+    if (p === lastImgPage || p === ch0.badgePage) {
+      setTimeout(() => {
+        if (!book.done.has(0)) completeChapter(0);
+      }, 700);
+    }
+  }
+
   syncTabs();
   const statusEl = $('#flip-status');
   if (statusEl) statusEl.textContent = pageLabel(p);
@@ -243,7 +292,7 @@ export function onPageChange(p) {
 
 export function renderAllChapters() {
   CHAPTERS.forEach((c, i) => {
-    renderListen(i, book.done.has(i));
+    if (typeof renderListen === 'function') renderListen(i, book.done.has(i));
     renderBadgePage(i);
   });
   renderBadges();
@@ -288,27 +337,43 @@ export function initFlipbook() {
     return el;
   });
 
+  // Đồng bộ nội dung các trang và huy chương ngay khi các thẻ trang đã gắn vào DOM
+  renderAllChapters();
+
   const tabsEl = $('#chapter-tabs');
   if (tabsEl) {
     tabsEl.innerHTML = '';
     CHAPTERS.forEach((c, i) => {
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'chapter-tab';
-      b.setAttribute('role', 'tab');
+      b.className = 'chapter-tab' + (c.locked ? ' is-locked' : '');
       b.id = 'tab-' + i;
+      b.setAttribute('role', 'tab');
       b.setAttribute('aria-controls', 'flip-stage');
-      b.innerHTML = `<span class="n">Chương ${
-        i + 1
-      }<i class="ph-fill ph-seal-check" aria-hidden="true" hidden></i></span><span class="t">${
-        c.short
-      }</span>`;
-      b.addEventListener('click', () => goPage(P.art(i)));
+      b.innerHTML = `<span class="n">Chương ${i + 1}
+        ${
+          c.locked
+            ? '<i class="ph-fill ph-lock-key" aria-hidden="true" title="Chương đang biên soạn"></i>'
+            : '<i class="ph-fill ph-seal-check" aria-hidden="true" hidden></i>'
+        }
+      </span><span class="t">${c.short}</span>`;
+
+      b.addEventListener('click', () => {
+        if (c.locked) {
+          toast(
+            `Chương ${i + 1}: ${c.short} đang được biên họa tranh minh họa. Hãy đón đọc Chương 1 trước nhé!`,
+            'info',
+            'lock-key'
+          );
+        }
+        goPage(c.startPage);
+      });
+
       b.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
           const n = (i + (e.key === 'ArrowRight' ? 1 : 3)) % 4;
           $('#tab-' + n)?.focus();
-          goPage(P.art(n));
+          goPage(CHAPTERS[n].startPage);
         }
       });
       tabsEl.appendChild(b);
@@ -321,6 +386,16 @@ export function initFlipbook() {
     const go = e.target.closest('[data-goto]');
     if (go) {
       goPage(+go.dataset.goto);
+      return;
+    }
+    const claim = e.target.closest('[data-claim-chapter]');
+    if (claim) {
+      completeChapter(+claim.dataset.claimChapter);
+      return;
+    }
+    const replay = e.target.closest('[data-replay-medal]');
+    if (replay) {
+      showMedalRewardPopup(+replay.dataset.replayMedal);
       return;
     }
     const v = e.target.closest('[data-voice]');
@@ -396,15 +471,22 @@ export function initFlipbook() {
   }
 
   const narrow = window.innerWidth < 600;
-  const ph = narrow ? 740 : 620;
-  const maxH = Math.max(440, Math.min(narrow ? 600 : 680, window.innerHeight - 140));
+  // Tỉ lệ tranh truyện gốc 990 x 1330 (tỉ lệ chiều cao / chiều rộng ~ 1.3434)
+  const pageRatio = 1330 / 990;
+  const pw = 460;
+  const ph = Math.round(pw * pageRatio); // 618px: đồng bộ tỉ lệ chuẩn xác của ảnh tranh
+  const maxH = Math.max(440, Math.min(narrow ? 640 : 680, window.innerHeight - 120));
+  // Trên điện thoại (chế độ portrait 1 trang), cho phép trang sách mở rộng tối đa sát lề màn hình
+  const maxW = narrow
+    ? Math.min(540, Math.max(300, window.innerWidth - 16))
+    : Math.round((maxH * pw) / ph);
 
   book.flip = new PF(flipbookEl, {
-    width: 460,
+    width: pw,
     height: ph,
     size: 'stretch',
-    minWidth: 280,
-    maxWidth: Math.round((maxH * 460) / ph),
+    minWidth: 260,
+    maxWidth: maxW,
     minHeight: 380,
     maxHeight: maxH,
     showCover: true,

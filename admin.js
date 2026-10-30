@@ -12,9 +12,9 @@
   const GATE_CODE = 'CONG23';
   const STATIONS = [['Trạm Tôn Kính', 'TONKI1'], ['Trạm Mái Ấm', 'MAIAM2'], ['Trạm Nhìn Lại', 'NHINL3'], ['Trạm Hướng Thiện', 'HUONG4']];
   const PRIZE_LABEL = { sticker: 'Sticker', keychain: 'Móc khoá', blindbox: 'Blindbox', none: 'Không trúng' };
-  const PAGE_COUNT = 22;
+  const PAGE_COUNT = 18;
   const pageName = (p) => p == null ? '—' : p === 0 ? 'Bìa' : p === 1 ? 'Lời mở đầu' : p === 2 ? 'Mục lục'
-    : p <= 18 ? `Ch.${Math.floor((p - 3) / 4) + 1} · tr.${p}` : p === 19 ? 'Tổng kết' : p === 20 ? 'Sự kiện' : 'Bìa sau';
+    : p <= 8 ? `Ch.1 · tr.${p}` : p <= 10 ? 'Ch.2 (Khóa)' : p <= 12 ? 'Ch.3 (Khóa)' : p <= 14 ? 'Ch.4 (Khóa)' : p === 15 ? 'Tổng kết' : p === 16 ? 'Sự kiện' : 'Bìa sau';
 
   const state = { rows: [], sort: { k: 'seen', dir: -1 }, q: '', source: 'api' };
   const KEY = 'cnt_admin_key';

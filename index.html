@@ -160,6 +160,10 @@
         <canvas class="scene-canvas" id="scene-canvas"></canvas>
       </div></div>
       <div class="container">
+        <!-- Chỉ dẫn nổi bên ngoài cuốn sách -->
+        <div class="flip-floating-guide" aria-hidden="true">
+          <span class="guide-pill"><i class="ph ph-hand-swipe-right"></i> Vuốt góc trang hoặc bấm nút bên dưới để lật sách</span>
+        </div>
         <!-- S02 + S03: quyển sách lật trang (StPageFlip). Trang do app.js dựng. -->
         <div class="flip-stage reveal" id="flip-stage" tabindex="0" aria-roledescription="sách lật trang" aria-label="Cuốn sách Chuyện Nhà Táo. Dùng phím mũi tên trái, phải để lật trang.">
           <div class="flipbook" id="flipbook"></div>
@@ -596,9 +600,7 @@
         <span class="medal-modal-kicker">✦ THÀNH TỰU MỞ KHÓA ✦</span>
         <div class="medal-modal-stage">
           <div class="medal-sunburst" aria-hidden="true"></div>
-          <div class="medal-aura-ring ring-1" aria-hidden="true"></div>
-          <div class="medal-aura-ring ring-2" aria-hidden="true"></div>
-          <div class="medal-aura-ring ring-3" aria-hidden="true"></div>
+          <div class="medal-glow-aura" aria-hidden="true"></div>
           <div class="medal-sparkles" aria-hidden="true">
             <span class="sp-1">✦</span>
             <span class="sp-2">★</span>
@@ -608,7 +610,6 @@
             <span class="sp-6">✦</span>
           </div>
           <img class="medal-modal-img" id="medal-modal-img" src="" alt="Huy chương" width="240" height="240">
-          <div class="medal-modal-sheen" aria-hidden="true"></div>
         </div>
         <h3 class="medal-modal-congrats" id="medal-modal-congrats">Chúc mừng bạn đã nhận được Huy Chương!</h3>
         <h4 class="medal-modal-name" id="medal-modal-name">Huy hiệu Hướng Thiện</h4>
