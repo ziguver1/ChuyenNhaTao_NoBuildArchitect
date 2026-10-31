@@ -25,10 +25,10 @@
   const PAGE_COUNT = 18;
 
   const CARP_INFO = {
-    maiam: { name: 'Mái Ấm', meaning: 'Gia đình & Hòa thuận', color: '#f59e0b', img: 'images/reaction/maiam_icon.webp' },
-    tonkinh: { name: 'Tôn Kính', meaning: 'Lễ nghĩa & Cội nguồn', color: '#ef4444', img: 'images/reaction/tonkinh_icon.webp' },
-    nhinlai: { name: 'Nhìn Lại', meaning: 'Chiêm nghiệm & Tự soi', color: '#3b82f6', img: 'images/reaction/nhinlai_icon.webp' },
-    huongthien: { name: 'Hướng Thiện', meaning: 'Bao dung & Việc thiện', color: '#10b981', img: 'images/reaction/huongthien_icon.webp' }
+    maiam: { name: 'Mái Ấm', meaning: 'Gia đình & Hòa thuận', color: '#f59e0b', img: 'images/reaction/maiam.webp' },
+    tonkinh: { name: 'Tôn Kính', meaning: 'Lễ nghĩa & Cội nguồn', color: '#ef4444', img: 'images/reaction/tonkinh.webp' },
+    nhinlai: { name: 'Nhìn Lại', meaning: 'Chiêm nghiệm & Tự soi', color: '#3b82f6', img: 'images/reaction/nhinlai.webp' },
+    huongthien: { name: 'Hướng Thiện', meaning: 'Bao dung & Việc thiện', color: '#10b981', img: 'images/reaction/huongthien.webp' }
   };
 
   const SHARE_CHANNEL_INFO = {

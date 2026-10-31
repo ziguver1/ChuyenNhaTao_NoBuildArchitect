@@ -9,10 +9,10 @@
 Hệ thống tương tác của sách đã được chuyển đổi hoàn toàn sang biểu tượng Cá Chép theo 4 thông điệp cốt lõi:
 | Mã Loại (`type`) | Tên Hiển Thị | Ý Nghĩa | Đường dẫn tệp |
 | :--- | :--- | :--- | :--- |
-| `maiam` | **Mái Ấm** | Tình cảm gia đình, hơi ấm bữa cơm | `images/reaction/maiam_icon.webp` |
-| `tonkinh` | **Tôn Kính** | Lễ nghĩa, kính trọng tổ tiên / bề trên | `images/reaction/tonkinh_icon.webp` |
-| `nhinlai` | **Nhìn Lại** | Chiêm nghiệm, lắng đọng sau câu chuyện | `images/reaction/nhinlai_icon.webp` |
-| `huongthien` | **Hướng Thiện** | Lòng tốt, hành động sẻ chia tích cực | `images/reaction/huongthien_icon.webp` |
+| `maiam` | **Mái Ấm** | Tình cảm gia đình, hơi ấm bữa cơm | `images/reaction/maiam.webp` |
+| `tonkinh` | **Tôn Kính** | Lễ nghĩa, kính trọng tổ tiên / bề trên | `images/reaction/tonkinh.webp` |
+| `nhinlai` | **Nhìn Lại** | Chiêm nghiệm, lắng đọng sau câu chuyện | `images/reaction/nhinlai.webp` |
+| `huongthien` | **Hướng Thiện** | Lòng tốt, hành động sẻ chia tích cực | `images/reaction/huongthien.webp` |
 
 > [!NOTE]
 > Toàn bộ 4 ảnh WebP đều được nạp sẵn vào RAM/GPU ngay khi mở sách thông qua hàm `preloadReactionAssets()` trong `book-community.js`, đảm bảo độ trễ bật animation và mở picker đạt **0ms**.

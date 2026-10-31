@@ -19,28 +19,28 @@ export const REACTION_ICONS = {
     id: 'maiam',
     name: 'Mái Ấm',
     desc: 'Bếp ấm sum họp',
-    img: 'images/reaction/maiam_icon.webp',
+    img: 'images/reaction/maiam.webp',
     color: '#e86a38'
   },
   tonkinh: {
     id: 'tonkinh',
     name: 'Tôn Kính',
     desc: 'Biết ơn cội nguồn',
-    img: 'images/reaction/tonkinh_icon.webp',
+    img: 'images/reaction/tonkinh.webp',
     color: '#c49742'
   },
   nhinlai: {
     id: 'nhinlai',
     name: 'Nhìn Lại',
     desc: 'Thấu hiểu bản thân',
-    img: 'images/reaction/nhinlai_icon.webp',
+    img: 'images/reaction/nhinlai.webp',
     color: '#2b8a9e'
   },
   huongthien: {
     id: 'huongthien',
     name: 'Hướng Thiện',
     desc: 'Gieo mầm điều lành',
-    img: 'images/reaction/huongthien_icon.webp',
+    img: 'images/reaction/huongthien.webp',
     color: '#d93829'
   }
 };
@@ -813,7 +813,7 @@ function renderCommentList(comments) {
   if (!comments || comments.length === 0) {
     listEl.innerHTML = `
       <div class="ig-empty-box">
-        <img src="images/reaction/maiam_icon.webp" alt="" width="56" height="56" class="ig-empty-carp">
+        <img src="images/reaction/maiam.webp" alt="" width="56" height="56" class="ig-empty-carp">
         <p class="ig-empty-title">Chưa có bình luận cho trang này</p>
         <p class="ig-empty-sub">Hãy là người đầu tiên để lại cảm nghĩ nhé!</p>
       </div>
