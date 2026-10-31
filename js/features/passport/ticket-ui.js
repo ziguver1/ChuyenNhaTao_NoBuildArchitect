@@ -845,6 +845,16 @@ export function initPassportUI() {
     fEmail = $('#f-email'),
     fConsent = $('#f-consent');
 
+  // Tự động điền tên nếu người dùng đã nhập trước đó ở phần Lưu bút đọc sách
+  const prefilledName = store.get('user_nickname');
+  if (fName && !fName.value && prefilledName) {
+    fName.value = prefilledName;
+  }
+  fName?.addEventListener('input', () => {
+    const v = fName.value.trim();
+    if (v) store.set('user_nickname', v);
+  });
+
   function validateName() {
     if (!fName) return false;
     const v = fName.value.trim();
@@ -954,6 +964,7 @@ export function initPassportUI() {
       };
       setPass(pass);
       savePassToHistory(pass);
+      store.set('user_nickname', nickname);
       if (!offline)
         store.set('registry', [...new Set([...store.get('registry', []), plain(nickname)])]);
       measure('register');

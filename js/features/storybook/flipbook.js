@@ -8,7 +8,7 @@ import { measure } from '../../analytics/meter.js';
 import { sound } from '../../core/audio.js';
 import { toast } from '../../core/toast.js';
 import { hasGsap, reduceMotion } from '../../core/motion.js';
-import { CHAPTERS, P, ROMAN, chapterOfPage, folio } from './chapters.data.js';
+import { CHAPTERS, P, ROMAN, chapterOfPage, folio, pageLabel } from './chapters.data.js';
 import { book } from './storybook.state.js';
 import {
   renderBadgePage,
@@ -28,6 +28,7 @@ import {
   renderListen,
   tale
 } from './narrator.js';
+import { onFlipbookPageChanged } from '../community/book-community.js';
 
 let flipbookEl = null;
 let pageEls = [];
@@ -175,21 +176,7 @@ export function buildPageHTML() {
   return pageHTML;
 }
 
-export function pageLabel(p) {
-  if (p === P.cover) return 'Bìa sách';
-  if (p === P.back) return 'Bìa sau';
-  const ch = chapterOfPage(p);
-  if (ch !== null) {
-    const c = CHAPTERS[ch];
-    if (p === c.badgePage) return `Chương ${ROMAN[ch]}: ${c.short} · Huy hiệu`;
-    if (c.locked) return `Chương ${ROMAN[ch]}: ${c.short} · Đang biên soạn`;
-    const imgIdx = c.imagePages.indexOf(p);
-    if (imgIdx >= 0) return `Chương ${ROMAN[ch]}: ${c.short} · Trang ${imgIdx + 1}/${c.pages.length}`;
-    return `Chương ${ROMAN[ch]}: ${c.short}`;
-  }
-  const where = p <= P.toc ? (p === 1 ? 'Lời mở đầu' : 'Mục lục') : 'Tổng kết';
-  return `${where} · Trang ${p}/${P.count - 2}`;
-}
+export { pageLabel };
 
 export function moveIndicator(animate) {
   const tabsEl = $('#chapter-tabs');
@@ -282,6 +269,11 @@ export function onPageChange(p) {
   if (prevBtn) prevBtn.disabled = p <= 0;
   const nextBtn = $('#flip-next');
   if (nextBtn) nextBtn.disabled = p >= P.count - 1;
+
+  // Cập nhật cảm xúc và bình luận riêng theo từng trang sách
+  if (typeof onFlipbookPageChanged === 'function') {
+    onFlipbookPageChanged(p);
+  }
 }
 
 export function renderAllChapters() {

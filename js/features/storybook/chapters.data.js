@@ -131,3 +131,19 @@ export const chapterOfPage = (p) => {
 };
 
 export const folio = (n) => `<span class="pg-folio" aria-hidden="true">${n}</span>`;
+
+export function pageLabel(p) {
+  if (p === P.cover) return 'Bìa sách';
+  if (p === P.back) return 'Bìa sau';
+  const ch = chapterOfPage(p);
+  if (ch !== null) {
+    const c = CHAPTERS[ch];
+    if (p === c.badgePage) return `Chương ${ROMAN[ch]}: ${c.short} · Huy hiệu`;
+    if (c.locked) return `Chương ${ROMAN[ch]}: ${c.short} · Đang biên soạn`;
+    const imgIdx = c.imagePages ? c.imagePages.indexOf(p) : -1;
+    if (imgIdx >= 0) return `Chương ${ROMAN[ch]}: ${c.short} · Trang ${imgIdx + 1}/${c.pages.length}`;
+    return `Chương ${ROMAN[ch]}: ${c.short}`;
+  }
+  const where = p <= P.toc ? (p === 1 ? 'Lời mở đầu' : 'Mục lục') : 'Tổng kết';
+  return `${where} · Trang ${p}/${P.count - 2}`;
+}

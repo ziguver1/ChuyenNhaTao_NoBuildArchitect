@@ -169,6 +169,56 @@
           <div class="flipbook" id="flipbook"></div>
         </div>
 
+        <!-- Cụm nút tương tác Instagram xếp ngang đặt NGAY DƯỚI cuốn sách -->
+        <aside class="ig-book-actions" id="ig-book-actions" aria-label="Tương tác sách">
+          <!-- Bảng chọn 4 icon cá chép (Popup nổi phía trên cụm icon) -->
+          <div class="ig-reaction-picker" id="ig-reaction-picker" role="menu" aria-label="Chọn biểu tượng cá chép" hidden>
+            <button class="ig-picker-item" data-type="maiam" type="button" title="Mái Ấm (Bếp ấm sum họp)">
+              <img src="images/reaction/maiam_icon.webp" alt="Mái Ấm" width="38" height="38">
+              <span class="ig-picker-tag">Mái Ấm</span>
+            </button>
+            <button class="ig-picker-item" data-type="tonkinh" type="button" title="Tôn Kính (Biết ơn cội nguồn)">
+              <img src="images/reaction/tonkinh_icon.webp" alt="Tôn Kính" width="38" height="38">
+              <span class="ig-picker-tag">Tôn Kính</span>
+            </button>
+            <button class="ig-picker-item" data-type="nhinlai" type="button" title="Nhìn Lại (Thấu hiểu bản thân)">
+              <img src="images/reaction/nhinlai_icon.webp" alt="Nhìn Lại" width="38" height="38">
+              <span class="ig-picker-tag">Nhìn Lại</span>
+            </button>
+            <button class="ig-picker-item" data-type="huongthien" type="button" title="Hướng Thiện (Gieo mầm điều lành)">
+              <img src="images/reaction/huongthien_icon.webp" alt="Hướng Thiện" width="38" height="38">
+              <span class="ig-picker-tag">Hướng Thiện</span>
+            </button>
+          </div>
+
+          <!-- 1. Thả cảm xúc Cá Chép (Thay thế tim & lồng đèn) -->
+          <div class="ig-reaction-wrap" id="ig-reaction-wrap">
+            <!-- Nút chính thả cảm xúc -->
+            <button class="ig-act-btn ig-btn-reaction" id="btn-ig-reaction" type="button" aria-label="Thả cảm xúc cá chép" aria-haspopup="menu" aria-expanded="false">
+              <div class="ig-btn-bubble ig-carp-bubble">
+                <img src="images/reaction/maiam_icon.webp" id="ig-current-reaction-img" alt="Cá chép" width="34" height="34">
+              </div>
+              <span class="ig-act-count" id="count-reactions">0</span>
+            </button>
+          </div>
+
+          <!-- 2. Bình luận (Mở Instagram Comment Bottom Sheet theo từng trang) -->
+          <button class="ig-act-btn ig-btn-comment" id="btn-ig-comment" type="button" aria-label="Xem và viết bình luận" aria-haspopup="dialog">
+            <div class="ig-btn-bubble">
+              <i class="ph-fill ph-chat-circle-dots" aria-hidden="true"></i>
+            </div>
+            <span class="ig-act-count" id="count-comments">0</span>
+          </button>
+
+          <!-- 3. Chia sẻ (Share) -->
+          <button class="ig-act-btn ig-btn-share" id="btn-ig-share" type="button" aria-label="Chia sẻ trang sách">
+            <div class="ig-btn-bubble">
+              <i class="ph-fill ph-paper-plane-tilt" aria-hidden="true"></i>
+            </div>
+            <span class="ig-act-count">Gửi</span>
+          </button>
+        </aside>
+
         <div class="flip-controls reveal">
           <button class="icon-btn" type="button" id="flip-prev" aria-label="Trang trước"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
           <p class="flip-status" id="flip-status" aria-live="polite">Bìa sách</p>
@@ -643,6 +693,97 @@
     </button>
     <p class="guide-cloud" id="guide-cloud" aria-live="polite"><span>Hướng dẫn nằm ở đây nè!</span></p>
   </aside>
+
+  <!-- ===================================================================
+       INSTAGRAM COMMENT BOTTOM SHEET (DRAWER)
+       - Trượt mượt từ đáy màn hình lên khi bấm icon bình luận
+       - Danh sách bình luận chuẩn Instagram + thanh nhập dính đáy
+       =================================================================== -->
+  <div class="ig-sheet-backdrop" id="ig-sheet-backdrop" hidden aria-hidden="true"></div>
+  <aside class="ig-bottom-sheet" id="ig-comment-sheet" role="dialog" aria-modal="true" aria-labelledby="ig-sheet-title" hidden>
+    <!-- Header: Thanh kéo handle và nút đóng -->
+    <div class="ig-sheet-header">
+      <div class="ig-sheet-handle" id="ig-sheet-handle" aria-hidden="true"></div>
+      <div class="ig-sheet-title-row">
+        <h3 class="ig-sheet-title" id="ig-sheet-title">Bình luận (<span id="ig-sheet-count">0</span>)</h3>
+        <button class="ig-sheet-close-btn" id="ig-sheet-close" type="button" aria-label="Đóng bình luận">
+          <i class="ph ph-x" aria-hidden="true"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Thân: Danh sách bình luận cuộn mượt -->
+    <div class="ig-comments-body" id="ig-feed-list" role="feed" aria-live="polite">
+      <div class="ig-loading-state">
+        <i class="ph ph-spinner-gap ph-spin" aria-hidden="true"></i> Đang tải bình luận...
+      </div>
+    </div>
+
+    <!-- Đáy: Thanh nhập dính chuẩn Instagram (Smart Sync với Thẻ Thông Hành) -->
+    <div class="ig-comment-footer">
+      <form class="ig-comment-form" id="gb-comment-form">
+        <div class="ig-sync-meta-bar">
+          <div class="ig-name-box">
+            <span class="ig-user-badge"><i class="ph ph-user"></i></span>
+            <input type="text" id="gb-name-input" class="ig-name-input" placeholder="Tên của bạn..." maxlength="24" autocomplete="off">
+          </div>
+          <select id="gb-chapter-select" class="ig-chapter-select" aria-label="Chọn cảm nghĩ về chương">
+            <option value="chung">📖 Cả cuốn sách</option>
+            <option value="ch1">🏠 Chương 1: Mái Ấm</option>
+            <option value="ch2">🪷 Chương 2: Tôn Kính</option>
+            <option value="ch3">✨ Chương 3: Nhìn Lại</option>
+            <option value="ch4">🔥 Chương 4: Hướng Thiện</option>
+          </select>
+        </div>
+
+        <div class="ig-input-main-row">
+          <div class="ig-my-avatar" id="ig-my-avatar" aria-hidden="true">🐟</div>
+          <div class="ig-textarea-wrap">
+            <textarea id="gb-content-input" class="ig-textarea" rows="1" placeholder="Thêm bình luận cho Chuyện Nhà Táo..." maxlength="300" required></textarea>
+          </div>
+          <button type="submit" class="ig-post-btn" id="gb-submit-btn" disabled>Đăng</button>
+        </div>
+      </form>
+    </div>
+  </aside>
+
+  <!-- Modal Chia Sẻ Sách -->
+  <div class="share-modal-overlay" id="share-modal" hidden aria-hidden="true" role="dialog" aria-labelledby="share-modal-title">
+    <div class="share-modal-box">
+      <button class="icon-btn share-close-btn" id="share-modal-close" type="button" aria-label="Đóng bảng chia sẻ">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
+      <div class="share-modal-header">
+        <span class="share-modal-badge" aria-hidden="true">🏮</span>
+        <h3 class="share-modal-title" id="share-modal-title">Chia Sẻ Chuyện Nhà Táo</h3>
+        <p class="share-modal-desc">Gửi trao những câu chuyện gia đình ấm áp đêm 23 tháng Chạp tới bạn bè và người thân.</p>
+      </div>
+
+      <div class="share-modal-link-box">
+        <input class="input share-link-input" id="share-link-input" type="text" readonly value="">
+        <button class="btn btn-primary share-copy-btn" id="btn-share-copy" type="button">
+          <i class="ph ph-copy" aria-hidden="true"></i>
+          <span>Sao chép</span>
+        </button>
+      </div>
+
+      <div class="share-actions-grid">
+        <button class="share-grid-btn share-btn-fb" id="btn-share-fb" type="button">
+          <i class="ph ph-facebook-logo" aria-hidden="true"></i>
+          <span>Facebook</span>
+        </button>
+        <button class="share-grid-btn share-btn-zalo" id="btn-share-zalo" type="button">
+          <i class="ph ph-chat-circle-dots" aria-hidden="true"></i>
+          <span>Zalo</span>
+        </button>
+        <button class="share-grid-btn share-btn-native" id="btn-share-native" type="button" hidden>
+          <i class="ph ph-share-network" aria-hidden="true"></i>
+          <span>Khác</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
 
   <!-- Thư viện: three r147 (đủ examples/js), GSAP 3.12, QR code -->

@@ -1,6 +1,16 @@
 /**
  * CHUYỆN NHÀ TÁO — Entry point (Clean Architecture / No-Build Native ESM)
  */
+// Bảo vệ touch event: Ngăn cảnh báo [Intervention] khi vuốt cuộn màn hình trên di động
+if (typeof Event !== 'undefined' && Event.prototype) {
+  const _origPreventDefault = Event.prototype.preventDefault;
+  Event.prototype.preventDefault = function () {
+    if (this.cancelable) {
+      _origPreventDefault.call(this);
+    }
+  };
+}
+
 import { $ } from './core/dom.js';
 import { store } from './core/storage.js';
 import { toast } from './core/toast.js';
@@ -42,6 +52,7 @@ import {
   initScrollAnimations
 } from './effects/scroll-triggers.js';
 import { initSiteIntro } from './effects/site-intro.js';
+import { initBookCommunity } from './features/community/book-community.js';
 
 function initApp() {
   // 1. Hạ tầng cốt lõi & Analytics
@@ -55,6 +66,7 @@ function initApp() {
   // 2. Khởi tạo Storybook 4 chương
   renderAllChapters();
   initFlipbook();
+  initBookCommunity();
 
   // 3. Khởi tạo Thẻ thông hành O2O
   initPassportUI();
