@@ -11,7 +11,7 @@ import { $, $$, esc } from '../../core/dom.js';
 import { store } from '../../core/storage.js';
 import { toast } from '../../core/toast.js';
 import { getPass } from '../passport/passport.state.js';
-import { CHAPTERS, chapterOfPage, pageLabel } from '../storybook/chapters.data.js';
+import { CHAPTERS, P, chapterOfPage, pageLabel } from '../storybook/chapters.data.js';
 
 // Danh mục 4 icon cá chép độc bản
 export const REACTION_ICONS = {
@@ -101,7 +101,7 @@ function timeAgo(ts) {
   return new Date(ts).toLocaleDateString('vi-VN');
 }
 
-const AVATAR_ICONS = ['🏮', '🐟', '✨', '🌸', '🪷', '🧧', '⭐', '🍲'];
+const AVATAR_ICONS = ['🐟', '🌸', '🪷', '🧧', '⭐', '🍲', '🎋', '🎁'];
 function getAvatarIcon(name = '') {
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
@@ -364,6 +364,7 @@ export async function sendCarpReaction(type = currentReactionType, options = {})
 function initReactionPicker() {
   const picker = $('#ig-reaction-picker');
   const btn = $('#btn-ig-reaction');
+  const wrap = $('#ig-reaction-wrap');
   if (!btn || !picker) return;
 
   // Khởi tạo icon ban đầu theo trang hiện tại (hoặc icon ưa thích)
@@ -376,6 +377,13 @@ function initReactionPicker() {
   if (pageReactions[currentPageKey]) btn.classList.add('is-reacted');
   updatePickerActiveItem(initialType);
 
+  function clearHoverStates() {
+    picker.classList.remove('is-dragging');
+    $$('.ig-picker-item', picker).forEach((el) => {
+      el.classList.remove('is-hovered');
+    });
+  }
+
   function togglePicker(show) {
     const isHidden = picker.hidden;
     const next = typeof show === 'boolean' ? show : isHidden;
@@ -385,104 +393,157 @@ function initReactionPicker() {
       const pReacts = store.get('user_page_reactions', {}) || {};
       const actType = pReacts[currentPageKey] || currentReactionType;
       updatePickerActiveItem(actType);
+    } else {
+      clearHoverStates();
     }
   }
 
-  // --- A. XỬ LÝ NHẤN GIỮ (LONG-PRESS) TRÊN ĐIỆN THOẠI & MOUSE HOLD TRÊN MÁY TÍNH ---
+  // --- HIT-TEST: Xác định icon cá chép nào đang được ngón tay rà trúng ---
+  function getHoveredItem(clientX, clientY) {
+    const items = $$('.ig-picker-item', picker);
+    for (const item of items) {
+      const rect = item.getBoundingClientRect();
+      // Mở rộng vùng nhận diện (hit-padding) để ngón tay di chuyển tự nhiên
+      if (
+        clientX >= rect.left - 10 &&
+        clientX <= rect.right + 10 &&
+        clientY >= rect.top - 45 &&
+        clientY <= rect.bottom + 30
+      ) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  // --- A. CƠ CHẾ GIỮ & VUỐT CHỌN ICON KIỂU FACEBOOK TRÊN MOBILE ---
   let pressTimer = null;
-  let isLongPress = false;
+  let isDragMode = false;
+  let hoveredItem = null;
   let touchStartX = 0;
   let touchStartY = 0;
+  let touchStartTime = 0;
+  let didDragSelect = false;
 
-  // Touch trên di động: giữ 320ms để mở bảng 4 icon
   btn.addEventListener('touchstart', (e) => {
-    isLongPress = false;
+    // Ngăn chặn sự kiện chạm lan ra khung lật sách
+    e.stopPropagation();
+    didDragSelect = false;
+    isDragMode = false;
+    hoveredItem = null;
+
     if (e.touches && e.touches[0]) {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
+      touchStartTime = Date.now();
     }
+
     clearTimeout(pressTimer);
+    // Nhấn giữ 200ms kích hoạt bảng biểu tượng kèm haptic rung nhẹ
     pressTimer = setTimeout(() => {
-      isLongPress = true;
-      if (navigator.vibrate) {
-        try { navigator.vibrate(35); } catch (_) {}
-      }
+      isDragMode = true;
       togglePicker(true);
-    }, 320);
-  }, { passive: true });
+      picker.classList.add('is-dragging');
+      if (navigator.vibrate) {
+        try { navigator.vibrate(15); } catch (_) {}
+      }
+    }, 200);
+  }, { passive: false });
 
   btn.addEventListener('touchmove', (e) => {
-    if (!pressTimer) return;
-    if (e.touches && e.touches[0]) {
-      const dx = Math.abs(e.touches[0].clientX - touchStartX);
-      const dy = Math.abs(e.touches[0].clientY - touchStartY);
-      if (dx > 10 || dy > 10) {
-        clearTimeout(pressTimer);
-        pressTimer = null;
+    // CHẶN TUYỆT ĐỐI KHÔNG CHO CUỘN HAY LẬT TRANG SÁCH KHI ĐANG THAO TÁC REACTION
+    if (e.cancelable) e.preventDefault();
+    e.stopPropagation();
+
+    if (!e.touches || !e.touches[0]) return;
+    const clientX = e.touches[0].clientX;
+    const clientY = e.touches[0].clientY;
+    const dy = clientY - touchStartY;
+    const dx = Math.abs(clientX - touchStartX);
+
+    // Vuốt lên trên (dy < -8px) hoặc di chuyển ngón tay: lập tức mở bảng picker mà không cần đợi hết 200ms
+    if (!isDragMode && (dy < -8 || Math.hypot(dx, dy) > 14)) {
+      clearTimeout(pressTimer);
+      isDragMode = true;
+      togglePicker(true);
+      picker.classList.add('is-dragging');
+      if (navigator.vibrate) {
+        try { navigator.vibrate(15); } catch (_) {}
       }
     }
-  }, { passive: true });
+
+    if (!isDragMode && picker.hidden) return;
+
+    // Rà trúng icon cá chép nào theo toạ độ ngón tay (Facebook reaction style)
+    const hit = getHoveredItem(clientX, clientY);
+    if (hit !== hoveredItem) {
+      if (hoveredItem) hoveredItem.classList.remove('is-hovered');
+      hoveredItem = hit;
+      if (hoveredItem) {
+        hoveredItem.classList.add('is-hovered');
+        if (navigator.vibrate) {
+          try { navigator.vibrate(12); } catch (_) {}
+        }
+      }
+    }
+  }, { passive: false });
 
   btn.addEventListener('touchend', (e) => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      pressTimer = null;
-    }
-    if (isLongPress) {
+    e.stopPropagation();
+    clearTimeout(pressTimer);
+
+    // Trường hợp 1: Ngón tay đang hover trên 1 icon -> Chọn ngay và bắn cảm xúc
+    if (hoveredItem) {
       if (e.cancelable) e.preventDefault();
-      setTimeout(() => { isLongPress = false; }, 200);
+      const type = hoveredItem.dataset.type;
+      didDragSelect = true;
+      togglePicker(false);
+      sendCarpReaction(type, { isExplicitSwitch: true });
+      if (navigator.vibrate) {
+        try { navigator.vibrate(22); } catch (_) {}
+      }
+      setTimeout(() => { didDragSelect = false; }, 350);
+      return;
     }
-  });
 
-  // Mousedown trên máy tính: giữ 350ms mở bảng
-  let mouseTimer = null;
-  let isMouseHold = false;
-  btn.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return;
-    isMouseHold = false;
-    clearTimeout(mouseTimer);
-    mouseTimer = setTimeout(() => {
-      isMouseHold = true;
-      togglePicker(true);
-    }, 350);
-  });
+    // Trường hợp 2: Bảng đang mở ở chế độ kéo thả (isDragMode)
+    if (isDragMode) {
+      if (e.cancelable) e.preventDefault();
+      const elapsed = Date.now() - touchStartTime;
+      const curTouch = e.changedTouches && e.changedTouches[0];
+      const curX = curTouch ? curTouch.clientX : touchStartX;
+      const curY = curTouch ? curTouch.clientY : touchStartY;
+      const moveDist = Math.hypot(curX - touchStartX, curY - touchStartY);
 
-  btn.addEventListener('mouseup', () => {
-    if (mouseTimer) {
-      clearTimeout(mouseTimer);
-      mouseTimer = null;
+      // Nếu chỉ chạm nhanh tại chỗ mà không trượt lên các icon
+      if (elapsed < 240 && moveDist < 12) {
+        togglePicker(false);
+        const pageReacts = store.get('user_page_reactions', {}) || {};
+        const type = pageReacts[currentPageKey] || currentReactionType;
+        sendCarpReaction(type);
+      } else {
+        // Đã trượt ra ngoài: huỷ chọn
+        togglePicker(false);
+      }
+      didDragSelect = true;
+      setTimeout(() => { didDragSelect = false; }, 350);
+      return;
     }
-    if (isMouseHold) {
-      setTimeout(() => { isMouseHold = false; }, 200);
-    }
-  });
+  }, { passive: false });
 
-  btn.addEventListener('mouseleave', () => {
-    if (mouseTimer) {
-      clearTimeout(mouseTimer);
-      mouseTimer = null;
-    }
-  });
-
-  // Hover trên desktop (chỉ áp dụng với chuột thật)
-  const wrap = $('#ig-reaction-wrap');
-  let hoverTimer = null;
-  wrap?.addEventListener('mouseenter', () => {
-    if (window.matchMedia('(hover: hover)').matches) {
-      hoverTimer = setTimeout(() => togglePicker(true), 300);
-    }
-  });
-  wrap?.addEventListener('mouseleave', () => {
-    clearTimeout(hoverTimer);
+  btn.addEventListener('touchcancel', () => {
+    clearTimeout(pressTimer);
     togglePicker(false);
+    clearHoverStates();
+    isDragMode = false;
+    hoveredItem = null;
   });
 
-  // --- B. XỬ LÝ CLICK NÚT CHÍNH ---
+  // --- B. XỬ LÝ CLICK CHUỘT / TAP NHANH ---
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (isLongPress || isMouseHold) {
-      isLongPress = false;
-      isMouseHold = false;
+    if (didDragSelect) {
+      didDragSelect = false;
       return;
     }
     if (!picker.hidden) {
@@ -494,26 +555,19 @@ function initReactionPicker() {
     sendCarpReaction(type);
   });
 
-  // Ngăn toàn bộ sự kiện chạm/click trên thanh công cụ và picker nổi lan ra khung lật sách
-  const actionsBar = $('#ig-book-actions');
-  const stopStagePropagation = (el) => {
-    if (!el) return;
-    const stageEvts = [
-      'touchstart', 'touchmove', 'touchend', 'touchcancel',
-      'mousedown', 'mousemove', 'mouseup',
-      'pointerdown', 'pointermove', 'pointerup', 'pointercancel',
-      'dblclick'
-    ];
-    stageEvts.forEach((evt) => {
-      el.addEventListener(evt, (e) => {
-        e.stopPropagation();
-      }, { passive: evt.startsWith('touch') });
-    });
-  };
-  stopStagePropagation(actionsBar);
-  stopStagePropagation(picker);
+  // --- C. DESKTOP HOVER & MOUSE SUPPORT ---
+  let hoverTimer = null;
+  wrap?.addEventListener('mouseenter', () => {
+    if (window.matchMedia('(hover: hover)').matches) {
+      hoverTimer = setTimeout(() => togglePicker(true), 240);
+    }
+  });
+  wrap?.addEventListener('mouseleave', () => {
+    clearTimeout(hoverTimer);
+    togglePicker(false);
+  });
 
-  // --- C. CHỌN 1 TRONG 4 ICON TỪ BẢNG CHỌN (REACTION PICKER) ---
+  // --- D. CHỌN TRỰC TIẾP TRÊN BẢNG CHỌN (KHI CLICK BẰNG CHUỘT HOẶC TAP BÌNH THƯỜNG) ---
   $$('.ig-picker-item', picker).forEach((item) => {
     const handlePick = (e) => {
       e.stopPropagation();
@@ -524,7 +578,21 @@ function initReactionPicker() {
     item.addEventListener('click', handlePick);
   });
 
-  // Đóng khi click ra ngoài thanh tương tác
+  // Ngăn chặn triệt để mọi sự kiện chạm từ thanh tương tác lan ra khung lật sách
+  const actionsBar = $('#ig-book-actions');
+  const guardActions = (el) => {
+    if (!el) return;
+    const events = ['touchstart', 'touchmove', 'touchend', 'touchcancel', 'pointerdown', 'pointermove', 'pointerup', 'mousedown'];
+    events.forEach((evt) => {
+      el.addEventListener(evt, (e) => {
+        e.stopPropagation();
+      }, { passive: false });
+    });
+  };
+  guardActions(actionsBar);
+  guardActions(picker);
+
+  // Đóng khi click/touch ra ngoài thanh tương tác
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#ig-book-actions')) {
       togglePicker(false);
@@ -536,8 +604,15 @@ function initReactionPicker() {
   let lastTapTime = 0;
   let lastTapPos = null;
 
+  const isNoReactionPage = () => (
+    currentPageIndex === P.intro ||
+    currentPageIndex === P.toc ||
+    CHAPTERS.some((c) => c.badgePage === currentPageIndex)
+  );
+
   stage?.addEventListener('touchend', (e) => {
     if (e.target.closest('#ig-book-actions') || e.target.closest('.flip-controls') || e.target.closest('#ig-comment-sheet')) return;
+    if (isNoReactionPage()) return;
     const now = Date.now();
     const touch = e.changedTouches && e.changedTouches[0];
     const tapPos = touch ? { x: touch.clientX, y: touch.clientY } : null;
@@ -560,6 +635,7 @@ function initReactionPicker() {
 
   stage?.addEventListener('dblclick', (e) => {
     if (e.target.closest('#ig-book-actions') || e.target.closest('.flip-controls') || e.target.closest('#ig-comment-sheet')) return;
+    if (isNoReactionPage()) return;
     const pReacts = store.get('user_page_reactions', {}) || {};
     const type = pReacts[currentPageKey] || currentReactionType;
     sendCarpReaction(type, { tapPos: { x: e.clientX, y: e.clientY } });
@@ -567,7 +643,7 @@ function initReactionPicker() {
 }
 
 // =========================================================================
-// 3. SỰ KIỆN CHUYỂN TRANG SÁCH & ĐIỀU CHỈNH THEO TRANG HUY CHƯƠNG
+// 3. SỰ KIỆN CHUYỂN TRANG SÁCH & ĐIỀU CHỈNH THEO TRANG HUY CHƯƠNG / MỤC LỤC / LỜI MỞ ĐẦU
 // =========================================================================
 export function onFlipbookPageChanged(pageIndex) {
   currentPageIndex = pageIndex;
@@ -575,14 +651,22 @@ export function onFlipbookPageChanged(pageIndex) {
 
   const actionsBar = $('#ig-book-actions');
   const isBadge = CHAPTERS.some((c) => c.badgePage === pageIndex);
+  const isIntroOrToc = pageIndex === P.intro || pageIndex === P.toc;
+  const isShareOnly = isBadge || isIntroOrToc;
 
-  // Ở trang nhận huy chương: chỉ giữ lại nút chia sẻ
+  // Đóng bảng reaction picker nếu đang mở khi chuyển trang
+  const picker = $('#ig-reaction-picker');
+  if (picker) picker.hidden = true;
+
+  // Ở trang nhận huy chương, lời mở đầu hoặc mục lục: chỉ giữ lại nút chia sẻ
   if (actionsBar) {
-    if (isBadge) {
-      actionsBar.classList.add('is-badge-page');
-    } else {
-      actionsBar.classList.remove('is-badge-page');
-    }
+    actionsBar.classList.toggle('is-badge-page', isBadge);
+    actionsBar.classList.toggle('is-share-only', isShareOnly);
+  }
+
+  // Nếu là trang Lời mở đầu hoặc Mục lục: ẩn hoàn toàn cảm xúc và bình luận, không tải dữ liệu
+  if (isIntroOrToc) {
+    return;
   }
 
   // Cập nhật trạng thái reaction của trang mới
@@ -606,16 +690,14 @@ export function onFlipbookPageChanged(pageIndex) {
   }
 
   // Cập nhật tiêu đề trang trong Bottom Sheet
+  const curPageLabel = pageLabel(pageIndex);
   const sheetTitle = $('#ig-sheet-title');
   if (sheetTitle) {
-    sheetTitle.innerHTML = `Bình luận <span class="ig-page-badge">${pageLabel(pageIndex)}</span> (<span id="ig-sheet-count">0</span>)`;
+    sheetTitle.innerHTML = `Bình luận <span class="ig-page-badge">${curPageLabel}</span> (<span id="ig-sheet-count">0</span>)`;
   }
-
-  // Tự động chuyển chapter trong form bình luận theo trang
-  const ch = chapterOfPage(pageIndex);
-  const chSelect = $('#gb-chapter-select');
-  if (chSelect && ch !== null) {
-    chSelect.value = `ch${ch + 1}`;
+  const pagePillText = $('#gb-page-pill-text');
+  if (pagePillText) {
+    pagePillText.textContent = curPageLabel;
   }
 
   // Tải dữ liệu riêng của trang này
@@ -670,7 +752,6 @@ function closeCommentSheet() {
 }
 
 function renderCommentItem(c, isNew = false) {
-  const chInfo = CHAPTER_LABELS[c.chapter] || CHAPTER_LABELS.chung;
   const avatar = getAvatarIcon(c.name);
   const safeName = esc(c.name || 'Bạn đọc');
   const safeContent = esc(c.content || '');
@@ -684,7 +765,6 @@ function renderCommentItem(c, isNew = false) {
     <div class="ig-c-body">
       <div class="ig-c-meta-top">
         <span class="ig-c-username">${safeName}</span>
-        <span class="ig-c-chapter-pill">${chInfo.icon} ${chInfo.name}</span>
       </div>
       <div class="ig-c-text">${safeContent}</div>
       <div class="ig-c-meta-bottom">
@@ -784,7 +864,6 @@ async function fetchPageCommunityData(pageKey) {
 function initCommentForm() {
   const form = $('#gb-comment-form');
   const nameInput = $('#gb-name-input');
-  const chapterSelect = $('#gb-chapter-select');
   const contentInput = $('#gb-content-input');
   const submitBtn = $('#gb-submit-btn');
 
@@ -812,7 +891,8 @@ function initCommentForm() {
       setUserNickname(name);
     }
 
-    const chapter = chapterSelect?.value || 'chung';
+    const ch = chapterOfPage(currentPageIndex);
+    const chapter = ch !== null ? `ch${ch + 1}` : 'chung';
     const newComment = {
       id: 'local_' + Date.now().toString(36),
       page: currentPageKey,

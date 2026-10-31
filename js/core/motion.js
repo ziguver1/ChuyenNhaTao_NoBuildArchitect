@@ -45,7 +45,7 @@ export function initMotionToggle(trackFn) {
       reduceMotion ? 'Bật hiệu ứng chuyển động' : 'Giảm hiệu ứng chuyển động'
     );
     motionBtn.title = reduceMotion ? 'Bật hiệu ứng chuyển động' : 'Giảm hiệu ứng chuyển động';
-    motionBtn.innerHTML = `<i class="ph ph-${reduceMotion ? 'pause-circle' : 'sparkle'}" aria-hidden="true"></i>`;
+    motionBtn.innerHTML = `<i class="ph ph-${reduceMotion ? 'play-circle' : 'pause-circle'}" aria-hidden="true"></i>`;
   }
 
   paintMotionBtn();

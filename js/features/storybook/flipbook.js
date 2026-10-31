@@ -148,7 +148,7 @@ export function buildPageHTML() {
         <div><i class="ph ph-calendar-blank" aria-hidden="true"></i><span><dt>Ngày giờ</dt><dd><span class="soon">Sắp công bố</span></dd></span></div>
         <div><i class="ph ph-map-pin" aria-hidden="true"></i><span><dt>Địa điểm</dt><dd><span class="soon">Sắp công bố</span></dd></span></div>
       </dl>
-      <a class="btn btn-primary btn-block" href="#tram-trai-nghiem" data-track="cta_passport" data-track-from="summary">Lấy thẻ thông hành</a>
+      <a class="btn btn-primary btn-block" href="#tram-trai-nghiem" data-track="cta_passport" data-track-from="summary">Vân Du Ký (Coming Soon)</a>
     </div>${folio(P.event)}`;
 
   pageHTML[P.back] = `
@@ -312,16 +312,29 @@ export function initFlipbook() {
 
     const guard = (e) => {
       if (
-        e.target.closest('button, a, input, label, textarea, select, .chip, .option, [data-noflip]')
+        e.target.closest('button, a, input, label, textarea, select, .chip, .option, [data-noflip], .ig-book-actions, .ig-reaction-picker')
       ) {
         e.stopPropagation();
       }
     };
     el.addEventListener('mousedown', guard);
     el.addEventListener('touchstart', guard, { passive: true });
+    el.addEventListener('pointerdown', guard);
     flipbookEl.appendChild(el);
     return el;
   });
+
+  // Chặn lật trang khi bảng thả cảm xúc reaction đang mở (bấm ra ngoài thì chỉ đóng bảng chứ không lật trang)
+  flipbookEl.addEventListener('touchstart', (e) => {
+    const picker = document.getElementById('ig-reaction-picker');
+    if (picker && !picker.hidden) {
+      picker.hidden = true;
+      const btn = document.getElementById('btn-ig-reaction');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { capture: true, passive: false });
 
   // Đồng bộ nội dung các trang và huy chương ngay khi các thẻ trang đã gắn vào DOM
   renderAllChapters();

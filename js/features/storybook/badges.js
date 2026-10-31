@@ -64,7 +64,7 @@ export function getBadgePageHTML(i) {
   // Khi đã đóng dấu thành công vào trang sách
   return `
     <button class="badge-replay-corner-btn" type="button" data-replay-medal="${i}" title="Xem lại hiệu ứng mở khóa" aria-label="Xem lại hiệu ứng mở khóa">
-      <i class="ph-fill ph-sparkle" aria-hidden="true"></i>
+      <i class="ph-fill ph-arrow-counter-clockwise" aria-hidden="true"></i>
       <span>Xem lại</span>
     </button>
     <p class="pg-kicker">Huy hiệu chương ${i + 1}</p>
@@ -352,7 +352,7 @@ export function stampMedalIntoBookPage(i) {
         replayBtn.setAttribute('data-replay-medal', String(i));
         replayBtn.title = 'Xem lại hiệu ứng mở khóa';
         replayBtn.setAttribute('aria-label', 'Xem lại hiệu ứng mở khóa');
-        replayBtn.innerHTML = '<i class="ph-fill ph-sparkle" aria-hidden="true"></i><span>Xem lại</span>';
+        replayBtn.innerHTML = '<i class="ph-fill ph-arrow-counter-clockwise" aria-hidden="true"></i><span>Xem lại</span>';
         targetPg.prepend(replayBtn);
       }
 

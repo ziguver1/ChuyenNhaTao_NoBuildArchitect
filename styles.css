@@ -5036,6 +5036,16 @@ body::after {
   display: flex;
   flex-direction: column;
   align-items: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ig-btn-reaction {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .ig-reaction-picker {
@@ -5100,13 +5110,43 @@ body::after {
   gap: 2px;
   outline: none;
   border-radius: 8px;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.18s ease;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
 }
 
 .ig-picker-item:hover,
 .ig-picker-item:focus-visible {
   transform: scale(1.3) translateY(-4px);
+}
+
+/* Facebook-style reaction dock drag states */
+.ig-reaction-picker.is-dragging .ig-picker-item {
+  transform: scale(0.92);
+  opacity: 0.82;
+}
+
+.ig-picker-item.is-hovered {
+  transform: scale(1.45) translateY(-10px) !important;
+  opacity: 1 !important;
+  z-index: 10;
+}
+
+.ig-picker-item.is-hovered img {
+  transform: scale(1.12);
+  filter: drop-shadow(0 6px 14px rgba(243, 210, 122, 0.95)) drop-shadow(0 0 10px rgba(255, 230, 150, 0.9)) !important;
+}
+
+.ig-picker-item.is-hovered .ig-picker-tag {
+  transform: scale(1.18);
+  color: #fff !important;
+  background: rgba(184, 36, 28, 0.95) !important;
+  padding: 1px 7px !important;
+  border-radius: 999px !important;
+  border: 1px solid #f3d27a !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
 }
 
 .ig-picker-item.is-selected {
@@ -5297,19 +5337,18 @@ body::after {
   }
 }
 
-/* Ở trang nhận huy chương: CHỈ GIỮ LẠI NÚT CHIA SẺ */
+/* Ở trang nhận huy chương, lời mở đầu hoặc mục lục: CHỈ GIỮ LẠI NÚT CHIA SẺ */
 .ig-book-actions.is-badge-page .ig-reaction-wrap,
-.ig-book-actions.is-badge-page .ig-btn-comment {
+.ig-book-actions.is-badge-page .ig-btn-comment,
+.ig-book-actions.is-share-only .ig-reaction-wrap,
+.ig-book-actions.is-share-only .ig-btn-comment {
   display: none !important;
 }
 
 .ig-book-actions.is-badge-page .ig-btn-share .ig-btn-bubble {
   background: linear-gradient(135deg, #b8241c, #91160f);
   border-color: #f3d27a;
-  width: 48px;
-  height: 48px;
-  font-size: 22px;
-  box-shadow: 0 6px 20px rgba(184, 36, 28, 0.45);
+  box-shadow: 0 4px 16px rgba(184, 36, 28, 0.45);
 }
 
 /* 3. Instagram Comment Bottom Sheet (Drawer) */
@@ -5602,15 +5641,33 @@ body::after {
   outline: none;
 }
 
-.ig-chapter-select {
-  background: #f8f3eb;
-  border: 1px solid rgba(207, 159, 56, 0.28);
+.ig-page-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #faeeda;
+  border: 1px solid rgba(207, 159, 56, 0.35);
   border-radius: 999px;
-  font-size: 11.5px;
-  font-family: inherit;
-  color: #6a4e3d;
-  padding: 4px 8px;
-  outline: none;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8c5b16;
+  white-space: nowrap;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ig-page-pill i {
+  font-size: 13px;
+  color: #b8241c;
+  flex-shrink: 0;
+}
+
+.ig-page-pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ig-input-main-row {
@@ -5843,6 +5900,124 @@ body.sheet-locked {
   border-color: #cf9f38;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(60, 36, 21, 0.08);
+}
+
+/* ===================================================================
+   COMING SOON FEATURE LOCK (THẺ THÔNG HÀNH & CHUYỆN ĐÊM 23)
+   =================================================================== */
+
+.is-feature-locked {
+  display: none !important;
+}
+
+/* Badge trên thanh điều hướng & Menu */
+.nav-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: rgba(184, 36, 28, 0.14);
+  color: #b8241c;
+  border: 1px solid rgba(184, 36, 28, 0.32);
+  padding: 2px 7px;
+  border-radius: 999px;
+  margin-left: 6px;
+  vertical-align: middle;
+  line-height: 1.2;
+}
+
+.mobile-menu .nav-lock-badge {
+  font-size: 11px;
+  padding: 3px 9px;
+  margin-left: 8px;
+  background: rgba(184, 36, 28, 0.16);
+}
+
+.footer-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: rgba(243, 210, 122, 0.18);
+  color: #f3d27a;
+  border: 1px solid rgba(243, 210, 122, 0.35);
+  padding: 1px 6px;
+  border-radius: 999px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* Thẻ thông báo COMING SOON phong cách Vân Du Ký / Chuyện Nhà Đêm 23 */
+.coming-soon-card {
+  position: relative;
+  max-width: 420px;
+  margin: 32px auto 40px;
+  padding: 38px 24px 34px;
+  background: linear-gradient(160deg, rgba(38, 22, 17, 0.97), rgba(20, 11, 8, 0.98));
+  border: 1.5px solid rgba(243, 210, 122, 0.55);
+  border-radius: 22px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), inset 0 0 24px rgba(243, 210, 122, 0.08);
+  text-align: center;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  overflow: hidden;
+  color: #ffffff;
+}
+
+.coming-soon-card::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(243, 210, 122, 0.22), transparent 70%);
+  pointer-events: none;
+}
+
+.cs-icon-lock {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: rgba(243, 210, 122, 0.1);
+  border: 1.5px solid rgba(243, 210, 122, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  color: #f3d27a;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.cs-title {
+  font-family: var(--font-title, 'Cinzel', serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: #f3d27a;
+  margin: 0 0 16px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.5px;
+}
+
+.cs-status-tag {
+  display: inline-block;
+  margin: 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #b8241c, #85130c);
+  color: #ffd875;
+  border: 1.2px solid rgba(255, 216, 117, 0.75);
+  padding: 6px 22px;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(184, 36, 28, 0.45);
 }
 
 

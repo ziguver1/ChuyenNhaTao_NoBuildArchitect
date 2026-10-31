@@ -4,13 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Chuyện Nhà Táo | Đêm 23 tháng Chạp</title>
-  <meta name="description" content="Trải nghiệm sâu sắc từ những vật dụng và hình ảnh gắn kết với ngày 23 tháng Chạp. Đọc sách 4 chương, nhận thẻ thông hành 4 trạm và viết Chuyện Nhà Đêm 23 gửi Táo.">
+  <meta name="description" content="Trải nghiệm sâu sắc từ những vật dụng và hình ảnh gắn kết với ngày 23 tháng Chạp. Đọc sách 4 chương, mở khoá Vân Du Ký và viết Chuyện Nhà Đêm 23 gửi Táo.">
   <meta name="theme-color" content="#fff8f0">
 
   <!-- OG image / preview khi share (Checklist kỹ thuật). TODO: thay og-image.jpg 1200x630 thật -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Chuyện Nhà Táo | Đêm 23 tháng Chạp">
-  <meta property="og:description" content="Lật sách 4 chương, nhận thẻ thông hành 4 trạm, viết Chuyện Nhà Đêm 23 gửi Táo. #ChuyenNhaTao">
+  <meta property="og:description" content="Lật sách 4 chương, mở khoá Vân Du Ký, viết Chuyện Nhà Đêm 23 gửi Táo. #ChuyenNhaTao">
   <meta property="og:image" content="og-image.jpg">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -95,14 +95,14 @@
 
       <nav class="nav-links" aria-label="Điều hướng chính">
         <a href="#doc-sach" data-nav>Đọc sách</a>
-        <a href="#tram-trai-nghiem" data-nav>Trạm trải nghiệm</a>
+        <a href="#tram-trai-nghiem" data-nav>Vân Du Ký <span class="nav-lock-badge">Coming Soon</span></a>
         <!-- Góp ý của cô: bỏ "Thẻ Vị Táo" (biến giá trị thành tính cách), thay bằng Chuyện Nhà Đêm 23 ghi đủ 4 giá trị -->
-        <a href="#la-so" data-nav>Chuyện Nhà Đêm 23</a>
+        <a href="#la-so" data-nav>Chuyện Nhà Đêm 23 <span class="nav-lock-badge">Coming Soon</span></a>
       </nav>
 
       <div class="header-actions">
         <button class="icon-btn" id="motion-toggle" type="button" aria-pressed="true" aria-label="Giảm hiệu ứng chuyển động">
-          <i class="ph ph-sparkle" aria-hidden="true"></i>
+          <i class="ph ph-pause-circle" aria-hidden="true"></i>
         </button>
         <button class="icon-btn" id="sound-toggle" type="button" aria-pressed="false" aria-label="Bật tiếng lửa bếp">
           <i class="ph ph-speaker-slash" aria-hidden="true"></i>
@@ -117,8 +117,8 @@
 
   <div class="mobile-menu" id="mobile-menu" aria-label="Menu">
     <a href="#doc-sach">Đọc sách <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
-    <a href="#tram-trai-nghiem">Trạm trải nghiệm <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
-    <a href="#la-so">Chuyện Nhà Đêm 23 <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <a href="#tram-trai-nghiem">Vân Du Ký <span class="nav-lock-badge">Coming Soon</span> <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <a href="#la-so">Chuyện Nhà Đêm 23 <span class="nav-lock-badge">Coming Soon</span> <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
     <a class="btn btn-primary btn-block" href="#doc-sach" data-track="cta_open_book" data-track-from="menu">Mở cuốn sách</a>
   </div>
 
@@ -170,31 +170,31 @@
         </div>
 
         <!-- Cụm nút tương tác Instagram xếp ngang đặt NGAY DƯỚI cuốn sách -->
-        <aside class="ig-book-actions" id="ig-book-actions" aria-label="Tương tác sách">
+        <aside class="ig-book-actions" id="ig-book-actions" aria-label="Tương tác sách" data-noflip="true">
           <!-- Bảng chọn 4 icon cá chép (Popup nổi phía trên cụm icon) -->
-          <div class="ig-reaction-picker" id="ig-reaction-picker" role="menu" aria-label="Chọn biểu tượng cá chép" hidden>
-            <button class="ig-picker-item" data-type="maiam" type="button" title="Mái Ấm (Bếp ấm sum họp)">
+          <div class="ig-reaction-picker" id="ig-reaction-picker" role="menu" aria-label="Chọn biểu tượng cá chép" hidden data-noflip="true">
+            <button class="ig-picker-item" data-type="maiam" type="button" title="Mái Ấm (Bếp ấm sum họp)" data-noflip="true">
               <img src="images/reaction/maiam_icon.webp" alt="Mái Ấm" width="38" height="38">
               <span class="ig-picker-tag">Mái Ấm</span>
             </button>
-            <button class="ig-picker-item" data-type="tonkinh" type="button" title="Tôn Kính (Biết ơn cội nguồn)">
+            <button class="ig-picker-item" data-type="tonkinh" type="button" title="Tôn Kính (Biết ơn cội nguồn)" data-noflip="true">
               <img src="images/reaction/tonkinh_icon.webp" alt="Tôn Kính" width="38" height="38">
               <span class="ig-picker-tag">Tôn Kính</span>
             </button>
-            <button class="ig-picker-item" data-type="nhinlai" type="button" title="Nhìn Lại (Thấu hiểu bản thân)">
+            <button class="ig-picker-item" data-type="nhinlai" type="button" title="Nhìn Lại (Thấu hiểu bản thân)" data-noflip="true">
               <img src="images/reaction/nhinlai_icon.webp" alt="Nhìn Lại" width="38" height="38">
               <span class="ig-picker-tag">Nhìn Lại</span>
             </button>
-            <button class="ig-picker-item" data-type="huongthien" type="button" title="Hướng Thiện (Gieo mầm điều lành)">
+            <button class="ig-picker-item" data-type="huongthien" type="button" title="Hướng Thiện (Gieo mầm điều lành)" data-noflip="true">
               <img src="images/reaction/huongthien_icon.webp" alt="Hướng Thiện" width="38" height="38">
               <span class="ig-picker-tag">Hướng Thiện</span>
             </button>
           </div>
 
           <!-- 1. Thả cảm xúc Cá Chép (Thay thế tim & lồng đèn) -->
-          <div class="ig-reaction-wrap" id="ig-reaction-wrap">
+          <div class="ig-reaction-wrap" id="ig-reaction-wrap" data-noflip="true">
             <!-- Nút chính thả cảm xúc -->
-            <button class="ig-act-btn ig-btn-reaction" id="btn-ig-reaction" type="button" aria-label="Thả cảm xúc cá chép" aria-haspopup="menu" aria-expanded="false">
+            <button class="ig-act-btn ig-btn-reaction" id="btn-ig-reaction" type="button" aria-label="Thả cảm xúc cá chép" aria-haspopup="menu" aria-expanded="false" data-noflip="true">
               <div class="ig-btn-bubble ig-carp-bubble">
                 <img src="images/reaction/maiam_icon.webp" id="ig-current-reaction-img" alt="Cá chép" width="34" height="34">
               </div>
@@ -203,7 +203,7 @@
           </div>
 
           <!-- 2. Bình luận (Mở Instagram Comment Bottom Sheet theo từng trang) -->
-          <button class="ig-act-btn ig-btn-comment" id="btn-ig-comment" type="button" aria-label="Xem và viết bình luận" aria-haspopup="dialog">
+          <button class="ig-act-btn ig-btn-comment" id="btn-ig-comment" type="button" aria-label="Xem và viết bình luận" aria-haspopup="dialog" data-noflip="true">
             <div class="ig-btn-bubble">
               <i class="ph-fill ph-chat-circle-dots" aria-hidden="true"></i>
             </div>
@@ -211,7 +211,7 @@
           </button>
 
           <!-- 3. Chia sẻ (Share) -->
-          <button class="ig-act-btn ig-btn-share" id="btn-ig-share" type="button" aria-label="Chia sẻ trang sách">
+          <button class="ig-act-btn ig-btn-share" id="btn-ig-share" type="button" aria-label="Chia sẻ trang sách" data-noflip="true">
             <div class="ig-btn-bubble">
               <i class="ph-fill ph-paper-plane-tilt" aria-hidden="true"></i>
             </div>
@@ -255,7 +255,7 @@
             </svg>
             <div class="sbp-gold-seal">
               <span class="sbp-seal-dot"></span>
-              <span class="sbp-seal-text">✦ THẺ THÔNG HÀNH BỐN TRẠM ✦</span>
+              <span class="sbp-seal-text">✦ VÂN DU KÝ ✦</span>
               <span class="sbp-seal-dot"></span>
             </div>
           </div>
@@ -293,79 +293,90 @@
         <div class="psb-layer psb-bottom"></div>
       </div>
       <div class="container">
-        <!-- Thanh tiện ích lệnh bài: hiện khi người dùng đã có thẻ, thay thế form cồng kềnh -->
-        <div class="passport-bar" id="passport-bar" hidden aria-live="polite"></div>
-
-        <!-- Phần giới thiệu hiện khoảng 8 giây rồi thu vào bóng thoại hướng dẫn ở góc dưới trái (#guide) -->
-        <div class="pp-intro" id="pp-intro"><div class="pp-intro-in">
-        <div class="section-head reveal">
-          <!-- PDF: tên "Tâm Thế Thông Hành Hảo Quán" cần xác nhận -->
-          <h2 id="passport-title">Thẻ thông hành bốn trạm</h2>
-          <p>Tạo thẻ trước, rồi đến sự kiện quét mã ở bốn trạm. Mỗi trạm đóng một dấu và quay thưởng một lần, đủ bốn dấu thì nhận quà.</p>
+        <!-- Khóa chức năng: COMING SOON -->
+        <div class="coming-soon-card reveal" id="passport-coming-soon">
+          <div class="cs-icon-lock" aria-hidden="true">
+            <i class="ph-fill ph-lock-key"></i>
+          </div>
+          <h3 class="cs-title">Vân Du Ký</h3>
+          <div class="cs-status-tag">Coming Soon</div>
         </div>
 
-        <ol class="flow reveal" aria-label="Cách tham gia">
-          <li class="flow-item"><span class="ico"><i class="ph ph-identification-card" aria-hidden="true"></i></span><span><strong>Tạo thẻ</strong><span>Trước ở nhà hoặc tại cổng sự kiện</span></span></li>
-          <li class="flow-line" aria-hidden="true"></li>
-          <li class="flow-item"><span class="ico"><i class="ph ph-qr-code" aria-hidden="true"></i></span><span><strong>Quét mã tại trạm</strong><span>Chỉ có ở sự kiện: mỗi trạm một dấu, một lượt quay</span></span></li>
-          <li class="flow-line" aria-hidden="true"></li>
-          <li class="flow-item"><span class="ico"><i class="ph ph-gift" aria-hidden="true"></i></span><span><strong>Nhận quà</strong><span>Đủ 4/4 dấu tại bàn check-out</span></span></li>
-        </ol>
+        <div class="is-feature-locked" hidden>
+          <!-- Thanh tiện ích lệnh bài: hiện khi người dùng đã có thẻ, thay thế form cồng kềnh -->
+          <div class="passport-bar" id="passport-bar" hidden aria-live="polite"></div>
 
-        <span class="pp-intro-timer" aria-hidden="true"><i></i></span>
-        </div></div>
-
-        <div class="passport-grid">
-          <!-- S04 · Đăng ký / consent / Virtual ID -->
-          <div class="card form-card reveal" id="register">
-            <!-- Đã có thẻ trên máy này -->
-            <div class="reg-has" id="register-has" hidden></div>
-
-            <!-- Chưa có thẻ: tạo thẻ (ở nhà trước sự kiện hoặc ngay tại cổng) -->
-            <div id="register-open">
-            <h3>Tạo thẻ thông hành</h3>
-            <p class="lead">Tạo trước ở nhà hoặc ngay tại cổng sự kiện. Chỉ cần một cái tên, email là tùy chọn, dùng để gửi thông tin quà.</p>
-
-            <form class="form" id="form-register" novalidate>
-              <div class="error-summary" id="error-summary" role="alert" tabindex="-1" hidden>
-                <h4>Còn một chút nữa thôi</h4>
-                <div id="error-summary-list"></div>
-              </div>
-
-              <div class="field">
-                <label for="f-nickname">Tên hoặc nickname</label>
-                <input class="input" id="f-nickname" name="nickname" type="text" autocomplete="nickname" maxlength="24" required aria-describedby="f-nickname-help f-nickname-err" placeholder="Ví dụ: Bé Na, Minh Khôi">
-                <p class="help" id="f-nickname-help">Tên này sẽ in trên hộ chiếu và Chuyện Nhà Đêm 23 của bạn.</p>
-                <p class="error-text" id="f-nickname-err" aria-live="polite"></p>
-              </div>
-
-              <div class="field">
-                <label for="f-email">Email <span class="opt">(không bắt buộc)</span></label>
-                <input class="input" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="f-email-err" placeholder="ban@email.com">
-                <p class="error-text" id="f-email-err" aria-live="polite"></p>
-              </div>
-
-              <label class="check" for="f-consent">
-                <input id="f-consent" name="consent" type="checkbox">
-                <span>Tôi đồng ý để Chuyện Nhà Táo lưu email nhằm gửi thông tin nhận quà và lời mời viết Chuyện Nhà Đêm 23 gửi Táo. <a href="#du-lieu">Xem chính sách dữ liệu</a>.</span>
-              </label>
-
-              <button class="btn btn-primary btn-block" type="submit" id="btn-register">
-                <span class="btn-label">Tạo thẻ thông hành</span>
-              </button>
-
-              <div class="form-foot">
-                <span>Đã có thẻ trên máy khác?</span>
-                <button class="linklike" type="button" id="btn-restore">Nhập lại mã thẻ</button>
-              </div>
-            </form>
-            </div>
+          <!-- Phần giới thiệu hiện khoảng 8 giây rồi thu vào bóng thoại hướng dẫn ở góc dưới trái (#guide) -->
+          <div class="pp-intro" id="pp-intro"><div class="pp-intro-in">
+          <div class="section-head reveal">
+            <!-- PDF: tên "Tâm Thế Thông Hành Hảo Quán" cần xác nhận -->
+            <h2 id="passport-title">Vân Du Ký</h2>
+            <p>Tạo thẻ trước, rồi đến sự kiện quét mã ở bốn trạm. Mỗi trạm đóng một dấu và quay thưởng một lần, đủ bốn dấu thì nhận quà.</p>
           </div>
 
-          <!-- S05 · Passport 4 trạm + S06 Check-out -->
-          <div>
-            <div id="ticket-slot"></div>
-            <div class="checkout" id="checkout" hidden aria-live="polite"></div>
+          <ol class="flow reveal" aria-label="Cách tham gia">
+            <li class="flow-item"><span class="ico"><i class="ph ph-identification-card" aria-hidden="true"></i></span><span><strong>Tạo thẻ</strong><span>Trước ở nhà hoặc tại cổng sự kiện</span></span></li>
+            <li class="flow-line" aria-hidden="true"></li>
+            <li class="flow-item"><span class="ico"><i class="ph ph-qr-code" aria-hidden="true"></i></span><span><strong>Quét mã tại trạm</strong><span>Chỉ có ở sự kiện: mỗi trạm một dấu, một lượt quay</span></span></li>
+            <li class="flow-line" aria-hidden="true"></li>
+            <li class="flow-item"><span class="ico"><i class="ph ph-gift" aria-hidden="true"></i></span><span><strong>Nhận quà</strong><span>Đủ 4/4 dấu tại bàn check-out</span></span></li>
+          </ol>
+
+          <span class="pp-intro-timer" aria-hidden="true"><i></i></span>
+          </div></div>
+
+          <div class="passport-grid">
+            <!-- S04 · Đăng ký / consent / Virtual ID -->
+            <div class="card form-card reveal" id="register">
+              <!-- Đã có thẻ trên máy này -->
+              <div class="reg-has" id="register-has" hidden></div>
+
+              <!-- Chưa có thẻ: tạo thẻ (ở nhà trước sự kiện hoặc ngay tại cổng) -->
+              <div id="register-open">
+              <h3>Tạo thẻ thông hành</h3>
+              <p class="lead">Tạo trước ở nhà hoặc ngay tại cổng sự kiện. Chỉ cần một cái tên, email là tùy chọn, dùng để gửi thông tin quà.</p>
+
+              <form class="form" id="form-register" novalidate>
+                <div class="error-summary" id="error-summary" role="alert" tabindex="-1" hidden>
+                  <h4>Còn một chút nữa thôi</h4>
+                  <div id="error-summary-list"></div>
+                </div>
+
+                <div class="field">
+                  <label for="f-nickname">Tên hoặc nickname</label>
+                  <input class="input" id="f-nickname" name="nickname" type="text" autocomplete="nickname" maxlength="24" required aria-describedby="f-nickname-help f-nickname-err" placeholder="Ví dụ: Bé Na, Minh Khôi">
+                  <p class="help" id="f-nickname-help">Tên này sẽ in trên hộ chiếu và Chuyện Nhà Đêm 23 của bạn.</p>
+                  <p class="error-text" id="f-nickname-err" aria-live="polite"></p>
+                </div>
+
+                <div class="field">
+                  <label for="f-email">Email <span class="opt">(không bắt buộc)</span></label>
+                  <input class="input" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="f-email-err" placeholder="ban@email.com">
+                  <p class="error-text" id="f-email-err" aria-live="polite"></p>
+                </div>
+
+                <label class="check" for="f-consent">
+                  <input id="f-consent" name="consent" type="checkbox">
+                  <span>Tôi đồng ý để Chuyện Nhà Táo lưu email nhằm gửi thông tin nhận quà và lời mời viết Chuyện Nhà Đêm 23 gửi Táo. <a href="#du-lieu">Xem chính sách dữ liệu</a>.</span>
+                </label>
+
+                <button class="btn btn-primary btn-block" type="submit" id="btn-register">
+                  <span class="btn-label">Tạo thẻ thông hành</span>
+                </button>
+
+                <div class="form-foot">
+                  <span>Đã có thẻ trên máy khác?</span>
+                  <button class="linklike" type="button" id="btn-restore">Nhập lại mã thẻ</button>
+                </div>
+              </form>
+              </div>
+            </div>
+
+            <!-- S05 · Passport 4 trạm + S06 Check-out -->
+            <div>
+              <div id="ticket-slot"></div>
+              <div class="checkout" id="checkout" hidden aria-live="polite"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -385,13 +396,23 @@
       <!-- Canvas trải dài trọn vẹn toàn bộ Chuyện Nhà Đêm 23 & xuyên suốt qua cầu hoàng hôn -->
       <canvas class="la-so-bg-canvas" id="la-so-bg-canvas" aria-hidden="true"></canvas>
       <div class="container">
-        <div class="section-head reveal">
-          <span class="tag-phase"><i class="ph ph-scroll" aria-hidden="true"></i> Year in Values</span>
-          <h2 id="letter-title">Chuyện Nhà Đêm 23</h2>
-          <p>Ngày 23 tháng Chạp, ông Táo mang Chuyện Nhà Đêm 23 về trời kể chuyện một năm của mỗi nhà. Đi đủ bốn trạm ở sự kiện là mở Chuyện Nhà Đêm 23: ghi đủ bốn giá trị, kèm những khoảnh khắc bạn chụp.</p>
+        <!-- Khóa chức năng: COMING SOON -->
+        <div class="coming-soon-card reveal" id="laso-coming-soon">
+          <div class="cs-icon-lock" aria-hidden="true">
+            <i class="ph-fill ph-lock-key"></i>
+          </div>
+          <h3 class="cs-title">Chuyện Nhà Đêm 23</h3>
+          <div class="cs-status-tag">Coming Soon</div>
         </div>
 
-        <div class="reveal" id="letter-root">
+        <div class="is-feature-locked" hidden>
+          <div class="section-head reveal">
+            <span class="tag-phase"><i class="ph ph-scroll" aria-hidden="true"></i> Year in Values</span>
+            <h2 id="letter-title">Chuyện Nhà Đêm 23</h2>
+            <p>Ngày 23 tháng Chạp, ông Táo mang Chuyện Nhà Đêm 23 về trời kể chuyện một năm của mỗi nhà. Đi đủ bốn trạm ở sự kiện là mở Chuyện Nhà Đêm 23: ghi đủ bốn giá trị, kèm những khoảnh khắc bạn chụp.</p>
+          </div>
+
+          <div class="reveal" id="letter-root">
           <!-- Chưa đủ điều kiện: danh sách việc còn thiếu -->
           <div class="card letter-lock" id="letter-lock" aria-live="polite"></div>
 
@@ -435,7 +456,7 @@
               <div class="ugc-theme-panel" id="ugc-studio">
                 <div class="theme-panel-head">
                   <div class="theme-group-title">
-                    <i class="ph ph-sparkle" aria-hidden="true"></i>
+                    <i class="ph ph-palette" aria-hidden="true"></i>
                     <span>Tùy chỉnh giao diện vé</span>
                   </div>
                   <p class="help">Chạm từng tab để chuyển công cụ: chọn khung hình, phối màu & chấm bi, dán sticker và chỉnh khổ ảnh.</p>
@@ -514,8 +535,8 @@
                         <span class="sticker-count-badge" id="sticker-active-count">0/16</span>
                       </div>
                       <div class="sticker-actions">
-                        <button type="button" class="btn btn-ghost btn-sm" id="btn-random-stickers" title="Gợi ý dán sticker ngẫu nhiên đẹp mắt">
-                          <i class="ph ph-sparkle" aria-hidden="true"></i>
+                        <button type="button" class="btn btn-ghost btn-sm" id="btn-random-stickers" title="Gợi ý dán sticker ngẫu nhiên">
+                          <i class="ph ph-shuffle" aria-hidden="true"></i>
                           <span>Gợi ý đẹp</span>
                         </button>
                         <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-stickers" title="Xóa tất cả sticker đã dán">
@@ -568,6 +589,7 @@
             </aside>
           </div>
         </div>
+        </div>
       </div>
     </section>
 
@@ -619,8 +641,8 @@
             <h4>Trải nghiệm</h4>
             <ul>
               <li><a href="#doc-sach">Đọc sách</a></li>
-              <li><a href="#tram-trai-nghiem">Trạm trải nghiệm</a></li>
-              <li><a href="#la-so">Chuyện Nhà Đêm 23</a></li>
+              <li><a href="#tram-trai-nghiem">Vân Du Ký <span class="footer-lock-badge">Coming Soon</span></a></li>
+              <li><a href="#la-so">Chuyện Nhà Đêm 23 <span class="footer-lock-badge">Coming Soon</span></a></li>
             </ul>
           </div>
           <div>
@@ -633,7 +655,7 @@
         </div>
         <div class="footer-bottom-row">
           <p class="footer-note">© 2026 Chuyện Nhà Táo. #ChuyenNhaTao #YearInValues</p>
-          <p class="footer-hint" aria-hidden="true"><i class="ph ph-sparkle"></i> Rê chuột để tương tác cá chép & lồng đèn bay về trời</p>
+          <p class="footer-hint" aria-hidden="true"><i class="ph ph-cursor"></i> Rê chuột để tương tác cá chép bơi lội</p>
         </div>
       </div>
     </div>
@@ -676,7 +698,7 @@
   <!-- Chọn ảnh khoảnh khắc (dùng chung cho trang visa trong hộ chiếu và Chuyện Nhà Đêm 23) -->
   <input class="sr-only" type="file" id="moment-input" accept="image/*" tabindex="-1" aria-hidden="true">
   <!-- Ghi chú hướng dẫn kiểu bóng thoại truyện tranh (phần thẻ thông hành): bật lên ~8 giây rồi thu thành bóng thoại góc dưới trái -->
-  <aside class="guide" id="guide" hidden>
+  <aside class="guide is-feature-locked" id="guide" hidden>
     <div class="guide-note" id="guide-note" role="dialog" aria-labelledby="guide-title" tabindex="-1">
       <button class="guide-x" type="button" aria-label="Thu gọn hướng dẫn"><i class="ph ph-minus" aria-hidden="true"></i></button>
       <h3 class="guide-title" id="guide-title">Đi bốn trạm thế nào?</h3>
@@ -727,19 +749,16 @@
             <span class="ig-user-badge"><i class="ph ph-user"></i></span>
             <input type="text" id="gb-name-input" class="ig-name-input" placeholder="Tên của bạn..." maxlength="24" autocomplete="off">
           </div>
-          <select id="gb-chapter-select" class="ig-chapter-select" aria-label="Chọn cảm nghĩ về chương">
-            <option value="chung">📖 Cả cuốn sách</option>
-            <option value="ch1">🏠 Chương 1: Mái Ấm</option>
-            <option value="ch2">🪷 Chương 2: Tôn Kính</option>
-            <option value="ch3">✨ Chương 3: Nhìn Lại</option>
-            <option value="ch4">🔥 Chương 4: Hướng Thiện</option>
-          </select>
+          <span class="ig-page-pill" id="gb-page-pill" title="Bình luận cho trang này">
+            <i class="ph ph-bookmark-simple" aria-hidden="true"></i>
+            <span id="gb-page-pill-text">Trang sách</span>
+          </span>
         </div>
 
         <div class="ig-input-main-row">
           <div class="ig-my-avatar" id="ig-my-avatar" aria-hidden="true">🐟</div>
           <div class="ig-textarea-wrap">
-            <textarea id="gb-content-input" class="ig-textarea" rows="1" placeholder="Thêm bình luận cho Chuyện Nhà Táo..." maxlength="300" required></textarea>
+            <textarea id="gb-content-input" class="ig-textarea" rows="1" placeholder="Thêm bình luận cho trang này..." maxlength="300" required></textarea>
           </div>
           <button type="submit" class="ig-post-btn" id="gb-submit-btn" disabled>Đăng</button>
         </div>
@@ -754,7 +773,7 @@
         <i class="ph ph-x" aria-hidden="true"></i>
       </button>
       <div class="share-modal-header">
-        <span class="share-modal-badge" aria-hidden="true">🏮</span>
+        <span class="share-modal-badge" aria-hidden="true">🐟</span>
         <h3 class="share-modal-title" id="share-modal-title">Chia Sẻ Chuyện Nhà Táo</h3>
         <p class="share-modal-desc">Gửi trao những câu chuyện gia đình ấm áp đêm 23 tháng Chạp tới bạn bè và người thân.</p>
       </div>
