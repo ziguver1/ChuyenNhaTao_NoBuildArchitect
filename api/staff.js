@@ -6,7 +6,7 @@
 //   {action:'checkout', pid}              → xác nhận đã trao quà cuối (đủ 4 dấu)
 //   {action:'code', station}              → mã dự phòng 6 số của trạm (đổi mỗi phút) để người chơi tự nhập
 // Sai mật khẩu 5 lần thì khoá 15 phút.
-const { configured, redis, toObject, readBody, PID_RE, passView, checkKey, stampCmds, stationCode, CODE_STEP } = require('./_store');
+const { configured, redis, toObject, readBody, PID_RE, passView, checkKey, stampCmds, stationCode, CODE_STEP, parseRoundsConfig, getRoundCounts, getRoundOutOfStockSet } = require('./_store');
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -30,9 +30,16 @@ module.exports = async (req, res) => {
     const pid = String(b.pid || '').toUpperCase();
     if (!PID_RE.test(pid)) return res.status(400).json({ error: 'id' });
     const key = `pass:${pid}`;
-    const [h] = await redis([['HGETALL', key]]);
+    const [h, configData, roundCountsData] = await redis([
+      ['HGETALL', key],
+      ['HGETALL', 'prize:config'],
+      ['HGETALL', 'prize:round_counts']
+    ]);
     const o = toObject(h);
     if (!o.pid) return res.status(404).json({ error: 'notfound' });
+    const { rounds, activeId, activeRound } = parseRoundsConfig(toObject(configData));
+    const activeCounts = getRoundCounts(toObject(roundCountsData), activeId);
+    const outOfStock = getRoundOutOfStockSet(activeRound, activeCounts);
     const st = Number(b.station);
     const now = String(Date.now());
     const cmds = [];
@@ -41,7 +48,7 @@ module.exports = async (req, res) => {
     if (b.action === 'stamp') {
       if (!(st >= 1 && st <= 4)) return res.status(400).json({ error: 'station' });
       if (o[`st${st}`]) note = 'already';
-      else cmds.push(...stampCmds(o, key, st, now));
+      else cmds.push(...stampCmds(o, key, st, now, outOfStock, activeId, activeRound.prizes));
     } else if (b.action === 'give') {
       if (!(st >= 1 && st <= 4) || !o[`st${st}`]) return res.status(400).json({ error: 'station' });
       if (o[`given${st}`]) note = 'already'; else cmds.push(['HSET', key, `given${st}`, now]);

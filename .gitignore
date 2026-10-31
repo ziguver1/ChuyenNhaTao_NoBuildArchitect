@@ -1,31 +1,66 @@
-# Tài liệu nội bộ của nhóm (không công khai)
-*.pdf
+# =========================================================================
+# GITIGNORE - CHUYỆN NHÀ TÁO
+# =========================================================================
 
-# Bản đóng gói
+# 1. Bảo mật & Biến môi trường
+.env
+.env.*
+.env*.local
+!.env.example
+
+# 2. File thiết kế đồ họa gốc (kích thước lớn, không đưa vào Git)
+*.psd
+*.ai
+*.sketch
+*.fig
+*.raw
+*.aep
+*.prproj
+
+# 3. File nén & Gói dữ liệu
 *.zip
+*.rar
+*.7z
+*.tar.gz
+DateServiceAPI.rar
 
-# Cấu hình công cụ / skill cục bộ
-.claude/
-.agents/
+# 4. Tài liệu nội bộ & Bản nháp
+*.pdf
+Huong_dan_*.docx
 
-# Hệ điều hành, editor
+# 5. File nháp, Thử nghiệm & Scratch
+scratch/
+test_*.png
+test_*.jpg
+test_*.webp
+live_user_view.png
+passport_section_view.png
+
+# 6. File mã nguồn backup tạm thời
+*.backup.js
+app.backup.js
+*.bak
+*.tmp
+*.temp
+
+# 7. Nhật ký hoạt động & Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 8. Hệ điều hành & IDE / Editor
 .DS_Store
 Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+.claude/
+.agents/
+.gemini/
+.cursor/
 
-# Node (nếu sau này có dependency)
+# 9. Node & Vercel local build
 node_modules/
-
-# File khác trong thư mục, không thuộc landing page
-DateServiceAPI.rar
-Huong_dan_*.docx
-
 .vercel
-.env
-scratch/
-
-# File backup tạm thời
-*.backup.js
-app.backup.js

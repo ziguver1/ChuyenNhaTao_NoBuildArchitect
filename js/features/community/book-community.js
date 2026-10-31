@@ -776,7 +776,8 @@ async function fetchPageCommunityData(pageKey) {
     currentComments = fallbackList;
     renderCommentList(currentComments);
     const countEl = $('#count-reactions');
-    if (countEl) countEl.textContent = fallbackList.length > 0 ? fallbackList.length * 3 : 15;
+    const pReacts = store.get('user_page_reactions', {}) || {};
+    if (countEl) countEl.textContent = pReacts[pageKey] ? 1 : 0;
   }
 }
 
@@ -905,6 +906,31 @@ function initShare() {
   const shareTitle = 'Chuyện Nhà Táo · Sách Tương Tác Đêm 23';
   const shareText = 'Cùng mình đọc cuốn sách Chuyện Nhà Táo và nhận Thẻ Thông Hành O2O nhé!';
 
+  function recordShare(channel) {
+    const page = currentPageKey;
+    const uid = getAccountId();
+
+    // Lưu vào local cache để hỗ trợ offline & test
+    try {
+      const s = store.get('cnt_shares', { total: 0, channels: {}, pages: {} }) || {};
+      s.total = (s.total || 0) + 1;
+      s.channels = s.channels || {};
+      s.channels[channel] = (s.channels[channel] || 0) + 1;
+      s.pages = s.pages || {};
+      s.pages[page] = (s.pages[page] || 0) + 1;
+      store.set('cnt_shares', s);
+    } catch (e) {}
+
+    // Gửi lên máy chủ
+    try {
+      fetch('/api/community', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'share', channel, page, uid })
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
   function getShareUrl() {
     return window.location.origin + window.location.pathname;
   }
@@ -931,6 +957,7 @@ function initShare() {
 
   btnOpen?.addEventListener('click', () => {
     if (navigator.share && window.innerWidth <= 768) {
+      recordShare('mobile');
       navigator.share({ title: shareTitle, text: shareText, url: getShareUrl() }).catch(() => {});
       return;
     }
@@ -944,6 +971,7 @@ function initShare() {
 
   btnCopy?.addEventListener('click', async () => {
     const url = getShareUrl();
+    recordShare('web');
     try {
       await navigator.clipboard.writeText(url);
       toast('Đã sao chép liên kết vào bộ nhớ tạm! 📋');
@@ -957,17 +985,20 @@ function initShare() {
   });
 
   btnFb?.addEventListener('click', () => {
+    recordShare('web');
     const url = encodeURIComponent(getShareUrl());
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'noopener,noreferrer,width=600,height=400');
   });
 
   btnZalo?.addEventListener('click', () => {
+    recordShare('web');
     const url = encodeURIComponent(getShareUrl());
     window.open(`https://zalo.me/share?url=${url}`, '_blank', 'noopener,noreferrer,width=600,height=400');
   });
 
   btnNative?.addEventListener('click', () => {
     if (navigator.share) {
+      recordShare('mobile');
       navigator.share({ title: shareTitle, text: shareText, url: getShareUrl() });
     }
   });

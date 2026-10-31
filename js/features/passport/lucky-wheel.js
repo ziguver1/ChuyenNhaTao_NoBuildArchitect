@@ -58,6 +58,73 @@ export const WHEEL = [
   { prize: 'keychain', share: 6 }
 ];
 
+// Cập nhật cấu hình nan quạt & giải thưởng động từ Đợt quay đang hoạt động
+export function applyPrizesToWheel(prizesList) {
+  if (!Array.isArray(prizesList) || !prizesList.length) return;
+  prizesList.forEach((p) => {
+    PRIZES[p.key] = {
+      label: p.name,
+      short: p.short || p.name.slice(0, 10),
+      icon: p.icon || (p.isGift ? 'gift' : 'clover'),
+      color: p.color || '#b8241c',
+      ink: p.ink || '#fff3d6'
+    };
+  });
+
+  const segments = [];
+  prizesList.forEach((p) => {
+    const rate = Math.max(0, Number(p.rate) || 0);
+    if (rate <= 0) return;
+    if (rate >= 30) {
+      const part = Math.round((rate / 3) * 10) / 10;
+      segments.push({ prize: p.key, share: part }, { prize: p.key, share: part }, { prize: p.key, share: Math.round((rate - part * 2) * 10) / 10 });
+    } else if (rate >= 16) {
+      const part = Math.round((rate / 2) * 10) / 10;
+      segments.push({ prize: p.key, share: part }, { prize: p.key, share: Math.round((rate - part) * 10) / 10 });
+    } else {
+      segments.push({ prize: p.key, share: rate });
+    }
+  });
+
+  if (segments.length >= 3) {
+    const mixed = [];
+    const copy = segments.slice();
+    while (copy.length) {
+      const lastPrize = mixed.length ? mixed[mixed.length - 1].prize : null;
+      let idx = copy.findIndex((s) => s.prize !== lastPrize);
+      if (idx === -1) idx = 0;
+      mixed.push(copy.splice(idx, 1)[0]);
+    }
+    WHEEL.length = 0;
+    WHEEL.push(...mixed);
+  } else if (segments.length) {
+    WHEEL.length = 0;
+    WHEEL.push(...segments);
+  }
+}
+
+// Đồng bộ vòng quay may mắn với đợt đang diễn ra trên máy chủ
+export async function syncWheelFromActiveRound() {
+  try {
+    const cached = store.get('cnt_active_wheel_prizes', null);
+    if (cached) applyPrizesToWheel(cached);
+    const res = await fetch('/api/pass?action=wheel');
+    if (res.ok) {
+      const d = await res.json();
+      if (d.activeRound && Array.isArray(d.activeRound.prizes)) {
+        applyPrizesToWheel(d.activeRound.prizes);
+        store.set('cnt_active_wheel_prizes', d.activeRound.prizes);
+      }
+    }
+  } catch (e) {}
+}
+
+// Tự động kiểm tra nạp vòng quay từ cache khi khởi động
+try {
+  const initPrizes = store.get('cnt_active_wheel_prizes', null);
+  if (initPrizes) applyPrizesToWheel(initPrizes);
+} catch (e) {}
+
 export const spinOf = (id) => {
   const pass = getPass();
   return (pass && pass.spins && pass.spins[id]) || null;
@@ -461,13 +528,16 @@ export function spinWheel(id) {
       win = prize !== 'none';
     const res = $('#wheel-result');
     if (res) {
+      const iconHtml = (pz.icon && pz.icon.length > 2 && !pz.icon.includes(' '))
+        ? `<i class="ph-fill ph-${pz.icon}" aria-hidden="true"></i>`
+        : `<span style="font-size:20px; line-height:1; display:inline-block; vertical-align:middle;">${pz.icon || '🎁'}</span>`;
       res.innerHTML = win
-        ? `<i class="ph-fill ph-${pz.icon}" aria-hidden="true"></i> ${
+        ? `${iconHtml} ${
             prize === 'blindbox' ? 'Quà hiếm, cả sự kiện chỉ có ít người trúng!' : 'Chúc mừng!'
           } Bạn trúng <strong>${
             pz.label
           }</strong>. Đưa màn hình này cho nhân sự ở trạm để nhận quà.`
-        : `<i class="ph ph-${pz.icon}" aria-hidden="true"></i> ${pz.label}. Chúc bạn năm mới an khang, cảm ơn đã ghé ${
+        : `${iconHtml} ${pz.label}. Chúc bạn năm mới an khang, cảm ơn đã ghé ${
             STATIONS[id - 1].name
           }!`;
       res.className = 'wheel-result ' + (win ? 'is-win' : 'is-miss');

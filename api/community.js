@@ -3,36 +3,15 @@
 // POST /api/community             — Gửi cảm xúc hoặc bình luận cho trang cụ thể
 const { configured, redis, toObject, readBody } = require('./_store');
 
-// Bình luận hạt giống mẫu cho trang đầu tiên đọc truyện (Trang 1 chương 1)
-const SEED_COMMENTS_MAP = {
-  p_3: [
-    {
-      id: 'seed-p3-1',
-      name: 'Thanh Trúc',
-      content: 'Trang mở đầu ấm áp quá! Nhìn đàn cá chép bơi quây quần thấy nhớ mâm cơm nhà ghê.',
-      chapter: 'ch1',
-      ts: Date.now() - 3600000 * 4,
-      likes: 5
-    }
-  ],
-  p_4: [
-    {
-      id: 'seed-p4-1',
-      name: 'Minh Khôi',
-      content: 'Nét vẽ mộc mạc và giọng đọc ấm lòng, câu chuyện thấm đẫm tình cảm gia đình.',
-      chapter: 'ch1',
-      ts: Date.now() - 3600000 * 8,
-      likes: 3
-    }
-  ]
-};
+// Dữ liệu ban đầu sạch (bắt đầu từ 0 cho mọi trang sách)
+const SEED_COMMENTS_MAP = {};
 
 const DEFAULT_PAGE_REACTIONS = {
-  total: 28,
-  maiam: 12,
-  tonkinh: 6,
-  nhinlai: 4,
-  huongthien: 6
+  total: 0,
+  maiam: 0,
+  tonkinh: 0,
+  nhinlai: 0,
+  huongthien: 0
 };
 
 module.exports = async (req, res) => {
@@ -67,14 +46,14 @@ module.exports = async (req, res) => {
       const tonkinh = Number(reactObj.tonkinh || 0);
       const nhinlai = Number(reactObj.nhinlai || 0);
       const huongthien = Number(reactObj.huongthien || 0);
-      const total = Number(reactObj.total || (maiam + tonkinh + nhinlai + huongthien) || DEFAULT_PAGE_REACTIONS.total);
+      const total = Number(reactObj.total || (maiam + tonkinh + nhinlai + huongthien) || 0);
 
       const reactions = {
         total,
-        maiam: maiam || DEFAULT_PAGE_REACTIONS.maiam,
-        tonkinh: tonkinh || DEFAULT_PAGE_REACTIONS.tonkinh,
-        nhinlai: nhinlai || DEFAULT_PAGE_REACTIONS.nhinlai,
-        huongthien: huongthien || DEFAULT_PAGE_REACTIONS.huongthien
+        maiam,
+        tonkinh,
+        nhinlai,
+        huongthien
       };
 
       let comments = [];
@@ -136,7 +115,7 @@ module.exports = async (req, res) => {
           ok: true,
           page: targetPage,
           type,
-          count: DEFAULT_PAGE_REACTIONS.total + (isSwitch ? 0 : 1),
+          count: isSwitch ? 0 : 1,
           switched: isSwitch
         });
       }
@@ -150,7 +129,7 @@ module.exports = async (req, res) => {
             if (priorType === type) {
               // Người dùng đã thả icon này rồi -> không tăng đếm
               const totalRes = await redis([['HGET', `book:react:${targetPage}`, 'total']]);
-              const curTotal = Number((totalRes && totalRes[0]) || DEFAULT_PAGE_REACTIONS.total);
+              const curTotal = Number((totalRes && totalRes[0]) || 0);
               return res.status(200).json({
                 ok: true,
                 page: targetPage,
@@ -187,8 +166,8 @@ module.exports = async (req, res) => {
 
         const resList = await redis(cmds);
         const newTotal = isSwitch
-          ? Number(resList[cmds.length - 1] || DEFAULT_PAGE_REACTIONS.total)
-          : Number(resList[1] || DEFAULT_PAGE_REACTIONS.total + 1);
+          ? Number(resList[cmds.length - 1] || 0)
+          : Number(resList[1] || 1);
 
         return res.status(200).json({
           ok: true,
@@ -238,6 +217,31 @@ module.exports = async (req, res) => {
       } catch (err) {
         console.error(`[API community comment ${targetPage} error]:`, err.message);
         return res.status(200).json({ ok: true, page: targetPage, comment: commentItem, fallback: true });
+      }
+    }
+
+    // C. Ghi nhận lượt chia sẻ (action = share)
+    if (action === 'share') {
+      const channel = ['mobile', 'web', 'facebook', 'zalo', 'copy', 'native'].includes(body.channel) ? body.channel : 'mobile';
+      const uid = String(body.uid || '').trim().slice(0, 40);
+      const ts = Date.now();
+
+      if (!configured()) {
+        return res.status(200).json({ ok: true, action: 'share', channel, page: targetPage });
+      }
+
+      try {
+        const cmds = [
+          ['HINCRBY', 'book:shares:channels', channel, '1'],
+          ['HINCRBY', 'book:shares:pages', targetPage, '1'],
+          ['INCR', 'book:shares:total'],
+          ['ZADD', 'book:shares:log', String(ts), JSON.stringify({ channel, page: targetPage, uid, ts })]
+        ];
+        await redis(cmds);
+        return res.status(200).json({ ok: true, action: 'share', channel, page: targetPage });
+      } catch (err) {
+        console.error(`[API community share ${targetPage} error]:`, err.message);
+        return res.status(200).json({ ok: true, action: 'share', channel, page: targetPage, fallback: true });
       }
     }
 

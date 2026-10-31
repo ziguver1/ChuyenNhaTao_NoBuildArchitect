@@ -4,54 +4,221 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Quản trị · Chuyện Nhà Táo</title>
+  <title>Quản trị & Báo cáo Tương tác · Chuyện Nhà Táo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Potta+One&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css">
   <style>
-    body { background: var(--bg); }
-    .adm { max-width: 1240px; margin: 0 auto; padding: 24px 16px 64px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+    body { background: var(--bg); color: var(--ink); }
+    .adm { max-width: 1280px; margin: 0 auto; padding: 24px 16px 80px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
     #app { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; min-width: 0; }
     .adm .card, .tbl-wrap { min-width: 0; }
-    @media (max-width: 640px) { .tile b { font-size: 22px; } .toolbar .input { max-width: none; width: 100%; } }
-    .adm-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
-    .adm-head h1 { font-size: clamp(22px, 3vw, 30px); font-weight: 800; display: flex; gap: 10px; align-items: center; }
+
+    /* Header */
+    .adm-head { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; padding-bottom: 4px; }
+    .adm-head h1 { font-size: clamp(22px, 3vw, 28px); font-weight: 800; display: flex; gap: 10px; align-items: center; }
+    .adm-head h1 i { color: var(--accent); }
     .adm-head .actions { display: flex; flex-wrap: wrap; gap: 8px; }
-    .adm .card { padding: clamp(16px, 3vw, 24px); }
-    .login { max-width: 420px; margin: 8vh auto 0; display: grid; gap: 12px; }
-    .login h2 { font-size: 20px; font-weight: 800; }
-    .notice { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--gold-soft); font-size: 14.5px; line-height: 1.5; }
+
+    /* Tabs Navigation */
+    .adm-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--line); padding-bottom: 2px; overflow-x: auto; }
+    .adm-tab-btn {
+      padding: 10px 18px; border-radius: 12px 12px 0 0; background: transparent; border: none;
+      font-size: 14.5px; font-weight: 700; color: var(--text-muted); cursor: pointer; display: flex;
+      align-items: center; gap: 8px; white-space: nowrap; transition: all 0.2s ease;
+    }
+    .adm-tab-btn:hover { color: var(--ink); background: rgba(0,0,0,0.03); }
+    .adm-tab-btn.is-active {
+      color: var(--accent); background: var(--surface); border-bottom: 3px solid var(--accent);
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+    }
+    .adm-tab-panel { display: grid; gap: 20px; }
+    .adm-tab-panel[hidden] { display: none !important; }
+
+    /* Login Form */
+    .adm .card { padding: clamp(16px, 3vw, 24px); border-radius: 20px; }
+    .login { max-width: 420px; margin: 8vh auto 0; display: grid; gap: 14px; }
+    .login h2 { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .notice { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; border-radius: 14px; background: var(--gold-soft); font-size: 14px; line-height: 1.5; }
     .notice i { font-size: 22px; color: var(--gold-ink); flex: none; }
     .notice code { font-size: 13px; background: rgba(255,255,255,.6); padding: 1px 5px; border-radius: 4px; }
-    .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-    @media (max-width: 640px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    .tile { padding: 14px 16px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); display: grid; gap: 2px; }
-    .tile b { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .tile span { font-size: 13.5px; color: var(--text-muted); }
-    .tile b.long { font-size: 18px; white-space: nowrap; }
-    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .toolbar .input { max-width: 320px; }
+
+    /* KPI Grid Cards */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 480px) { .kpi-grid { grid-template-columns: minmax(0, 1fr); } }
+
+    .kpi-card {
+      padding: 18px 20px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line);
+      display: grid; gap: 6px; position: relative; overflow: hidden;
+    }
+    .kpi-card::before {
+      content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+      background: var(--accent);
+    }
+    .kpi-card.kpi-reactions::before { background: #f59e0b; }
+    .kpi-card.kpi-comments::before { background: #3b82f6; }
+    .kpi-card.kpi-shares::before { background: #10b981; }
+    .kpi-card.kpi-total::before { background: #8b5cf6; }
+
+    .kpi-header { display: flex; justify-content: space-between; align-items: center; }
+    .kpi-header span { font-size: 13.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .kpi-header i { font-size: 22px; opacity: 0.85; }
+    .kpi-num { font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; margin: 2px 0; }
+    .kpi-sub { font-size: 13px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+    .kpi-badge {
+      display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700;
+      padding: 2px 8px; border-radius: 999px; background: rgba(0,0,0,0.06);
+    }
+
+    /* 2 Column Layout */
+    .row-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    @media (max-width: 860px) { .row-2col { grid-template-columns: minmax(0, 1fr); } }
+
+    /* Carp & Share Progress Bars */
+    .sentiment-list, .share-channels-list { display: grid; gap: 12px; margin-top: 8px; }
+    .stat-row { display: grid; gap: 6px; }
+    .stat-meta { display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; }
+    .stat-label { display: flex; align-items: center; gap: 8px; }
+    .stat-carp-icon { width: 22px; height: 22px; object-fit: contain; }
+    .stat-bar-track { width: 100%; height: 9px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+
+    /* Heatmap Table */
     .tbl-wrap { overflow-x: auto; border-radius: 14px; border: 1px solid var(--line); }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; background: var(--surface); }
-    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: var(--surface); }
+    th, td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
     th { position: sticky; top: 0; background: var(--surface-2); font-size: 12.5px; font-weight: 700; color: var(--text-muted); cursor: pointer; user-select: none; }
     th[aria-sort="ascending"]::after { content: " ▲"; } th[aria-sort="descending"]::after { content: " ▼"; }
     td.num { font-variant-numeric: tabular-nums; text-align: right; }
     td .mono { font-family: ui-monospace, Consolas, monospace; font-weight: 700; }
-    .bar { display: inline-block; vertical-align: middle; width: 70px; height: 6px; border-radius: 3px; background: var(--line); margin-left: 8px; overflow: hidden; }
-    .bar i { display: block; height: 100%; background: var(--accent); }
-    .dots { display: inline-flex; gap: 3px; } .dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--line-strong); } .dots i.on { background: var(--accent); }
-    .empty { padding: 28px; text-align: center; color: var(--text-muted); }
+
+    /* Heat Bar in Table */
+    .heat-cell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+    .heat-bar { width: 64px; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; display: inline-block; vertical-align: middle; }
+    .heat-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); }
+    .carp-mini-icons { display: inline-flex; gap: 4px; align-items: center; opacity: 0.9; }
+
+    /* Comments Live Feed */
+    .feed-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .feed-controls .input { max-width: 280px; }
+    .feed-controls select { padding: 9px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 13.5px; font-weight: 600; color: var(--ink); }
+    .comments-feed { display: grid; gap: 10px; max-height: 480px; overflow-y: auto; padding-right: 4px; }
+    .comment-card {
+      padding: 12px 16px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--line);
+      display: grid; gap: 6px; font-size: 13.5px;
+    }
+    .c-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .c-user { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    .c-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); display: inline-flex; align-items: center; justify-content: center; font-size: 13px; border: 1px solid var(--line); }
+    .c-page-tag { font-size: 11.5px; font-weight: 600; padding: 2px 7px; border-radius: 6px; background: var(--gold-soft); color: var(--gold-ink); }
+    .c-body { font-size: 14px; line-height: 1.5; color: var(--ink); word-break: break-word; }
+    .c-bot { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); }
+
+    /* Stock Badges & Input */
+    .stock-badge {
+      display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700;
+      padding: 3px 10px; border-radius: 999px;
+    }
+    .stock-badge.is-open { background: #dcfce7; color: #166534; }
+    .stock-badge.is-out { background: #fee2e2; color: #991b1b; }
+    .stock-input {
+      width: 90px; text-align: center; padding: 6px 10px; border-radius: 8px;
+      border: 1px solid var(--line); font-size: 13.5px; font-weight: 700; background: var(--surface-2);
+    }
+
+    /* Round Management & Rate Setup */
+    .round-nav-wrap {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px;
+      padding-bottom: 12px; border-bottom: 1px solid var(--line);
+    }
+    .round-pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 12px;
+      border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: all .15s ease;
+    }
+    .round-pill:hover { border-color: var(--line-strong); background: var(--surface-2); }
+    .round-pill.is-selected {
+      border-color: var(--accent); background: var(--accent-subtle); color: var(--accent-dark);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .round-pill .r-badge {
+      font-size: 11px; padding: 2px 6px; border-radius: 6px; font-weight: 600;
+    }
+    .round-pill .r-badge.is-live { background: #dcfce7; color: #166534; }
+    .round-pill .r-badge.is-upcoming { background: #fef3c7; color: #92400e; }
+    .round-pill .r-badge.is-ended { background: #f3f4f6; color: #6b7280; }
+
+    .round-active-banner {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; font-size: 13px;
+    }
+    .round-active-banner.is-live { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .round-active-banner.is-standby { background: #fffbeb; border: 1px solid #fef3c7; color: #92400e; }
+
+    .rate-track {
+      display: flex; height: 10px; border-radius: 999px; overflow: hidden; background: var(--line);
+      margin: 10px 0 6px;
+    }
+    .rate-seg { height: 100%; transition: width .2s ease; }
+    .rate-seg.sticker { background: #ef4444; }
+    .rate-seg.keychain { background: #f59e0b; }
+    .rate-seg.blindbox { background: #8b5cf6; }
+    .rate-seg.none { background: #10b981; }
+
+    .rate-input-wrap {
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .rate-input {
+      width: 75px; text-align: center; padding: 6px 8px; border-radius: 8px;
+      border: 1px solid var(--line); font-size: 13.5px; font-weight: 700; background: var(--surface-2);
+    }
+    .btn-del-prize {
+      background: none; border: none; color: #ef4444; font-size: 16px; cursor: pointer; padding: 5px 8px; border-radius: 6px;
+      transition: background .15s ease;
+    }
+    .btn-del-prize:hover { background: #fee2e2; }
+
+    dialog {
+      margin: auto;
+    }
+    dialog::backdrop {
+      background: rgba(15, 10, 8, 0.5);
+      backdrop-filter: blur(4px);
+    }
+
+    /* Wheel Admin Grid Layout */
+    .wheel-admin-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 1080px) {
+      .wheel-admin-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    /* General Tools */
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .toolbar .input { max-width: 320px; }
+    .sec-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .sec-sub { color: var(--text-muted); font-size: 13.5px; margin-bottom: 12px; }
+    .empty { padding: 32px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+    /* QR Code print styles */
     .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
     .qr-card { padding: 16px; border-radius: 16px; background: #fff; border: 1px solid var(--line-strong); display: grid; justify-items: center; gap: 8px; text-align: center; color: #2a1710; }
     .qr-card strong { font-size: 16px; } .qr-card code { font-size: 15px; font-weight: 800; letter-spacing: .12em; }
     .qr-card small { font-size: 11px; color: #6b5444; word-break: break-all; }
-    .sec-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; } .sec-sub { color: var(--text-muted); font-size: 14.5px; margin-bottom: 14px; }
+
     @media print {
-      .adm-head, #people, #tiles, .notice, .no-print { display: none !important; }
+      .adm-head, .adm-tabs, #tab-community, #tab-wheel, #tab-people, .notice, .no-print { display: none !important; }
+      #tab-qr { display: block !important; }
       .adm { padding: 0; } .card { box-shadow: none; border: 0; }
       .qr-grid { grid-template-columns: repeat(2, 1fr); } .qr-card { break-inside: avoid; border: 2px solid #000; }
     }
@@ -62,54 +229,460 @@
     <!-- Đăng nhập bằng mật khẩu quản trị (ADMIN_KEY trên Vercel) -->
     <form class="card login" id="login" hidden>
       <h2><i class="ph ph-lock-key" aria-hidden="true"></i> Quản trị Chuyện Nhà Táo</h2>
-      <p class="help">Nhập mật khẩu quản trị để xem số liệu người tham gia.</p>
+      <p class="help">Nhập mật khẩu quản trị để mở khóa toàn bộ số liệu tương tác và người tham gia.</p>
       <label class="dlg-label" for="adm-key">Mật khẩu quản trị</label>
-      <input class="input" id="adm-key" type="password" autocomplete="current-password" required>
+      <input class="input" id="adm-key" type="password" autocomplete="current-password" required placeholder="Nhập ADMIN_KEY...">
       <p class="error-text" id="login-err" aria-live="polite"></p>
-      <button class="btn btn-primary" type="submit">Xem số liệu</button>
+      <button class="btn btn-primary" type="submit"><i class="ph ph-sign-in"></i> Đăng nhập xem số liệu</button>
     </form>
 
     <div id="app" hidden>
+      <!-- Thanh điều hướng Header -->
       <header class="adm-head">
-        <h1><i class="ph ph-chart-bar" aria-hidden="true"></i> Số liệu người tham gia</h1>
+        <h1><i class="ph ph-chart-polar" aria-hidden="true"></i> Trung tâm Quản trị & Báo cáo Tương tác</h1>
         <div class="actions">
-          <button class="btn btn-ghost btn-sm" type="button" id="btn-reload"><i class="ph ph-arrow-clockwise" aria-hidden="true"></i> Tải lại</button>
-          <button class="btn btn-ghost btn-sm" type="button" id="btn-csv"><i class="ph ph-download-simple" aria-hidden="true"></i> Xuất CSV</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="btn-reload"><i class="ph ph-arrow-clockwise" aria-hidden="true"></i> Làm mới</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="btn-csv-interact"><i class="ph ph-file-csv" aria-hidden="true"></i> Xuất CSV Tương tác</button>
+          <button class="btn btn-ghost btn-sm" type="button" id="btn-csv"><i class="ph ph-download-simple" aria-hidden="true"></i> Xuất CSV Người chơi</button>
           <button class="btn btn-quiet btn-sm" type="button" id="btn-logout">Đăng xuất</button>
         </div>
       </header>
 
       <div class="notice" id="notice" hidden></div>
-      <div class="tiles" id="tiles"></div>
 
-      <section class="card" id="people" aria-labelledby="people-title">
-        <div class="toolbar">
-          <div><h2 class="sec-title" id="people-title">Theo từng mã thẻ</h2><p class="sec-sub" id="people-sub"></p></div>
-          <input class="input" id="search" type="search" placeholder="Tìm mã thẻ hoặc tên" aria-label="Tìm mã thẻ hoặc tên">
+      <!-- Hệ thống Tabs -->
+      <nav class="adm-tabs" role="tablist" aria-label="Các phân hệ quản trị">
+        <button class="adm-tab-btn is-active" id="tab-btn-community" type="button" role="tab" aria-selected="true" data-tab="tab-community">
+          <i class="ph-fill ph-heart"></i> Cảm xúc & Tương tác sách
+        </button>
+        <button class="adm-tab-btn" id="tab-btn-wheel" type="button" role="tab" aria-selected="false" data-tab="tab-wheel">
+          <i class="ph-fill ph-arrows-clockwise"></i> Vòng quay & Kho quà
+        </button>
+        <button class="adm-tab-btn" id="tab-btn-people" type="button" role="tab" aria-selected="false" data-tab="tab-people">
+          <i class="ph-fill ph-identification-badge"></i> Người tham gia & Hộ chiếu
+        </button>
+        <button class="adm-tab-btn" id="tab-btn-qr" type="button" role="tab" aria-selected="false" data-tab="tab-qr">
+          <i class="ph-fill ph-qr-code"></i> Mã QR Sự kiện
+        </button>
+      </nav>
+
+      <!-- TAB 1: CẢM XÚC, BÌNH LUẬN & CHIA SẺ -->
+      <section class="adm-tab-panel" id="tab-community" role="tabpanel">
+        <!-- 4 Khối Chỉ số KPI Trực quan -->
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card kpi-total">
+            <div class="kpi-header">
+              <span>Tổng tương tác</span>
+              <i class="ph-fill ph-sparkle" style="color: #8b5cf6;"></i>
+            </div>
+            <div class="kpi-num" id="kpi-total-num">0</div>
+            <div class="kpi-sub">
+              <span>Bình quân:</span>
+              <span class="kpi-badge" id="kpi-avg-rate">0.0 lượt/người</span>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-reactions">
+            <div class="kpi-header">
+              <span>Cảm xúc cá chép</span>
+              <i class="ph-fill ph-fish" style="color: #f59e0b;"></i>
+            </div>
+            <div class="kpi-num" id="kpi-reactions-num">0</div>
+            <div class="kpi-sub">
+              <span>Chủ đạo:</span>
+              <span class="kpi-badge" id="kpi-dominant-emotion" style="background:#fef3c7; color:#92400e;">Mái Ấm</span>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-comments">
+            <div class="kpi-header">
+              <span>Bình luận độc giả</span>
+              <i class="ph-fill ph-chat-circle-dots" style="color: #3b82f6;"></i>
+            </div>
+            <div class="kpi-num" id="kpi-comments-num">0</div>
+            <div class="kpi-sub">
+              <span>Tỷ lệ phản hồi sâu:</span>
+              <span class="kpi-badge" id="kpi-comment-rate">0.0%</span>
+            </div>
+          </div>
+
+          <div class="kpi-card kpi-shares">
+            <div class="kpi-header">
+              <span>Lượt chia sẻ sách</span>
+              <i class="ph-fill ph-paper-plane-tilt" style="color: #10b981;"></i>
+            </div>
+            <div class="kpi-num" id="kpi-shares-num">0</div>
+            <div class="kpi-sub">
+              <span>Hệ số lan tỏa:</span>
+              <span class="kpi-badge" id="kpi-share-rate">0.0%</span>
+            </div>
+          </div>
         </div>
-        <div class="tbl-wrap"><table>
-          <thead><tr>
-            <th data-k="pid">Mã thẻ</th><th data-k="name">Tên</th>
-            <th data-k="flips">Lượt lật trang</th><th data-k="pagesN">Trang đã xem</th><th data-k="last">Đang xem</th>
-            <th data-k="chaptersN">Chương đã nghe</th><th data-k="stampsN">Dấu trạm</th><th data-k="prizesTxt">Quà vòng quay</th>
-            <th data-k="seen">Hoạt động gần nhất</th>
-          </tr></thead>
-          <tbody id="rows"></tbody>
-        </table></div>
+
+        <!-- 2 Cột: Phân tích 4 Cá Chép & Kênh Chia Sẻ -->
+        <div class="row-2col">
+          <!-- Phân bổ 4 Cá Chép -->
+          <div class="card">
+            <h2 class="sec-title"><i class="ph-fill ph-fish-simple"></i> Phân Bổ Cảm Xúc 4 Cá Chép</h2>
+            <p class="sec-sub">Tỉ trọng các thông điệp cảm xúc người đọc thể hiện qua từng trang sách.</p>
+            <div class="sentiment-list" id="sentiment-list"></div>
+          </div>
+
+          <!-- Hiệu Quả Lan Tỏa & Chia Sẻ -->
+          <div class="card">
+            <h2 class="sec-title"><i class="ph-fill ph-share-network"></i> Hiệu Quả Lan Tỏa & Chia Sẻ Sách</h2>
+            <p class="sec-sub">Theo dõi hành vi chia sẻ của độc giả qua điện thoại và máy tính.</p>
+            <div class="share-channels-list" id="share-channels-list"></div>
+          </div>
+        </div>
+
+        <!-- Bảng Bản Đồ Chú Ý & Tương Tác Từng Trang -->
+        <div class="card">
+          <div class="toolbar">
+            <div>
+              <h2 class="sec-title"><i class="ph-fill ph-fire"></i> Bản Đồ Nhiệt Tương Tác Từng Trang (Page Heatmap)</h2>
+              <p class="sec-sub">Theo dõi mức độ thu hút (Attention Score = Reaction×1 + Comment×3 + Share×5) để nhận diện trang cao trào.</p>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-pk="index">Mã</th>
+                  <th data-pk="label">Trang sách / Nội dung</th>
+                  <th data-pk="totalReact" class="num">Cảm xúc cá chép</th>
+                  <th data-pk="commentsCount" class="num">Bình luận</th>
+                  <th data-pk="sharesCount" class="num">Chia sẻ</th>
+                  <th data-pk="hotScore" class="num">Điểm Sức Hút (Hot Index)</th>
+                </tr>
+              </thead>
+              <tbody id="page-heatmap-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Nhật Ký Bình Luận Trực Tiếp -->
+        <div class="card">
+          <div class="feed-controls">
+            <div>
+              <h2 class="sec-title"><i class="ph-fill ph-chat-teardrop-text"></i> Nhật Ký Bình Luận Trực Tiếp</h2>
+              <p class="sec-sub" id="comments-total-desc">Tất cả cảm nghĩ và chia sẻ của độc giả theo thời gian thực.</p>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <select id="comment-filter-chapter" aria-label="Lọc theo chương">
+                <option value="all">Tất cả chương</option>
+                <option value="ch1">Chương I: Mái ấm</option>
+                <option value="ch2">Chương II: Tôn kính</option>
+                <option value="ch3">Chương III: Nhìn lại</option>
+                <option value="ch4">Chương IV: Hướng thiện</option>
+                <option value="chung">Lời mở đầu / Mục lục / Bìa</option>
+              </select>
+              <input class="input" id="search-comments" type="search" placeholder="Tìm tên hoặc nội dung..." aria-label="Tìm bình luận">
+            </div>
+          </div>
+          <div class="comments-feed" id="comments-feed"></div>
+        </div>
       </section>
 
-      <section class="card" aria-labelledby="qr-title">
-        <div class="toolbar">
-          <div><h2 class="sec-title" id="qr-title">Mã QR in cho sự kiện</h2>
-          <p class="sec-sub">Mã cổng: dán ở cổng để người chơi check-in. Nhân sự đóng dấu bằng trang <a href="staff.html">staff.html</a> (quét QR trên hộ chiếu người chơi); mã các trạm chỉ dùng khi chạy thử chưa có máy chủ.</p></div>
-          <button class="btn btn-primary btn-sm no-print" type="button" onclick="window.print()"><i class="ph ph-printer" aria-hidden="true"></i> In mã QR</button>
+      <!-- TAB 2: VÒNG QUAY & KHO QUÀ -->
+      <section class="adm-tab-panel" id="tab-wheel" role="tabpanel" hidden>
+        <div class="wheel-admin-grid">
+          <!-- Cột Cấu Hình Kho & Đợt Quay -->
+          <div class="wheel-config-col">
+            <div class="card" id="inventory-card">
+          <div class="toolbar">
+            <div>
+              <h2 class="sec-title"><i class="ph-fill ph-arrows-clockwise"></i> Cấu Hình Đợt Quay (Rounds) & Tỉ Lệ Trúng Thưởng (%)</h2>
+              <p class="sec-sub">Tùy biến danh mục phần quà, phân chia kho theo đợt sự kiện, và thiết lập tỉ lệ trúng thưởng. <strong>Bắt buộc tổng tỉ lệ phải đạt đúng 100%</strong> để áp dụng vào vòng quay.</p>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+              <button class="btn btn-quiet btn-sm" type="button" id="btn-add-round"><i class="ph ph-plus-circle"></i> Thêm Đợt Mới</button>
+              <button class="btn btn-quiet btn-sm" type="button" id="btn-add-prize" style="color:var(--accent); font-weight:700;"><i class="ph-fill ph-gift"></i> + Thêm Quà Mới</button>
+              <button class="btn btn-primary btn-sm" type="button" id="btn-save-round"><i class="ph ph-floppy-disk"></i> Lưu & Áp Dụng Vòng Quay</button>
+            </div>
+          </div>
+
+          <!-- Cảnh báo khi tổng tỉ lệ khác 100% -->
+          <div id="rate-warning-box" style="display:none; padding:10px 14px; border-radius:10px; background:#fef2f2; border:1.5px solid #fecaca; color:#991b1b; font-size:13px; margin-bottom:12px; align-items:center; gap:8px;">
+            <i class="ph-fill ph-warning-circle" style="font-size:18px;"></i>
+            <span id="rate-warning-msg"></span>
+          </div>
+
+          <!-- Thanh chọn Đợt (Rounds) -->
+          <div class="round-nav-wrap" id="round-nav-wrap"></div>
+
+          <!-- Banner trạng thái Đợt -->
+          <div class="round-active-banner is-live" id="round-active-banner"></div>
+
+          <!-- Tên Đợt đang chọn -->
+          <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; background:var(--surface-2); padding:8px 12px; border-radius:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:13.5px;"><i class="ph ph-pencil-simple"></i> Tên đợt quay:</strong>
+              <input class="input" id="round-name-input" style="max-width:320px; font-weight:700;" placeholder="Ví dụ: Đợt 1: Khởi động">
+            </div>
+            <div id="round-action-btns" style="display:flex; gap:6px;"></div>
+          </div>
+
+          <!-- Bảng Thiết Lập Tỉ Lệ & Kho Quà -->
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Phần quà</th>
+                  <th style="width: 140px; text-align: center;">Chữ trên vòng quay</th>
+                  <th style="width: 130px; text-align: center;">Tỉ lệ trúng (%)</th>
+                  <th style="width: 130px; text-align: center;">Kho đợt này</th>
+                  <th class="num">Đã trúng</th>
+                  <th class="num">Còn lại</th>
+                  <th style="text-align: center;">Trạng thái kim</th>
+                  <th style="width: 60px; text-align: center;">Xóa</th>
+                </tr>
+              </thead>
+              <tbody id="inventory-rows"></tbody>
+            </table>
+          </div>
+
+          <!-- Thanh trực quan phân bổ tỉ lệ % -->
+          <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line);">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
+              <strong><i class="ph-fill ph-chart-pie-slice" style="color:var(--accent);"></i> Phân bổ xác suất vòng quay:</strong>
+              <span id="rate-total-badge" style="font-weight:700; color:var(--accent);">Tổng: 100%</span>
+            </div>
+            <div class="rate-track" id="rate-track"></div>
+            <div id="rate-summary-text" style="font-size:12px; color:var(--text-muted); display:flex; flex-wrap:wrap; gap:12px; margin-top:4px;"></div>
+          </div>
+
+          <!-- Tổng kết kho toàn bộ sự kiện -->
+          <div id="total-inventory-summary" style="margin-top: 14px; padding: 10px 14px; border-radius: 10px; background: var(--surface-2); font-size: 13px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;">
+            <span><i class="ph-fill ph-package"></i> <strong>Tổng kho toàn sự kiện:</strong> Đang tính toán...</span>
+          </div>
         </div>
-        <div class="qr-grid" id="qr-grid"></div>
+      </div>
+
+      <!-- Cột Bản Xem Trước Vòng Quay 100% Giống Người Dùng -->
+      <div class="wheel-preview-col">
+        <div class="card" id="clone-wheel-card" style="position: sticky; top: 16px;">
+          <div class="toolbar" style="margin-bottom: 6px;">
+            <div>
+              <h2 class="sec-title" style="color:var(--accent); font-size:16.5px;">
+                <i class="ph-fill ph-sparkle"></i> Vòng Quay Độc Giả (Bản Xem Trước)
+              </h2>
+              <p class="sec-sub" style="font-size: 12.5px; margin-bottom: 0;">
+                Đồng bộ 100% thời gian thực theo nan quạt và tỉ lệ của đợt đang chọn.
+              </p>
+            </div>
+          </div>
+
+          <div class="wheel-preview-box" style="background: radial-gradient(circle, #fffaf0 0%, #faedd3 100%); border-radius: 16px; padding: 20px 14px; border: 1.5px solid var(--line-strong); display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 2px 10px rgba(0,0,0,0.03); margin-top: 10px;">
+            
+            <div class="wheel-wrap" id="admin-wheel-wrap">
+              <span class="wheel-pin" id="admin-wheel-pin" aria-hidden="true">
+                <svg viewBox="0 0 40 52">
+                  <path d="M20 50 L6 20 A14 14 0 1 1 34 20 Z" fill="#b8241c" stroke="#f3d27a" stroke-width="2.5"/>
+                  <g transform="translate(20 20)" fill="#f7b3c4" stroke="#c94b6d" stroke-width=".5">
+                    <ellipse cx="0" cy="-4.95" rx="3.78" ry="5.4" transform="rotate(0)"/>
+                    <ellipse cx="0" cy="-4.95" rx="3.78" ry="5.4" transform="rotate(72)"/>
+                    <ellipse cx="0" cy="-4.95" rx="3.78" ry="5.4" transform="rotate(144)"/>
+                    <ellipse cx="0" cy="-4.95" rx="3.78" ry="5.4" transform="rotate(216)"/>
+                    <ellipse cx="0" cy="-4.95" rx="3.78" ry="5.4" transform="rotate(288)"/>
+                    <circle r="2.52" fill="#d6336c" stroke="none"/>
+                  </g>
+                </svg>
+              </span>
+              <div class="wheel" id="admin-wheel"></div>
+            </div>
+
+            <p class="wheel-result" id="admin-wheel-result" style="margin-top: 14px; font-weight: 700; font-size: 13.5px; min-height: 24px; text-align: center; color: var(--ink);">
+              Nhấn "Quay thử nghiệm" để kiểm tra kim dừng
+            </p>
+
+            <!-- Nút thao tác quay thử -->
+            <div style="display: flex; gap: 8px; width: 100%; max-width: 280px; margin-top: 8px;">
+              <button class="btn btn-tet btn-block" type="button" id="btn-admin-test-spin" style="flex: 1; padding: 10px 14px; font-size: 13.5px;">
+                <i class="ph ph-spiral"></i> Quay thử nghiệm
+              </button>
+              <button class="btn btn-quiet btn-sm" type="button" id="btn-admin-reset-wheel" title="Đặt lại góc quay ban đầu" style="padding: 0 12px; border: 1px solid var(--line);">
+                <i class="ph ph-arrow-counter-clockwise"></i>
+              </button>
+            </div>
+
+            <!-- Bảng chẩn đoán kim quay -->
+            <div id="admin-spin-diagnostic" style="width: 100%; max-width: 290px; margin-top: 14px; padding: 10px 12px; background: rgba(255,255,255,0.85); border-radius: 12px; border: 1px solid var(--line); font-size: 12px; display: none;">
+              <div style="font-weight: 700; color: var(--accent); margin-bottom: 4px; display: flex; justify-content: space-between; align-items:center;">
+                <span><i class="ph-fill ph-gauge"></i> Phân tích kim dừng:</span>
+                <span id="diag-prize-badge" style="padding: 2px 6px; border-radius: 4px; font-size: 11px;"></span>
+              </div>
+              <div id="diag-prize-details" style="color: var(--text-muted); line-height: 1.45;"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!-- Form Modal: Thêm Quà Mới Vào Đợt -->
+        <dialog id="dlg-add-prize" style="border: 1px solid var(--line-strong); border-radius: 16px; padding: 24px; max-width: 480px; width: 90vw; background: var(--surface); box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
+          <form method="dialog" id="form-add-prize">
+            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <i class="ph-fill ph-gift" style="color:var(--accent);"></i> Thêm Phần Quà Mới Vào Vòng Quay
+            </h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Tạo món quà mới (ví dụ: Áo thun, Sách tranh, Bình giữ nhiệt) để xuất hiện trực tiếp trên vòng quay của người chơi.</p>
+
+            <div style="display: grid; gap: 12px;">
+              <div>
+                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:4px;" for="new-prize-name">Tên đầy đủ của quà</label>
+                <input class="input" id="new-prize-name" style="width:100%;" required placeholder="Ví dụ: Áo thun Chuyện Nhà Táo">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;" for="new-prize-short">Chữ trên nan quạt (Vòng quay)</label>
+                  <input class="input" id="new-prize-short" maxlength="12" style="width:100%;" required placeholder="Ví dụ: Áo thun">
+                </div>
+                <div>
+                  <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;" for="new-prize-icon">Biểu tượng / Emoji</label>
+                  <select class="input" id="new-prize-icon" style="width:100%;">
+                    <option value="👕">👕 Áo thun</option>
+                    <option value="🎁">🎁 Hộp quà</option>
+                    <option value="📚">📚 Sách / Truyện</option>
+                    <option value="🎒">🎒 Balo / Túi</option>
+                    <option value="☕">☕ Ly / Cốc sứ</option>
+                    <option value="🧧">🧧 Bao lì xì</option>
+                    <option value="🏮">🏮 Lồng đèn</option>
+                    <option value="🎏">🎏 Cá chép</option>
+                    <option value="🔑">🔑 Móc khoá</option>
+                    <option value="🏷️">🏷️ Sticker</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;" for="new-prize-color">Màu sắc ô vòng quay</label>
+                  <select class="input" id="new-prize-color" style="width:100%;">
+                    <option value="#0284c7">🟦 Xanh lam nhã nhặn</option>
+                    <option value="#7c3aed">🟪 Tím hoàng gia</option>
+                    <option value="#db2777">🌸 Hồng đào Tết</option>
+                    <option value="#b8241c">🟥 Đỏ truyền thống</option>
+                    <option value="#e3a92b">🟨 Vàng hoàng kim</option>
+                    <option value="#059669">🟩 Xanh ngọc bích</option>
+                    <option value="#475569">⬛ Ghi xám hiện đại</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;" for="new-prize-stock">Kho phân bổ đợt này</label>
+                  <input class="input" id="new-prize-stock" type="number" min="0" value="5" style="width:100%;">
+                </div>
+              </div>
+
+              <div>
+                <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;" for="new-prize-rate">Tỉ lệ trúng dự kiến (%)</label>
+                <input class="input" id="new-prize-rate" type="number" min="0" max="100" value="10" style="width:100%;">
+                <small style="color:var(--text-muted); font-size:12px; margin-top:4px; display:block;">Sau khi thêm, bạn có thể điều chỉnh lại % của các quà khác để tổng bằng đúng 100%.</small>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+              <button class="btn btn-quiet" type="button" id="btn-cancel-add-prize">Hủy</button>
+              <button class="btn btn-primary" type="submit" id="btn-confirm-add-prize"><i class="ph ph-check"></i> Thêm vào vòng quay</button>
+            </div>
+          </form>
+        </dialog>
+
+        <!-- Form Modal: Thêm Đợt Mới -->
+        <dialog id="dlg-add-round" style="border: 1px solid var(--line-strong); border-radius: 16px; padding: 24px; max-width: 480px; width: 90vw; background: var(--surface); box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
+          <form method="dialog" id="form-add-round">
+            <h3 style="font-size: 18px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+              <i class="ph-fill ph-plus-circle" style="color:var(--accent);"></i> Thêm Đợt Quay Mới (Round)
+            </h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Tạo thêm đợt quay theo ca hoặc ngày sự kiện để dễ dàng kiểm soát và mở rộng kho quà.</p>
+
+            <div style="display: grid; gap: 12px;">
+              <div>
+                <label style="display:block; font-size:12.5px; font-weight:700; margin-bottom:4px;" for="new-round-name">Tên đợt quay</label>
+                <input class="input" id="new-round-name" style="width:100%;" required placeholder="Ví dụ: Đợt 4: Hội xuân chiều 24">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;" for="new-round-blindbox">🎁 Blindbox</label>
+                  <input class="input" id="new-round-blindbox" type="number" min="0" value="3" style="width:100%;">
+                </div>
+                <div>
+                  <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;" for="new-round-keychain">🔑 Móc khoá</label>
+                  <input class="input" id="new-round-keychain" type="number" min="0" value="20" style="width:100%;">
+                </div>
+                <div>
+                  <label style="display:block; font-size:12px; font-weight:700; margin-bottom:4px;" for="new-round-sticker">🏷️ Sticker</label>
+                  <input class="input" id="new-round-sticker" type="number" min="0" value="70" style="width:100%;">
+                </div>
+              </div>
+
+              <div>
+                <small style="color:var(--text-muted); font-size:12px;">Tỉ lệ trúng mặc định sẽ được kế thừa từ đợt gần nhất (đảm bảo đúng 100%).</small>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px;">
+              <button class="btn btn-quiet" type="button" id="btn-cancel-add-round">Hủy</button>
+              <button class="btn btn-primary" type="submit" id="btn-confirm-add-round"><i class="ph ph-check"></i> Tạo đợt quay</button>
+            </div>
+          </form>
+        </dialog>
+      </section>
+
+      <!-- TAB 3: NGƯỜI THAM GIA & HỘ CHIẾU O2O -->
+      <section class="adm-tab-panel" id="tab-people" role="tabpanel" hidden>
+        <!-- 8 Khối Chỉ Số KPI Người Chơi -->
+        <div class="kpi-grid" id="tiles" style="grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 20px;"></div>
+
+        <div class="card" id="people" aria-labelledby="people-title">
+          <div class="toolbar">
+            <div>
+              <h2 class="sec-title" id="people-title">Theo từng mã thẻ</h2>
+              <p class="sec-sub" id="people-sub"></p>
+            </div>
+            <input class="input" id="search" type="search" placeholder="Tìm mã thẻ hoặc tên" aria-label="Tìm mã thẻ hoặc tên">
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-k="pid">Mã thẻ</th>
+                  <th data-k="name">Tên</th>
+                  <th data-k="flips">Lượt lật trang</th>
+                  <th data-k="pagesN">Trang đã xem</th>
+                  <th data-k="last">Đang xem</th>
+                  <th data-k="chaptersN">Chương đã nghe</th>
+                  <th data-k="stampsN">Dấu trạm</th>
+                  <th data-k="prizesTxt">Quà vòng quay</th>
+                  <th data-k="seen">Hoạt động gần nhất</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: MÃ QR SỰ KIỆN -->
+      <section class="adm-tab-panel" id="tab-qr" role="tabpanel" hidden>
+        <div class="card" aria-labelledby="qr-title">
+          <div class="toolbar">
+            <div>
+              <h2 class="sec-title" id="qr-title">Mã QR in cho sự kiện O2O</h2>
+              <p class="sec-sub">Mã cổng: dán ở cổng để người chơi check-in. Nhân sự đóng dấu bằng trang <a href="staff.html">staff.html</a> (quét QR trên hộ chiếu người chơi); mã các trạm chỉ dùng khi chạy thử chưa có máy chủ.</p>
+            </div>
+            <button class="btn btn-primary btn-sm no-print" type="button" onclick="window.print()"><i class="ph ph-printer" aria-hidden="true"></i> In mã QR</button>
+          </div>
+          <div class="qr-grid" id="qr-grid"></div>
+        </div>
       </section>
     </div>
   </main>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <script src="admin.js" defer></script>
 </body>
 </html>

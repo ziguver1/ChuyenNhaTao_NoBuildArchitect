@@ -4,26 +4,42 @@
 // Tên file bắt đầu bằng "_" nên Vercel không coi đây là một đường dẫn API.
 const crypto = require('crypto');
 
-const isRealVal = (s) => Boolean(s && !s.includes('your-upstash-redis') && !s.includes('example') && s !== 'your-upstash-redis-token');
+const cleanVal = (s) => (s || '').trim().replace(/^["']|["']$/g, '');
+const isRealVal = (s) => {
+  const c = cleanVal(s);
+  return Boolean(c && !c.includes('your-upstash-redis') && !c.includes('example') && c !== 'your-upstash-redis-token');
+};
 
 const getUrl = () => {
-  if (isRealVal(process.env.UPSTASH_REDIS_KV_REST_API_URL)) return process.env.UPSTASH_REDIS_KV_REST_API_URL;
-  if (isRealVal(process.env.UPSTASH_REDIS_REST_URL)) return process.env.UPSTASH_REDIS_REST_URL;
-  if (isRealVal(process.env.KV_REST_API_URL)) return process.env.KV_REST_API_URL;
-  for (const [k, v] of Object.entries(process.env)) {
-    if (isRealVal(v) && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_URL') || k.endsWith('_REST_URL'))) return v;
+  let u = '';
+  if (isRealVal(process.env.UPSTASH_REDIS_KV_REST_API_URL)) u = process.env.UPSTASH_REDIS_KV_REST_API_URL;
+  else if (isRealVal(process.env.UPSTASH_REDIS_REST_URL)) u = process.env.UPSTASH_REDIS_REST_URL;
+  else if (isRealVal(process.env.KV_REST_API_URL)) u = process.env.KV_REST_API_URL;
+  else {
+    for (const [k, v] of Object.entries(process.env)) {
+      if (isRealVal(v) && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_URL') || k.endsWith('_REST_URL'))) {
+        u = v;
+        break;
+      }
+    }
   }
-  return '';
+  return cleanVal(u);
 };
 
 const getToken = () => {
-  if (isRealVal(process.env.UPSTASH_REDIS_KV_REST_API_TOKEN)) return process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
-  if (isRealVal(process.env.UPSTASH_REDIS_REST_TOKEN)) return process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (isRealVal(process.env.KV_REST_API_TOKEN)) return process.env.KV_REST_API_TOKEN;
-  for (const [k, v] of Object.entries(process.env)) {
-    if (isRealVal(v) && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_TOKEN') || k.endsWith('_REST_TOKEN'))) return v;
+  let t = '';
+  if (isRealVal(process.env.UPSTASH_REDIS_KV_REST_API_TOKEN)) t = process.env.UPSTASH_REDIS_KV_REST_API_TOKEN;
+  else if (isRealVal(process.env.UPSTASH_REDIS_REST_TOKEN)) t = process.env.UPSTASH_REDIS_REST_TOKEN;
+  else if (isRealVal(process.env.KV_REST_API_TOKEN)) t = process.env.KV_REST_API_TOKEN;
+  else {
+    for (const [k, v] of Object.entries(process.env)) {
+      if (isRealVal(v) && !k.includes('READ_ONLY') && (k.endsWith('_REST_API_TOKEN') || k.endsWith('_REST_TOKEN'))) {
+        t = v;
+        break;
+      }
+    }
   }
-  return '';
+  return cleanVal(t);
 };
 
 const configured = () => Boolean(getUrl() && getToken());
@@ -58,25 +74,211 @@ function readBody(req) {
 
 const PID_RE = /^(TAO|OFF)-[A-Z0-9]{6}$/;
 
-// Kết quả vòng quay do máy chủ bốc lúc đóng dấu (khớp WHEEL trong app.js).
-// Tỉ lệ nhóm chốt: sticker 45%, móc khoá 20%, blindbox 5% (hiếm), không có gì 30%.
-// Mỗi mã thẻ chỉ trúng "không có gì" tối đa 1 lần: đã trúng rồi thì lượt sau bốc trong các quà còn lại.
-const PRIZE_WEIGHTS = [['sticker', 45], ['keychain', 20], ['blindbox', 5], ['none', 30]];
-const PRIZE_KEYS = new Set(PRIZE_WEIGHTS.map(([k]) => k));
-function rollPrize(noMoreNone) {
-  const pool = PRIZE_WEIGHTS.filter(([k]) => !(noMoreNone && k === 'none'));
-  const total = pool.reduce((a, [, w]) => a + w, 0);
-  let r = crypto.randomInt(0, total);
-  for (const [k, w] of pool) { if (r < w) return k; r -= w; }
-  return pool[0][0];
+const DEFAULT_PRIZE_SET = new Set(['sticker', 'keychain', 'blindbox', 'none']);
+const PRIZE_KEYS = {
+  has(k) {
+    return typeof k === 'string' && (DEFAULT_PRIZE_SET.has(k) || /^[a-zA-Z0-9_-]{1,32}$/.test(k));
+  }
+};
+
+// Danh mục các phần quà mặc định của sự kiện
+const DEFAULT_PRIZES = [
+  { key: 'sticker', name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', stock: 70, rate: 45, isGift: true },
+  { key: 'keychain', name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', stock: 20, rate: 20, isGift: true },
+  { key: 'blindbox', name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', stock: 3, rate: 5, isGift: true },
+  { key: 'none', name: 'Chúc may mắn lần sau', short: 'Lời chúc', color: '#2f6a47', ink: '#fff3d6', icon: 'clover', stock: 0, rate: 30, isGift: false }
+];
+
+// Cấu hình các Đợt (Rounds) mặc định của sự kiện để phân bổ kho quà đều đặn theo ca/thời điểm
+const DEFAULT_ROUNDS = [
+  {
+    id: 'round_1',
+    name: 'Đợt 1: Khởi động (Sáng 23)',
+    status: 'active',
+    prizes: JSON.parse(JSON.stringify(DEFAULT_PRIZES))
+  },
+  {
+    id: 'round_2',
+    name: 'Đợt 2: Cao điểm (Chiều 23)',
+    status: 'upcoming',
+    prizes: [
+      { key: 'sticker', name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', stock: 70, rate: 45, isGift: true },
+      { key: 'keychain', name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', stock: 20, rate: 20, isGift: true },
+      { key: 'blindbox', name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', stock: 4, rate: 5, isGift: true },
+      { key: 'none', name: 'Chúc may mắn lần sau', short: 'Lời chúc', color: '#2f6a47', ink: '#fff3d6', icon: 'clover', stock: 0, rate: 30, isGift: false }
+    ]
+  },
+  {
+    id: 'round_3',
+    name: 'Đợt 3: Đêm hội Táo Quân (Tối 23)',
+    status: 'upcoming',
+    prizes: [
+      { key: 'sticker', name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', stock: 60, rate: 40, isGift: true },
+      { key: 'keychain', name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', stock: 10, rate: 25, isGift: true },
+      { key: 'blindbox', name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', stock: 3, rate: 10, isGift: true },
+      { key: 'none', name: 'Chúc may mắn lần sau', short: 'Lời chúc', color: '#2f6a47', ink: '#fff3d6', icon: 'clover', stock: 0, rate: 25, isGift: false }
+    ]
+  }
+];
+
+const DEFAULT_PRIZE_STOCK = {
+  blindbox: 10,
+  keychain: 50,
+  sticker: 200
+};
+
+// Đảm bảo cấu trúc mảng prizes chuẩn cho mỗi round
+function ensureRoundPrizes(r = {}) {
+  if (Array.isArray(r.prizes) && r.prizes.length) {
+    return r.prizes.map((p) => ({
+      key: String(p.key || '').trim(),
+      name: String(p.name || p.key || 'Phần quà').trim(),
+      short: String(p.short || p.name || p.key).slice(0, 12).trim(),
+      color: String(p.color || '#b8241c'),
+      ink: String(p.ink || '#fff3d6'),
+      icon: String(p.icon || (p.isGift ? 'gift' : 'clover')),
+      stock: Math.max(0, Number(p.stock) || 0),
+      rate: Math.max(0, Number(p.rate) || 0),
+      isGift: p.isGift !== undefined ? Boolean(p.isGift) : p.key !== 'none'
+    }));
+  }
+
+  // Tương thích ngược nếu round lưu dạng stock & rates cũ
+  const stock = r.stock || {};
+  const rates = r.rates || {};
+  const baseDefs = {
+    sticker: { name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', isGift: true },
+    keychain: { name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', isGift: true },
+    blindbox: { name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', isGift: true },
+    none: { name: 'Chúc may mắn lần sau', short: 'Lời chúc', color: '#2f6a47', ink: '#fff3d6', icon: 'clover', isGift: false }
+  };
+  const allKeys = Array.from(new Set([...Object.keys(baseDefs), ...Object.keys(rates), ...Object.keys(stock)]));
+  return allKeys.map((k) => {
+    const b = baseDefs[k] || { name: k, short: k, color: '#f59e0b', ink: '#fff', icon: 'gift', isGift: true };
+    return {
+      key: k,
+      name: b.name,
+      short: b.short,
+      color: b.color,
+      ink: b.ink,
+      icon: b.icon,
+      stock: Number(stock[k] !== undefined ? stock[k] : 0),
+      rate: Number(rates[k] !== undefined ? rates[k] : 0),
+      isGift: b.isGift
+    };
+  });
 }
 
-// Đóng dấu trạm st cho thẻ (hash o, khoá key): lệnh Redis ghi dấu + bốc quà vòng quay của trạm đó
-function stampCmds(o, key, st, now) {
+// Phân tích cấu hình rounds & active round từ Redis hash prize:config
+function parseRoundsConfig(configObj = {}) {
+  let rounds = null;
+  if (configObj.rounds) {
+    try {
+      rounds = typeof configObj.rounds === 'string' ? JSON.parse(configObj.rounds) : configObj.rounds;
+    } catch (e) {}
+  }
+  if (!Array.isArray(rounds) || !rounds.length) {
+    rounds = JSON.parse(JSON.stringify(DEFAULT_ROUNDS));
+  }
+
+  let activeId = configObj.active_round;
+  if (!activeId || !rounds.some((r) => r.id === activeId)) {
+    const foundActive = rounds.find((r) => r.status === 'active');
+    activeId = foundActive ? foundActive.id : rounds[0].id;
+  }
+
+  rounds.forEach((r) => {
+    r.status = r.id === activeId ? 'active' : (r.status === 'ended' ? 'ended' : 'upcoming');
+    r.prizes = ensureRoundPrizes(r);
+    // Tự động map sang stock & rates object cho tương thích ngược
+    r.stock = {};
+    r.rates = {};
+    r.prizes.forEach((p) => {
+      r.stock[p.key] = p.stock;
+      r.rates[p.key] = p.rate;
+    });
+  });
+
+  const activeRound = rounds.find((r) => r.id === activeId) || rounds[0];
+  return { rounds, activeId: activeRound.id, activeRound };
+}
+
+// Lấy số quà đã trao trong roundId từ hash prize:round_counts
+function getRoundCounts(roundCountsObj = {}, roundId) {
+  const prefix = `${roundId}:`;
+  const counts = {};
+  for (const [k, v] of Object.entries(roundCountsObj || {})) {
+    if (k.startsWith(prefix)) {
+      counts[k.slice(prefix.length)] = Number(v || 0);
+    }
+  }
+  return counts;
+}
+
+// Xác định các món quà đã hết kho trong round (để loại bỏ hoàn toàn khỏi thuật toán quay)
+function getRoundOutOfStockSet(round, roundCounts = {}) {
+  const out = new Set();
+  const prizes = round.prizes || ensureRoundPrizes(round);
+  prizes.forEach((p) => {
+    if (!p.isGift) return; // Lời chúc / none không bao giờ hết kho
+    const max = Number(p.stock || 0);
+    const count = Number(roundCounts[p.key] || 0);
+    if (count >= max) {
+      out.add(p.key);
+    }
+  });
+  return out;
+}
+
+// Tương thích ngược
+function getOutOfStockSet(stockObj = {}, countsObj = {}) {
+  const out = new Set();
+  ['blindbox', 'keychain', 'sticker'].forEach((k) => {
+    const max = stockObj[k] !== undefined && stockObj[k] !== '' ? Number(stockObj[k]) : DEFAULT_PRIZE_STOCK[k];
+    const count = Number(countsObj[k] || 0);
+    if (count >= max) {
+      out.add(k);
+    }
+  });
+  return out;
+}
+
+// Bốc thăm quà dựa trên tỉ lệ động của Round và kho quà còn lại
+function rollPrize(noMoreNone, outOfStock = new Set(), prizeSource = null) {
+  let pool = [];
+  if (Array.isArray(prizeSource)) {
+    pool = prizeSource.map((p) => [p.key, Math.max(0, Number(p.rate) || 0)]);
+  } else if (prizeSource && typeof prizeSource === 'object') {
+    pool = Object.entries(prizeSource).map(([k, v]) => [k, Math.max(0, Number(v) || 0)]);
+  } else {
+    pool = DEFAULT_PRIZES.map((p) => [p.key, p.rate]);
+  }
+
+  const validPool = pool.filter(([k, w]) => w > 0 && !(noMoreNone && k === 'none') && !outOfStock.has(k));
+  if (!validPool.length) return 'sticker'; // Fallback nếu hết sạch kho quà
+  const total = validPool.reduce((a, [, w]) => a + w, 0);
+  if (total <= 0) return 'sticker';
+  let r = crypto.randomInt(0, total);
+  for (const [k, w] of validPool) {
+    if (r < w) return k;
+    r -= w;
+  }
+  return validPool[0][0];
+}
+
+// Đóng dấu trạm st cho thẻ: ghi nhận dấu, bốc quà theo round & tỉ lệ, cập nhật bộ đếm round & tổng
+function stampCmds(o, key, st, now, outOfStock = new Set(), roundId = 'round_1', prizeSource = null) {
   // Luật "không có gì" tối đa 1 lần cho mỗi thẻ
   const hadNone = [1, 2, 3, 4].some((s) => o[`prize${s}`] === 'none');
-  const prize = rollPrize(hadNone);
-  const cmds = [['HSET', key, `st${st}`, now, `prize${st}`, prize], ['HINCRBY', 'staff:stamps', String(st), '1']];
+  const prize = rollPrize(hadNone, outOfStock, prizeSource);
+  const cmds = [
+    ['HSET', key, `st${st}`, now, `prize${st}`, prize, 'round', roundId],
+    ['HINCRBY', 'staff:stamps', String(st), '1'],
+    ['HINCRBY', 'prize:counts', prize, '1']
+  ];
+  if (roundId) {
+    cmds.push(['HINCRBY', 'prize:round_counts', `${roundId}:${prize}`, '1']);
+  }
   if (o.vid) cmds.push(['SADD', `st:${o.vid}`, String(st)], ['HSET', `u:${o.vid}`, `prize${st}`, prize, 'seen', now], ['ZADD', 'users', now, o.vid]);
   return cmds;
 }
@@ -126,4 +328,28 @@ async function checkKey(req, keys) {
 
 const plainName = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toUpperCase().trim();
 
-module.exports = { configured, redis, toObject, readBody, PID_RE, rollPrize, PRIZE_KEYS, passView, checkKey, stampCmds, stationCode, stationOfCode, CODE_STEP, plainName };
+module.exports = {
+  configured,
+  redis,
+  toObject,
+  readBody,
+  PID_RE,
+  rollPrize,
+  PRIZE_KEYS,
+  DEFAULT_PRIZE_STOCK,
+  DEFAULT_PRIZE_RATES: { sticker: 45, keychain: 20, blindbox: 5, none: 30 },
+  DEFAULT_PRIZES,
+  DEFAULT_ROUNDS,
+  ensureRoundPrizes,
+  parseRoundsConfig,
+  getRoundCounts,
+  getRoundOutOfStockSet,
+  getOutOfStockSet,
+  passView,
+  checkKey,
+  stampCmds,
+  stationCode,
+  stationOfCode,
+  CODE_STEP,
+  plainName
+};

@@ -55,6 +55,8 @@ if (forceLocalRedis || (!isRealUrl(process.env.KV_REST_API_URL) && !isRealUrl(pr
       case 'ZADD': (db.z[k] = db.z[k] || {})[a[1]] = Number(a[0]); return 1;
       case 'ZREVRANGE': return Object.entries(db.z[k] || {}).sort((x, y) => y[1] - x[1]).slice(Number(a[0]), Number(a[1]) + 1).map((x) => x[0]);
       case 'GET': return db.k[k] ?? null;
+      case 'SET': db.k[k] = a[0]; return 'OK';
+      case 'DEL': { delete db.k[k]; delete db.h[k]; delete db.s[k]; delete db.z[k]; return 1; }
       case 'INCR': db.k[k] = String(Number(db.k[k] || 0) + 1); return Number(db.k[k]);
       case 'EXPIRE': setTimeout(() => { delete db.k[k]; }, Number(a[0]) * 1000).unref(); return 1;
       default: throw new Error('Lệnh Redis chưa giả lập: ' + cmd);

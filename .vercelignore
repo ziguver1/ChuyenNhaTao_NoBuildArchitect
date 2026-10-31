@@ -1,19 +1,66 @@
-# Không đưa lên Vercel (giống .gitignore)
+# =========================================================================
+# VERCELIGNORE - CHUYỆN NHÀ TÁO
+# Không triển khai các file nội bộ, tài liệu kỹ thuật, mã nháp lên Vercel CDN
+# =========================================================================
+
+# 1. Bảo mật & Biến môi trường (Cấu hình trực tiếp trên Vercel Dashboard)
+.env
+.env*
+.env.example
+
+# 2. Tài liệu kỹ thuật, Thiết kế & Markdown (Tránh lộ cấu trúc ra web tĩnh)
+*.md
+docs/
 *.pdf
+*.docx
+audio/DOC-TRUOC.txt
+
+# 3. File thiết kế đồ họa gốc (kích thước lớn)
+*.psd
+*.ai
+*.sketch
+*.fig
+*.raw
+*.aep
+*.prproj
+
+# 4. File nén
 *.zip
 *.rar
-*.docx
-.claude/
-.agents/
-.vscode/
-.idea/
-node_modules/
-docs/
+*.7z
+*.tar.gz
+
+# 5. File chạy cục bộ & Thử nghiệm dev
 chay-du-an.bat
 dev-server.js
+scratch/
 test_*.png
+test_*.jpg
+test_*.webp
 live_user_view.png
 passport_section_view.png
-.env
-.env*.local
-scratch/
+
+# 6. File mã nguồn backup tạm thời
+*.backup.js
+app.backup.js
+*.bak
+*.tmp
+*.temp
+
+# 7. Nhật ký hoạt động & Logs
+*.log
+npm-debug.log*
+
+# 8. Git, Editor & AI Assistants
+.git
+.gitignore
+.gitattributes
+.vscode/
+.idea/
+.claude/
+.agents/
+.gemini/
+.cursor/
+
+# 9. Thư viện dependency cục bộ
+node_modules/
