@@ -142,7 +142,7 @@ export function showMedalRewardPopup(i) {
   const modal = $('#medal-modal');
   if (!modal) return;
 
-  const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.png`;
+  const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.webp`;
   const medalImgEl = $('#medal-modal-img');
   if (medalImgEl) {
     medalImgEl.src = medalImg;
@@ -251,8 +251,11 @@ export function stampMedalIntoBookPage(i) {
   if (!c) return;
   const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.webp`;
 
-  // Lật sang trang huy hiệu
-  navToPage(c.badgePage);
+  // Chỉ lật sang trang huy hiệu nếu chưa ở đúng trang
+  const needsFlip = book.page !== c.badgePage;
+  if (needsFlip) {
+    navToPage(c.badgePage);
+  }
 
   // Đảm bảo trước khi dập mộc, trang sách hoàn toàn chưa có huy chương (giữ slot chờ mộc)
   const pg = $('#badge-page-' + i);
@@ -264,7 +267,8 @@ export function stampMedalIntoBookPage(i) {
     }
   }
 
-  // Đợi trang sách lật xong (khoảng 320ms), sau đó DẬP MỘC ĐANH CHẮC rơi xuống!
+  // Đợi trang sách ổn định rồi DẬP MỘC ĐANH CHẮC rơi xuống!
+  const delay = needsFlip ? (book.flip ? 450 : 120) : 80;
   setTimeout(
     () => {
       sound.stamp(true);
@@ -276,9 +280,10 @@ export function stampMedalIntoBookPage(i) {
       // Kích hoạt hiệu ứng rơi dập mộc và hiển thị hào quang
       medalEl.classList.remove('is-awaiting-stamp');
       medalEl.classList.remove('is-stamping');
-      void medalEl.offsetWidth; // Force reflow
-      medalEl.classList.add('is-stamping', 'is-on');
-      medalEl.style.setProperty('--medal-url', `url('${medalImg}')`);
+      requestAnimationFrame(() => {
+        medalEl.classList.add('is-stamping', 'is-on');
+        medalEl.style.setProperty('--medal-url', `url('${medalImg}')`);
+      });
 
       // Quét ánh sáng kim loại vàng trực tiếp trên bề mặt huy chương (dùng mask theo ảnh cắt bg)
       if (!medalEl.querySelector('.pg-medal-shine')) {
@@ -374,7 +379,7 @@ export function renderBadges() {
 
   container.innerHTML = CHAPTERS.map((c, i) => {
     const on = book.done.has(i);
-    const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.png`;
+    const medalImg = c.badge.img || `images/huychuong/huychuong${i + 1}.webp`;
     return `<button type="button" class="badge ${on ? 'is-unlocked' : ''} ${c.locked ? 'is-chapter-locked' : ''}" data-badge="${i}" data-goto="${
       on ? c.badgePage : c.startPage
     }">

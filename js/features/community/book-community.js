@@ -605,8 +605,12 @@ function initReactionPicker() {
   let lastTapPos = null;
 
   const isNoReactionPage = () => (
+    currentPageIndex === P.cover ||
     currentPageIndex === P.intro ||
     currentPageIndex === P.toc ||
+    currentPageIndex === P.summary ||
+    currentPageIndex === P.event ||
+    currentPageIndex === P.back ||
     CHAPTERS.some((c) => c.badgePage === currentPageIndex)
   );
 
@@ -651,21 +655,27 @@ export function onFlipbookPageChanged(pageIndex) {
 
   const actionsBar = $('#ig-book-actions');
   const isBadge = CHAPTERS.some((c) => c.badgePage === pageIndex);
-  const isIntroOrToc = pageIndex === P.intro || pageIndex === P.toc;
-  const isShareOnly = isBadge || isIntroOrToc;
+  const isSpecialNonStory =
+    pageIndex === P.cover ||
+    pageIndex === P.intro ||
+    pageIndex === P.toc ||
+    pageIndex === P.summary ||
+    pageIndex === P.event ||
+    pageIndex === P.back;
+  const isShareOnly = isBadge || isSpecialNonStory;
 
   // Đóng bảng reaction picker nếu đang mở khi chuyển trang
   const picker = $('#ig-reaction-picker');
   if (picker) picker.hidden = true;
 
-  // Ở trang nhận huy chương, lời mở đầu hoặc mục lục: chỉ giữ lại nút chia sẻ
+  // Ở trang bìa, nhận huy chương, lời mở đầu, mục lục hoặc tổng kết: chỉ giữ lại nút chia sẻ
   if (actionsBar) {
     actionsBar.classList.toggle('is-badge-page', isBadge);
     actionsBar.classList.toggle('is-share-only', isShareOnly);
   }
 
-  // Nếu là trang Lời mở đầu hoặc Mục lục: ẩn hoàn toàn cảm xúc và bình luận, không tải dữ liệu
-  if (isIntroOrToc) {
+  // Nếu là trang đặc biệt (Bìa, Lời mở đầu, Mục lục, v.v.): ẩn hoàn toàn cảm xúc và bình luận, không tải dữ liệu
+  if (isSpecialNonStory) {
     return;
   }
 

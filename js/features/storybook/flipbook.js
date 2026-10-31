@@ -97,7 +97,7 @@ export function buildPageHTML() {
         const pageNum = c.imagePages[imgIdx];
         pageHTML[pageNum] = `
           <div class="pg-full-comic">
-            <img src="${src}" alt="Chương ${ROMAN[i]}: ${c.title} - Trang ${imgIdx + 1}" class="pg-full-comic-img" width="990" height="1330" loading="lazy" decoding="async">
+            <img src="${src}" alt="Chương ${ROMAN[i]}: ${c.title} - Trang ${imgIdx + 1}" class="pg-full-comic-img" width="990" height="1330" loading="eager" decoding="async">
           </div>`;
       });
     } else {
@@ -248,17 +248,13 @@ export function onPageChange(p) {
     track('chapter_start', { chapter: ch + 1 });
   }
 
-  // TỰ ĐỘNG TRAO HUY CHƯƠNG MÁI ẤM KHI ĐỌC HẾT 5 TRANG TRUYỆN TRANH CHƯƠNG 1
+  // TỰ ĐỘNG TRAO HUY CHƯƠNG MÁI ẤM KHI LẬT ĐẾN TRANG HUY HIỆU (sau khi đọc xong chương 1)
   const ch0 = CHAPTERS[0];
   if (ch0 && !book.done.has(0)) {
-    const lastImgPage = ch0.imagePages && ch0.imagePages.length
-      ? ch0.imagePages[ch0.imagePages.length - 1]
-      : 7; // Trang 5/5 tương ứng page 7
-    // Khi lật đến trang cuối (Trang 5) hoặc lật sang trang Huy hiệu
-    if (p === lastImgPage || p === ch0.badgePage) {
+    if (p === ch0.badgePage) {
       setTimeout(() => {
         if (!book.done.has(0)) completeChapter(0);
-      }, 700);
+      }, 500);
     }
   }
 
@@ -527,4 +523,38 @@ export function initFlipbook() {
   $('#flip-stage')?.classList.add('is-ready');
   onPageChange(book.page);
   if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+  preloadFlipbookAssets();
+}
+
+/**
+ * Tải trước ngầm toàn bộ ảnh trang sách & huy hiệu vào bộ nhớ đệm
+ * Giúp lật trang mượt 60fps và mở huy chương không bị giật lag
+ */
+function preloadFlipbookAssets() {
+  const assets = [
+    'images/sach/bia_sach.webp',
+    'images/sach/Trang1.webp',
+    'images/sach/Trang2.webp',
+    'images/sach/Trang3.webp',
+    'images/sach/Trang4.webp',
+    'images/sach/Trang5.webp',
+    'images/huychuong/huychuong1.webp',
+    'images/huychuong/huychuong2.webp',
+    'images/huychuong/huychuong3.webp',
+    'images/huychuong/huychuong4.webp'
+  ];
+
+  const load = () => {
+    assets.forEach((src) => {
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = src;
+    });
+  };
+
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(load, { timeout: 1500 });
+  } else {
+    setTimeout(load, 300);
+  }
 }
