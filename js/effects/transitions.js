@@ -18,7 +18,6 @@ export function initBookPassportTransition() {
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        const rect = entry.boundingClientRect;
         if (entry.isIntersecting) {
           seam.classList.add('is-active');
           targetSection.classList.add('cards-ready');
@@ -35,16 +34,15 @@ export function initBookPassportTransition() {
               });
             }
           }
-        } else {
-          if (rect.top > 0) {
-            seam.classList.remove('is-active');
-          }
+          // Khi đã kích hoạt mở, giữ cố định trạng thái để loại bỏ hoàn toàn hiện tượng
+          // giật frame/nhấp nháy class khi người dùng lướt lên lướt xuống trên điện thoại
+          observer.unobserve(seam);
         }
       });
     },
     {
-      rootMargin: '0px 0px -10% 0px',
-      threshold: [0, 0.2]
+      rootMargin: '120px 0px 60px 0px',
+      threshold: 0.02
     }
   );
 

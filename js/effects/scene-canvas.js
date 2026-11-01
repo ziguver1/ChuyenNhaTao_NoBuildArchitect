@@ -8,6 +8,15 @@ import { reduceMotion } from '../core/motion.js';
 export function initSceneCanvas() {
   const cv = $('#scene-canvas');
   if (!cv || !cv.getContext) return;
+
+  // Trên màn hình di động (<= 768px), tắt hiệu ứng canvas đa phân lớp để tối ưu tuyệt đối 60-120fps,
+  // chống ngốn pin/GPU và loại bỏ hoàn toàn hiện tượng giật frame khi cuộn trên webview di động.
+  // Ảnh tĩnh scene-fallback (images/nen/goc.webp) sẽ hiển thị sắc nét toàn diện với 0% CPU.
+  const isMobile =
+    window.innerWidth <= 768 ||
+    (window.matchMedia && window.matchMedia('(max-width: 768px)').matches);
+  if (isMobile) return;
+
   const ctx = cv.getContext('2d');
   const W = 2000,
     H = 1116,
@@ -145,7 +154,26 @@ export function initSceneCanvas() {
     drawFish(LAYERS.find((l) => l.src === 'ca-duoi'), t);
   }
 
+  let isScrolling = false;
+  let scrollTimer = null;
+  window.addEventListener(
+    'scroll',
+    () => {
+      isScrolling = true;
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        isScrolling = false;
+        if (inView && !raf) kick();
+      }, 100);
+    },
+    { passive: true }
+  );
+
   function loop(now) {
+    if (isScrolling) {
+      raf = 0;
+      return;
+    }
     if (cv.width <= 1) resize();
     draw(now);
     raf =

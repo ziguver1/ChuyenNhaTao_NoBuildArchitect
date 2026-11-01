@@ -3512,6 +3512,24 @@ body::after {
 .scene-fallback { object-fit: cover; object-position: 50.5% 50%; }
 .scene-canvas { opacity: 0; transition: opacity .6s ease; }
 .scene.is-live .scene-canvas { opacity: 1; }
+
+@media (max-width: 768px) {
+  #doc-sach {
+    padding-top: clamp(120px, 24vh, 220px);
+  }
+  .scene-sticky {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  .scene-canvas {
+    display: none !important;
+  }
+  .scene-fallback {
+    opacity: 1 !important;
+  }
+}
 /* Nối với hero tối ở trên, chuyển dần sang nền kem ở dưới */
 .scene::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
   background: linear-gradient(180deg, rgba(255, 248, 240, 0) 86%, var(--bg) 100%); }
@@ -3769,6 +3787,8 @@ body::after {
   z-index: 5;
   background: var(--bg);
   box-sizing: border-box;
+  transform: translateZ(0);
+  contain: paint;
 }
 
 .sbp-inner {
@@ -3994,9 +4014,32 @@ body::after {
   .sbp-gold-seal {
     padding: 3px 12px;
     gap: 6px;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(35, 10, 5, 0.88);
   }
   .sbp-gold-line {
     box-shadow: 0 0 5px rgba(245, 215, 127, 0.35);
+  }
+  .passport-grid .card,
+  .passport-grid #ticket-slot > * {
+    will-change: auto;
+  }
+  #tram-trai-nghiem .form-card,
+  #tram-trai-nghiem .card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(255, 252, 246, 0.98);
+  }
+  .coming-soon-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: linear-gradient(160deg, rgba(38, 22, 17, 0.98), rgba(20, 11, 8, 0.99));
+  }
+  .ig-btn-bubble {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(24, 14, 10, 0.55);
   }
 }
 
