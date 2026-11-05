@@ -30,14 +30,19 @@ export const CHAPTERS = [
     title: 'Thành kính và tôn kính cội nguồn',
     meaning: 'Trân trọng cội nguồn',
     icon: 'flower-lotus',
-    locked: true,
-    lockedReason: 'Chương II đang được đội ngũ họa sĩ tỉ mỉ hoàn thiện từng nét vẽ tranh minh họa. Hãy đón chờ nhé!',
+    locked: false,
     badge: {
       name: 'Huy hiệu Tôn Kính',
       desc: 'Trân trọng cội nguồn và thành kính với tổ tiên.',
       img: 'images/huychuong/huychuong3.webp'
     },
-    pages: []
+    // Danh sách 4 trang ảnh chương 2
+    pages: [
+      'images/sach/c2_trang1.webp',
+      'images/sach/c2_trang2.webp',
+      'images/sach/c2_trang3.webp',
+      'images/sach/c2_trang4.webp'
+    ]
   },
   {
     id: 3,

@@ -50,13 +50,30 @@ module.exports = async (req, res) => {
       if (o[`st${st}`]) note = 'already';
       else cmds.push(...stampCmds(o, key, st, now, outOfStock, activeId, activeRound.prizes));
     } else if (b.action === 'give') {
-      if (!(st >= 1 && st <= 4) || !o[`st${st}`]) return res.status(400).json({ error: 'station' });
-      if (o[`given${st}`]) note = 'already'; else cmds.push(['HSET', key, `given${st}`, now]);
+      if (b.checkout || b.station === 'checkout') {
+        cmds.push(['HSET', key, 'checkout_given', now]);
+      } else {
+        if (!(st >= 1 && st <= 4) || !o[`st${st}`]) return res.status(400).json({ error: 'station' });
+        if (o[`given${st}`]) note = 'already'; else cmds.push(['HSET', key, `given${st}`, now]);
+      }
     } else if (b.action === 'checkout') {
       const n = [1, 2, 3, 4].filter((s) => o[`st${s}`]).length;
       if (n < 4) return res.status(400).json({ error: 'stamps', stamps: n });
       if (o.claimed) note = 'already';
-      else { cmds.push(['HSET', key, 'claimed', now]); if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'claimed', '1']); }
+      else {
+        // Đảm bảo bốc 1 phần quà vòng quay checkout duy nhất nếu chưa có
+        if (!o.checkout_prize && !o.prize) {
+          const prize = rollPrize(false, outOfStock, activeRound.prizes);
+          cmds.push(
+            ['HSET', key, 'checkout_prize', prize, 'round', activeId],
+            ['HINCRBY', 'prize:counts', prize, '1']
+          );
+          if (activeId) cmds.push(['HINCRBY', 'prize:round_counts', `${activeId}:${prize}`, '1']);
+          if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+        }
+        cmds.push(['HSET', key, 'claimed', now, 'checkout_given', now]);
+        if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'claimed', '1']);
+      }
     } else if (b.action !== 'lookup') {
       return res.status(400).json({ error: 'action' });
     }

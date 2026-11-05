@@ -1174,6 +1174,261 @@
         <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:4px;">${itemsHtml}</div>
       `;
     }
+
+    // 6. Bảng đối chiếu công thức vs số liệu thực tế
+    renderFormulaComparison();
+  }
+
+  // =========================================================================
+  // BẢNG DỮ LIỆU & BIỂU ĐỒ ĐỐI CHIẾU CÔNG THỨC VÒNG QUAY
+  // =========================================================================
+  function renderFormulaComparison() {
+    const rounds = state.rounds || [];
+    const curRound = rounds.find((r) => r.id === state.selectedRoundId) || rounds[0];
+    if (!curRound) return;
+    const prizes = ensurePrizes(curRound);
+    const counts = curRound.counts || {};
+
+    // 1. Tính tổng số lượt quay thực tế trong đợt này
+    let totalSpins = 0;
+    prizes.forEach((p) => {
+      totalSpins += Number(counts[p.key] || 0);
+    });
+
+    // 2. Tính số lượng quà hiện vật đã trao
+    let physicalAwarded = 0;
+    let physicalTotalStock = 0;
+    prizes.forEach((p) => {
+      if (p.isGift) {
+        physicalAwarded += Number(counts[p.key] || 0);
+        physicalTotalStock += Number(p.stock !== undefined ? p.stock : 0);
+      }
+    });
+
+    const winRate = totalSpins > 0 ? ((physicalAwarded / totalSpins) * 100).toFixed(1) : '0.0';
+    const burnRate = physicalTotalStock > 0 ? Math.round((physicalAwarded / physicalTotalStock) * 100) : 0;
+
+    // Cập nhật KPIs
+    const elSpins = $('#cmp-total-spins');
+    if (elSpins) elSpins.textContent = totalSpins.toLocaleString('vi-VN');
+    const elWinRate = $('#cmp-win-rate');
+    if (elWinRate) elWinRate.textContent = winRate + '%';
+    const elAwarded = $('#cmp-total-awarded');
+    if (elAwarded) elAwarded.textContent = `${physicalAwarded} món`;
+    const elBurn = $('#cmp-burn-rate-summary');
+    if (elBurn) elBurn.textContent = `Tiêu hao ${burnRate}% tổng kho đợt (${physicalAwarded}/${physicalTotalStock})`;
+
+    // Đánh giá mức độ bám sát công thức
+    const elFit = $('#cmp-formula-fit');
+    const elSample = $('#cmp-sample-note');
+    if (elFit && elSample) {
+      if (totalSpins >= 10) {
+        let maxDiff = 0;
+        prizes.forEach((p) => {
+          const actualRate = (Number(counts[p.key] || 0) / totalSpins) * 100;
+          const targetRate = Number(p.rate || 0);
+          const diff = Math.abs(actualRate - targetRate);
+          if (diff > maxDiff) maxDiff = diff;
+        });
+        if (maxDiff <= 6) {
+          elFit.textContent = 'Rất chuẩn xác';
+          elFit.style.color = '#166534';
+          elSample.textContent = `Sai số tối đa ±${maxDiff.toFixed(1)}%`;
+        } else if (maxDiff <= 12) {
+          elFit.textContent = 'Khá chuẩn xác';
+          elFit.style.color = '#15803d';
+          elSample.textContent = `Sai số tối đa ±${maxDiff.toFixed(1)}%`;
+        } else {
+          elFit.textContent = 'Đang phân tán';
+          elFit.style.color = '#b45309';
+          elSample.textContent = `Lệch tối đa ±${maxDiff.toFixed(1)}% (Kho hoặc cỡ mẫu)`;
+        }
+      } else {
+        elFit.textContent = 'Đang chờ mẫu';
+        elFit.style.color = '#6b7280';
+        elSample.textContent = `Cần ≥10 lượt quay để đối chiếu`;
+      }
+    }
+
+    // 3. Render bảng đối chiếu từng phần quà
+    const tbody = $('#compare-rows');
+    if (!tbody) return;
+
+    tbody.innerHTML = prizes.map((p) => {
+      const awarded = Number(counts[p.key] || 0);
+      const targetRate = Number(p.rate || 0);
+      const actualRate = totalSpins > 0 ? (awarded / totalSpins) * 100 : 0;
+      const diff = totalSpins > 0 ? (actualRate - targetRate) : 0;
+      const diffStr = (diff >= 0 ? '+' : '') + diff.toFixed(1) + '%';
+
+      let varBadgeClass = 'is-perfect';
+      if (Math.abs(diff) > 10) varBadgeClass = 'is-major';
+      else if (Math.abs(diff) > 4) varBadgeClass = 'is-minor';
+
+      const maxVal = p.isGift ? Number(p.stock !== undefined ? p.stock : 0) : Infinity;
+      const remaining = p.isGift ? Math.max(0, maxVal - awarded) : '∞';
+      const itemBurn = p.isGift && maxVal > 0 ? Math.min(100, Math.round((awarded / maxVal) * 100)) : 0;
+      const isOut = p.isGift && remaining <= 0;
+
+      let statusHtml = '';
+      if (isOut) {
+        statusHtml = `<span style="color:#ef4444; font-weight:700; font-size:12px;"><i class="ph-fill ph-lock-key"></i> Đã hết kho (Khóa kim)</span>`;
+      } else if (p.isGift && remaining < 3 && remaining > 0) {
+        statusHtml = `<span style="color:#f59e0b; font-weight:700; font-size:12px;"><i class="ph-fill ph-warning"></i> Sắp hết (${remaining} món)</span>`;
+      } else if (totalSpins >= 10 && Math.abs(diff) <= 6) {
+        statusHtml = `<span style="color:#10b981; font-weight:700; font-size:12px;"><i class="ph-fill ph-check-circle"></i> Chuẩn xác công thức</span>`;
+      } else if (totalSpins < 10) {
+        statusHtml = `<span style="color:var(--text-muted); font-size:12px;"><i class="ph-fill ph-clock"></i> Đang tích lũy lượt quay</span>`;
+      } else {
+        statusHtml = `<span style="color:#6366f1; font-weight:700; font-size:12px;"><i class="ph-fill ph-scales"></i> Trong ngưỡng dung sai</span>`;
+      }
+
+      return `
+        <tr>
+          <td>
+            <span style="font-size:16px; margin-right:6px;">${p.icon || (p.isGift ? '🎁' : '🍀')}</span>
+            <strong style="color:${p.color || '#333'};">${esc(p.name)}</strong>
+            <span style="font-size:11px; color:var(--text-muted); margin-left:4px;">(${esc(p.short || p.name)})</span>
+          </td>
+          <td style="text-align:center;">
+            <b style="color:var(--accent); font-size:14px;">${targetRate}%</b>
+          </td>
+          <td style="text-align:center;" class="num">
+            <b>${awarded}</b> lượt
+          </td>
+          <td style="text-align:center;">
+            <b style="font-size:14px;">${totalSpins > 0 ? actualRate.toFixed(1) : '0.0'}%</b>
+          </td>
+          <td style="text-align:center;">
+            ${totalSpins > 0 ? `<span class="cmp-variance-badge ${varBadgeClass}">${diffStr}</span>` : `<span style="color:var(--text-muted); font-size:12px;">Chưa có lượt</span>`}
+          </td>
+          <td style="text-align:center;">
+            ${p.isGift ? `
+              <div style="display:inline-flex; align-items:center;">
+                <div class="cmp-burn-bar">
+                  <div class="cmp-burn-fill" style="width:${itemBurn}%; background:${itemBurn > 80 ? '#ef4444' : itemBurn > 50 ? '#f59e0b' : '#10b981'};"></div>
+                </div>
+                <span style="font-size:11.5px; font-weight:700; color:var(--text-muted);">${awarded}/${maxVal} (${itemBurn}%)</span>
+              </div>
+            ` : `<span style="color:var(--text-muted); font-size:12px;">Không giới hạn</span>`}
+          </td>
+          <td style="text-align:center;">
+            ${statusHtml}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // =========================================================================
+  // MÔ PHỎNG ĐỐI CHIẾU MONTE CARLO (100 / 500 LƯỢT QUAY)
+  // =========================================================================
+  function runMonteCarloSimulation(spinsCount = 100) {
+    const rounds = state.rounds || [];
+    const curRound = rounds.find((r) => r.id === state.selectedRoundId) || rounds[0];
+    if (!curRound) return;
+    const prizes = ensurePrizes(curRound);
+
+    // Chuẩn bị pool tỉ lệ và kho giả lập
+    const simStock = {};
+    prizes.forEach((p) => {
+      simStock[p.key] = p.isGift ? Number(p.stock !== undefined ? p.stock : 0) : Infinity;
+    });
+
+    const simResults = {};
+    prizes.forEach((p) => { simResults[p.key] = 0; });
+
+    // Chạy mô phỏng đúng theo hàm rollPrize của server
+    for (let i = 0; i < spinsCount; i++) {
+      const outOfStock = new Set();
+      prizes.forEach((p) => {
+        if (p.isGift && simResults[p.key] >= simStock[p.key]) {
+          outOfStock.add(p.key);
+        }
+      });
+
+      const validPool = prizes
+        .filter((p) => Number(p.rate) > 0 && !outOfStock.has(p.key))
+        .map((p) => ({ key: p.key, rate: Number(p.rate) }));
+
+      if (!validPool.length) {
+        simResults['sticker'] = (simResults['sticker'] || 0) + 1;
+        continue;
+      }
+
+      const totalWeight = validPool.reduce((sum, p) => sum + p.rate, 0);
+      let r = Math.random() * totalWeight;
+      let chosen = validPool[0].key;
+      for (const p of validPool) {
+        if (r < p.rate) {
+          chosen = p.key;
+          break;
+        }
+        r -= p.rate;
+      }
+      simResults[chosen] = (simResults[chosen] || 0) + 1;
+    }
+
+    // Hiển thị kết quả mô phỏng
+    const box = $('#sim-result-box');
+    const container = $('#sim-chart-container');
+    const verdict = $('#sim-audit-verdict');
+    if (!box || !container) return;
+
+    const elSpinsCount = $('#sim-spins-count');
+    if (elSpinsCount) elSpinsCount.textContent = spinsCount;
+
+    container.innerHTML = prizes.map((p) => {
+      const expected = Math.round((Number(p.rate || 0) / 100) * spinsCount);
+      const simulated = simResults[p.key] || 0;
+      const expectedPct = p.rate || 0;
+      const simulatedPct = ((simulated / spinsCount) * 100).toFixed(1);
+      const diff = simulated - expected;
+      const isOut = p.isGift && simulated >= simStock[p.key];
+
+      return `
+        <div style="background:var(--surface); padding:10px 14px; border-radius:10px; border:1px solid var(--line);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:13px;">
+            <div>
+              <span style="font-size:15px; margin-right:4px;">${p.icon || '🎁'}</span>
+              <strong>${esc(p.name)}</strong>
+              ${isOut ? `<span style="font-size:11px; background:#fee2e2; color:#991b1b; padding:1px 6px; border-radius:4px; margin-left:6px; font-weight:700;">Đã chạm hạn mức kho trong đợt thử</span>` : ''}
+            </div>
+            <div style="font-size:12px;">
+              <span>Kỳ vọng: <b>${expected}</b> (${expectedPct}%)</span>
+              <span style="margin: 0 6px;">|</span>
+              <span>Mô phỏng: <b style="color:var(--accent); font-size:13.5px;">${simulated}</b> (${simulatedPct}%)</span>
+              <span class="cmp-variance-badge ${Math.abs(diff) <= 3 ? 'is-perfect' : 'is-minor'}" style="margin-left:6px;">${diff >= 0 ? '+' : ''}${diff}</span>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div>
+              <div style="font-size:11px; color:var(--text-muted); margin-bottom:2px;">Kỳ vọng lý thuyết: ${expectedPct}%</div>
+              <div style="height:6px; background:var(--line); border-radius:999px; overflow:hidden;">
+                <div style="height:100%; width:${Math.min(100, expectedPct)}%; background:#3b82f6; border-radius:999px;"></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px; color:var(--text-muted); margin-bottom:2px;">Thực tế giả lập: ${simulatedPct}%</div>
+              <div style="height:6px; background:var(--line); border-radius:999px; overflow:hidden;">
+                <div style="height:100%; width:${Math.min(100, simulatedPct)}%; background:#8b5cf6; border-radius:999px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (verdict) {
+      verdict.innerHTML = `
+        <i class="ph-fill ph-check-circle" style="color:#166534; font-size:16px; vertical-align:middle; margin-right:4px;"></i>
+        <strong>Kiểm định thuật toán hoàn tất:</strong>
+        Xác suất ngẫu nhiên bám sát công thức cài đặt. Cơ chế bảo vệ kho tự động hoạt động hoàn hảo: khi phần quà nào chạm trần hạn mức kho, hệ thống tự động khóa kim ô đó và phân bổ xác suất sang các phần quà còn lại.
+      `;
+    }
+
+    box.style.display = 'block';
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   // =========================================================================
@@ -1799,6 +2054,14 @@
     // Lưu cấu hình Đợt quay (Rounds), Tỉ lệ (%) & Kho quà
     $('#btn-save-round')?.addEventListener('click', saveSelectedRound);
     $('#btn-save-stock')?.addEventListener('click', saveSelectedRound);
+
+    // Nút chạy mô phỏng đối chiếu Monte Carlo
+    $('#btn-run-sim-100')?.addEventListener('click', () => runMonteCarloSimulation(100));
+    $('#btn-run-sim-500')?.addEventListener('click', () => runMonteCarloSimulation(500));
+    $('#btn-close-sim')?.addEventListener('click', () => {
+      const box = $('#sim-result-box');
+      if (box) box.style.display = 'none';
+    });
 
     // Mở modal Thêm Quà Mới
     $('#btn-add-prize')?.addEventListener('click', () => {

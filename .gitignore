@@ -35,6 +35,9 @@ test_*.jpg
 test_*.webp
 live_user_view.png
 passport_section_view.png
+images/sach/*Chuong*
+images/sach/*Chương*
+images/sach/*~
 
 # 6. File mã nguồn backup tạm thời
 *.backup.js

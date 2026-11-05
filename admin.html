@@ -220,6 +220,22 @@
     .qr-card strong { font-size: 16px; } .qr-card code { font-size: 15px; font-weight: 800; letter-spacing: .12em; }
     .qr-card small { font-size: 11px; color: #6b5444; word-break: break-all; }
 
+    /* Formula & Reality Comparison Styles */
+    .cmp-variance-badge {
+      display: inline-flex; align-items: center; gap: 3px; font-weight: 700; font-size: 12px;
+      padding: 2px 8px; border-radius: 6px;
+    }
+    .cmp-variance-badge.is-perfect { background: #dcfce7; color: #166534; }
+    .cmp-variance-badge.is-minor { background: #fef3c7; color: #92400e; }
+    .cmp-variance-badge.is-major { background: #fee2e2; color: #991b1b; }
+
+    .cmp-burn-bar {
+      width: 100px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px;
+    }
+    .cmp-burn-fill {
+      height: 100%; border-radius: 999px; transition: width .3s ease;
+    }
+
     @media print {
       .adm-head, .adm-tabs, #tab-community, #tab-wheel, #tab-people, .notice, .no-print { display: none !important; }
       #tab-qr { display: block !important; }
@@ -523,6 +539,88 @@
         </div>
       </div>
     </div>
+
+        <!-- BẢNG DỮ LIỆU & BIỂU ĐỒ ĐỐI CHIẾU CÔNG THỨC VÒNG QUAY -->
+        <div class="card" id="formula-compare-card" style="margin-top: 20px;">
+          <div class="toolbar" style="margin-bottom: 14px;">
+            <div>
+              <h2 class="sec-title" style="display:flex; align-items:center; gap:8px;">
+                <i class="ph-fill ph-scales" style="color:var(--accent);"></i>
+                Bảng Dữ Liệu & Biểu Đồ Đối Chiếu Công Thức Vòng Quay
+              </h2>
+              <p class="sec-sub">
+                Đối chiếu trực tiếp giữa <strong>Tỉ lệ lý thuyết cài đặt (%)</strong> với <strong>Số liệu quay thực tế</strong> của đợt đang chọn, giám sát tốc độ tiêu hao kho quà và kiểm định phân bổ ngẫu nhiên.
+              </p>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+              <button class="btn btn-quiet btn-sm" type="button" id="btn-run-sim-100">
+                <i class="ph-fill ph-lightning" style="color:#f59e0b;"></i> Mô phỏng 100 lượt quay
+              </button>
+              <button class="btn btn-quiet btn-sm" type="button" id="btn-run-sim-500">
+                <i class="ph-fill ph-chart-bar" style="color:#8b5cf6;"></i> Mô phỏng 500 lượt quay
+              </button>
+            </div>
+          </div>
+
+          <!-- Bảng Chỉ Số Thống Kê Nhanh (Audit Summary Stats) -->
+          <div class="kpi-grid" id="compare-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); margin-bottom: 16px;">
+            <div class="kpi-card" style="padding: 12px 16px;">
+              <div class="kpi-header"><span style="font-size:12px;">Tổng lượt quay thực tế</span><i class="ph-fill ph-ticket" style="color:#3b82f6;"></i></div>
+              <div class="kpi-num" id="cmp-total-spins" style="font-size:24px;">0</div>
+              <div class="kpi-sub"><span style="font-size:11.5px;">Trong đợt đang chọn</span></div>
+            </div>
+            <div class="kpi-card" style="padding: 12px 16px;">
+              <div class="kpi-header"><span style="font-size:12px;">Tỉ lệ trúng quà hiện vật</span><i class="ph-fill ph-gift" style="color:#10b981;"></i></div>
+              <div class="kpi-num" id="cmp-win-rate" style="font-size:24px;">0.0%</div>
+              <div class="kpi-sub"><span style="font-size:11.5px;">(Blindbox + Móc khoá + Sticker)</span></div>
+            </div>
+            <div class="kpi-card" style="padding: 12px 16px;">
+              <div class="kpi-header"><span style="font-size:12px;">Tổng quà đã trao tay</span><i class="ph-fill ph-package" style="color:#f59e0b;"></i></div>
+              <div class="kpi-num" id="cmp-total-awarded" style="font-size:24px;">0 món</div>
+              <div class="kpi-sub"><span style="font-size:11.5px;" id="cmp-burn-rate-summary">Tiêu hao 0% tổng kho đợt</span></div>
+            </div>
+            <div class="kpi-card" style="padding: 12px 16px;">
+              <div class="kpi-header"><span style="font-size:12px;">Mức độ bám sát công thức</span><i class="ph-fill ph-check-circle" style="color:#8b5cf6;"></i></div>
+              <div class="kpi-num" id="cmp-formula-fit" style="font-size:22px; color:#166534;">Chuẩn xác</div>
+              <div class="kpi-sub"><span style="font-size:11.5px;" id="cmp-sample-note">Độ tin cậy: Mẫu bắt đầu</span></div>
+            </div>
+          </div>
+
+          <!-- Bảng Đối Chiếu Công Thức vs Thực Tế -->
+          <div class="tbl-wrap">
+            <table id="tbl-compare">
+              <thead>
+                <tr>
+                  <th>Phần quà</th>
+                  <th style="text-align: center;">Tỉ lệ cài đặt (Công thức)</th>
+                  <th style="text-align: center;">Thực tế đã trúng</th>
+                  <th style="text-align: center;">Tỉ lệ thực tế (%)</th>
+                  <th style="text-align: center;">Độ lệch (Variance)</th>
+                  <th style="text-align: center;">Tiến độ xuất kho</th>
+                  <th style="text-align: center;">Đánh giá đối chiếu</th>
+                </tr>
+              </thead>
+              <tbody id="compare-rows"></tbody>
+            </table>
+          </div>
+
+          <!-- Khu vực Kết quả Mô Phỏng Thử Nghiệm (Khi Admin bấm nút Mô phỏng) -->
+          <div id="sim-result-box" style="display:none; margin-top: 18px; padding: 16px 18px; border-radius: 14px; background: var(--surface-2); border: 1.5px solid var(--line);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+              <div>
+                <strong style="font-size: 14px; color: var(--accent); display:flex; align-items:center; gap:6px;">
+                  <i class="ph-fill ph-chart-polar"></i> Kết Quả Mô Phỏng Đối Chiếu Monte Carlo (<span id="sim-spins-count">100</span> lượt quay giả lập)
+                </strong>
+                <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0;">
+                  Dựa trên thuật toán <code>rollPrize</code> chuẩn của máy chủ và kiểm định cơ chế tự khóa kim khi chạm hạn mức kho.
+                </p>
+              </div>
+              <button class="btn btn-quiet btn-sm" type="button" id="btn-close-sim" style="font-size:12px;">Đóng đối chiếu</button>
+            </div>
+            <div id="sim-chart-container" style="display:grid; gap: 10px;"></div>
+            <div id="sim-audit-verdict" style="margin-top: 12px; font-size: 12.5px; padding: 10px 14px; border-radius: 8px; background: rgba(0,0,0,0.03);"></div>
+          </div>
+        </div>
 
         <!-- Form Modal: Thêm Quà Mới Vào Đợt -->
         <dialog id="dlg-add-prize" style="border: 1px solid var(--line-strong); border-radius: 16px; padding: 24px; max-width: 480px; width: 90vw; background: var(--surface); box-shadow: 0 20px 40px rgba(0,0,0,0.18);">

@@ -146,16 +146,18 @@
     const already = res.data.note === 'already';
     let msg;
     if (action === 'stamp') {
-      const pz = current.prizes[place];
       msg = already ? { tone: 'warn', text: `Đã đóng dấu ${STATIONS[place - 1]} từ trước.` }
-        : { tone: 'ok', text: `Đã đóng dấu ${STATIONS[place - 1]}.`, sub: pz && pz !== 'none' ? `Vòng quay: ${PRIZE[pz]}. Người chơi quay trên điện thoại xong thì trao quà.` : 'Vòng quay lần này không trúng quà.' };
-      if (!already) addLog(current, `Đóng dấu · quà: ${PRIZE[pz] || '—'}`);
+        : { tone: 'ok', text: `Đã đóng dấu ${STATIONS[place - 1]}.` };
+      if (!already) addLog(current, `Đóng dấu ${STATIONS[place - 1]}`);
     } else if (action === 'give') {
-      msg = { tone: 'ok', text: `Đã ghi nhận trao ${PRIZE[current.prizes[station || place]]}.` };
-      addLog(current, `Trao ${PRIZE[current.prizes[station || place]]}`);
+      const pz = current.checkoutPrize || (current.prizes && current.prizes.checkout);
+      msg = { tone: 'ok', text: `Đã ghi nhận trao ${PRIZE[pz] || 'quà'}.` };
+      addLog(current, `Trao ${PRIZE[pz] || 'quà'}`);
     } else if (action === 'checkout') {
-      msg = already ? { tone: 'warn', text: 'Quà cuối đã trao từ trước. Không trao lại.' } : { tone: 'ok', text: 'Đã xác nhận trao quà cuối.' };
-      if (!already) addLog(current, 'Trao quà cuối');
+      const pz = current.checkoutPrize || (current.prizes && current.prizes.checkout);
+      msg = already ? { tone: 'warn', text: 'Quà cuối đã trao từ trước. Không trao lại.' }
+        : { tone: 'ok', text: `Đã xác nhận trao quà cuối${pz && pz !== 'none' ? ` (${PRIZE[pz] || pz})` : ''}.` };
+      if (!already) addLog(current, `Trao quà cuối${pz && pz !== 'none' ? ` · ${PRIZE[pz] || pz}` : ''}`);
     }
     if (navigator.vibrate && msg.tone === 'ok') navigator.vibrate([40, 40, 80]);
     renderResult(current, msg);
@@ -169,20 +171,22 @@
         <button class="btn btn-primary btn-xl" type="button" data-next>Quét người tiếp theo</button>`;
     } else {
       const n = Object.keys(p.stamps).length;
-      // Quà vòng quay chưa trao: ở trạm thì quà của trạm này, ở check-out thì mọi trạm còn thiếu
-      const toGive = (place ? [place] : [1, 2, 3, 4]).filter((s) => p.prizes[s] && p.prizes[s] !== 'none' && !p.given[s]);
+      const checkoutPrize = p.checkoutPrize || (p.prizes && p.prizes.checkout);
       box.innerHTML = `
         <div class="who"><div><strong>${esc(p.name)}</strong><span class="mono">${esc(p.pid)}</span></div><span class="badge-n">${n}/4 dấu</span></div>
         <div class="stamps4">${[1, 2, 3, 4].map((s) => `<div class="${p.stamps[s] ? 'on' : ''} ${s === place ? 'here' : ''}">
           <i class="ph${p.stamps[s] ? '-fill' : ''} ph-${p.stamps[s] ? 'seal-check' : 'circle-dashed'}" aria-hidden="true"></i>${STATIONS[s - 1].replace('Trạm ', '')}
-          <small>${p.prizes[s] ? PRIZE[p.prizes[s]] + (p.given[s] ? ' ✓' : '') : ''}</small></div>`).join('')}</div>
+          <small>${p.stamps[s] ? 'Đã đóng' : 'Chưa'}</small></div>`).join('')}</div>
         ${msg ? `<div class="verdict ${msg.tone}"><i class="ph${msg.tone === 'ok' ? '-fill ph-check-circle' : ' ph-info'}" aria-hidden="true"></i><span>${esc(msg.text)}${msg.sub ? `<small>${esc(msg.sub)}</small>` : ''}</span></div>` : ''}
         ${place && !p.stamps[place] ? `<button class="btn btn-primary btn-xl" type="button" data-act="stamp">Đóng dấu ${STATIONS[place - 1]}</button>` : ''}
-        ${toGive.map((s) => `<button class="btn btn-ghost btn-xl" type="button" data-give="${s}"><i class="ph ph-gift" aria-hidden="true"></i> Đã trao ${PRIZE[p.prizes[s]]}${place ? '' : ` (${STATIONS[s - 1].replace('Trạm ', '')})`}</button>`).join('')}
-        ${!place ? (n < 4 ? `<div class="verdict warn"><i class="ph ph-info" aria-hidden="true"></i><span>Mới có ${n}/4 dấu, chưa trao quà cuối.</span></div>`
+        ${!place ? (n < 4 ? `<div class="verdict warn"><i class="ph ph-info" aria-hidden="true"></i><span>Mới có ${n}/4 dấu, chưa trao quà cuối. Khách cần hoàn thành đủ 4 trạm.</span></div>`
           : p.claimed ? `<div class="verdict warn"><i class="ph ph-info" aria-hidden="true"></i><span>Đã trao quà cuối lúc ${new Date(p.claimed).toLocaleTimeString('vi-VN')}. Không trao lại.</span></div>`
-          : `<p style="text-align:center">Mã nhận quà: <strong style="font-family:ui-monospace,Consolas,monospace;font-size:20px">${esc(p.gift || '')}</strong></p>
-             <button class="btn btn-primary btn-xl" type="button" data-act="checkout">Xác nhận trao quà cuối</button>`) : ''}
+          : `<div style="text-align:center;padding:12px 14px;background:var(--surface);border-radius:14px;border:1px dashed var(--line-strong);margin:4px 0;">
+               <p style="margin:0 0 6px;color:var(--text-muted);font-size:13px;">Mã nhận quà của khách:</p>
+               <strong style="font-family:ui-monospace,Consolas,monospace;font-size:22px;letter-spacing:.08em;color:var(--accent);">${esc(p.gift || '')}</strong>
+               ${checkoutPrize ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);"><span style="font-size:13px;color:var(--text-muted);">Quà vòng quay tốt nghiệp:</span> <strong style="color:var(--accent);font-size:17px;display:block;">${PRIZE[checkoutPrize] || checkoutPrize}</strong></div>` : '<p style="margin:6px 0 0;font-size:13px;color:var(--text-muted);">Khách chưa quay vòng quay (máy chủ sẽ tự bốc khi bấm trao quà)</p>'}
+             </div>
+             <button class="btn btn-primary btn-xl" type="button" data-act="checkout"><i class="ph-fill ph-gift" aria-hidden="true"></i> Xác nhận trao quà cuối & Check-out</button>`) : ''}
         <button class="btn btn-quiet" type="button" data-next><i class="ph ph-scan" aria-hidden="true"></i> Quét người tiếp theo</button>`;
     }
     box.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', () => { b.disabled = true; act(b.dataset.act); }));

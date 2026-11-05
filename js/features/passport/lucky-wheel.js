@@ -125,9 +125,13 @@ try {
   if (initPrizes) applyPrizesToWheel(initPrizes);
 } catch (e) {}
 
-export const spinOf = (id) => {
+export const spinOf = (id = 'checkout') => {
   const pass = getPass();
-  return (pass && pass.spins && pass.spins[id]) || null;
+  if (!pass) return null;
+  if (id === 'checkout') {
+    return pass.checkoutSpin || (pass.spins && pass.spins.checkout) || null;
+  }
+  return (pass.spins && pass.spins[id]) || null;
 };
 
 export const segStart = (k) => WHEEL.slice(0, k).reduce((a, b) => a + b.share * 3.6, 0);
@@ -430,10 +434,17 @@ export function setWheelCallbacks(callbacks) {
   wheelListeners = Object.assign(wheelListeners, callbacks);
 }
 
-export function openWheel(id) {
+export function openWheel(target = 'checkout') {
   const pass = getPass();
-  if (!pass || !pass.stamps.includes(id) || spinOf(id)) return Promise.resolve();
-  const st = STATIONS[id - 1];
+  if (!pass) return Promise.resolve();
+  if (pass.stamps.length < 4) {
+    toast('Bạn cần hoàn thành đủ 4 trạm trước khi quay vòng quay may mắn Check-out nhé!', 'info', 'lock-key');
+    return Promise.resolve();
+  }
+  if (spinOf('checkout')) {
+    toast('Bạn đã quay vòng quay may mắn Check-out rồi!', 'info', 'check-circle');
+    return Promise.resolve();
+  }
   isWheelSpinning = false;
 
   const dlg = $('#dlg');
@@ -445,9 +456,9 @@ export function openWheel(id) {
 
   const p = ask({
     tone: 'tet',
-    title: 'Vòng quay may mắn',
+    title: 'Vòng quay may mắn Check-out',
     dismissible: false,
-    html: `<p class="tet-sub">${st.name} · Mỗi trạm được quay một lần, trúng gì nhận ngay tại trạm.</p>
+    html: `<p class="tet-sub">✦ Vòng quay may mắn tốt nghiệp ✦<br>Chúc mừng bạn đã hoàn thành bốn trạm! Bạn có 1 lượt quay duy nhất để nhận quà.</p>
       <div class="wheel-wrap">
         <span class="wheel-pin" aria-hidden="true"><svg viewBox="0 0 40 52"><path d="M20 50 L6 20 A14 14 0 1 1 34 20 Z" fill="#b8241c" stroke="#f3d27a" stroke-width="2.5"/>${blossom(
           20,
@@ -475,16 +486,16 @@ export function openWheel(id) {
   const spinBtn = $('#wheel-spin');
   if (spinBtn) {
     spinBtn.addEventListener('click', () => {
-      if (!isWheelSpinning) spinWheel(id);
+      if (!isWheelSpinning) spinWheel('checkout');
     });
   }
-  track('wheel_open', { station: id });
+  track('wheel_open', { station: 'checkout' });
   return p;
 }
 
-export function spinWheel(id) {
+export function spinWheel(target = 'checkout') {
   const pass = getPass();
-  if (!pass || spinOf(id) || isWheelSpinning) return;
+  if (!pass || spinOf('checkout') || isWheelSpinning) return;
   isWheelSpinning = true;
   try {
     sound.init();
@@ -495,8 +506,7 @@ export function spinWheel(id) {
   const closeBtn = $('#wheel-close');
   if (closeBtn) closeBtn.disabled = true;
 
-  const hadNone = Object.values(pass.spins || {}).some((x) => x && x.prize === 'none');
-  const pool = WHEEL.map((x, i) => i).filter((i) => !(hadNone && WHEEL[i].prize === 'none'));
+  const pool = WHEEL.map((x, i) => i);
   let r = Math.random() * pool.reduce((a, i) => a + WHEEL[i].share, 0),
     k = pool[0];
   for (const i of pool) {
@@ -505,7 +515,7 @@ export function spinWheel(id) {
     r -= WHEEL[i].share;
   }
 
-  const fixed = pass.serverPrizes && pass.serverPrizes[id];
+  const fixed = pass.checkoutPrize || (pass.serverPrizes && (pass.serverPrizes.checkout || pass.serverPrizes[4]));
   if (fixed) {
     const ks = WHEEL.map((x, i) => (x.prize === fixed ? i : -1)).filter((i) => i >= 0);
     if (ks.length) k = ks[Math.floor(Math.random() * ks.length)];
@@ -513,11 +523,29 @@ export function spinWheel(id) {
   const at = segStart(k) + WHEEL[k].share * 3.6 * (0.15 + Math.random() * 0.7);
   const prize = WHEEL[k].prize;
 
-  pass.spins = Object.assign({}, pass.spins, { [id]: { prize, at: Date.now() } });
+  pass.checkoutSpin = { prize, at: Date.now() };
+  pass.checkoutPrize = prize;
+  if (!pass.spins) pass.spins = {};
+  pass.spins.checkout = { prize, at: Date.now() };
   setPass(pass);
   savePassToHistory(pass);
-  if (!fixed) measure('spin', { st: id, prize });
-  track('wheel_spin', { station: id, prize });
+
+  // Nếu online và có server, gọi API spin để lưu quà checkout trên server nếu chưa có
+  if (!fixed && navigator.onLine) {
+    fetch('/api/pass', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'spin', pid: pass.id })
+    }).then((r) => r.json()).then((d) => {
+      if (d.pass && d.pass.checkoutPrize) {
+        pass.checkoutPrize = d.pass.checkoutPrize;
+        setPass(pass);
+      }
+    }).catch(() => {});
+  }
+
+  measure('spin', { st: 4, prize });
+  track('wheel_spin', { station: 'checkout', prize });
 
   const wheel = $('#wheel');
   const turn = 360 * (reduceMotion ? 1 : 6) + (360 - at);
@@ -536,10 +564,8 @@ export function spinWheel(id) {
             prize === 'blindbox' ? 'Quà hiếm, cả sự kiện chỉ có ít người trúng!' : 'Chúc mừng!'
           } Bạn trúng <strong>${
             pz.label
-          }</strong>. Đưa màn hình này cho nhân sự ở trạm để nhận quà.`
-        : `${iconHtml} ${pz.label}. Chúc bạn năm mới an khang, cảm ơn đã ghé ${
-            STATIONS[id - 1].name
-          }!`;
+          }</strong>. Đưa mã nhận quà cho nhân sự tại bàn Check-out để nhận quà.`
+        : `${iconHtml} ${pz.label}. Chúc bạn năm mới an khang thịnh vượng, cảm ơn bạn đã hoàn thành bốn trạm!`;
       res.className = 'wheel-result ' + (win ? 'is-win' : 'is-miss');
     }
     if (btn) btn.hidden = true;
@@ -557,7 +583,7 @@ export function spinWheel(id) {
       }
     } catch (e) {}
 
-    wheelListeners.onRefreshVisa(id);
+    wheelListeners.onRefreshVisa(PP.done);
     wheelListeners.onRenderCheckout();
   };
 

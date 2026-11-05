@@ -55,7 +55,7 @@ export function getBadgePageHTML(i) {
         <img class="pg-medal-img" src="${medalImg}" alt="${c.badge.name}" width="160" height="160" loading="lazy">
       </div>
       <h3 class="pg-title">${c.badge.name}</h3>
-      <p class="pg-prose" id="badge-prose-${i}">Đọc trọn vẹn 5 trang truyện của chương để mở huy hiệu này.</p>
+      <p class="pg-prose" id="badge-prose-${i}">Đọc trọn vẹn ${c.pages?.length || 5} trang truyện của chương để mở huy hiệu này.</p>
       <div class="badge-actions-group" id="badge-actions-${i}">
         <button class="btn btn-primary" type="button" data-claim-chapter="${i}"><i class="ph-fill ph-medal" aria-hidden="true"></i> Nhận ${c.badge.name}</button>
       </div>`;

@@ -47,8 +47,12 @@ module.exports = async (req, res) => {
       cmds.push(['SADD', `ch:${vid}`, String(n)]);
     } else if (e.t === 'stamp' && n >= 1 && n <= 4) {
       cmds.push(['SADD', `st:${vid}`, String(n)]);
-    } else if (e.t === 'spin' && n >= 1 && n <= 4 && PRIZE_KEYS.has(e.prize)) {
-      cmds.push(['HSET', key, `prize${n}`, e.prize]);
+    } else if (e.t === 'spin' && PRIZE_KEYS.has(e.prize)) {
+      if (n >= 1 && n <= 4) {
+        cmds.push(['HSET', key, `prize${n}`, e.prize]);
+      } else {
+        cmds.push(['HSET', key, 'checkout_prize', e.prize]);
+      }
     } else if (e.t === 'checkin') {
       cmds.push(['HSETNX', key, 'checkin', String(now)]);
     } else if (e.t === 'claim') {

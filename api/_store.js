@@ -266,20 +266,38 @@ function rollPrize(noMoreNone, outOfStock = new Set(), prizeSource = null) {
   return validPool[0][0];
 }
 
-// Đóng dấu trạm st cho thẻ: ghi nhận dấu, bốc quà theo round & tỉ lệ, cập nhật bộ đếm round & tổng
+// Đóng dấu trạm st cho thẻ: chỉ ghi nhận dấu trạm (không bốc quà tại các trạm).
+// Nếu thẻ đạt đủ 4 trạm, tự động bốc 1 phần quà vòng quay checkout duy nhất.
 function stampCmds(o, key, st, now, outOfStock = new Set(), roundId = 'round_1', prizeSource = null) {
-  // Luật "không có gì" tối đa 1 lần cho mỗi thẻ
-  const hadNone = [1, 2, 3, 4].some((s) => o[`prize${s}`] === 'none');
-  const prize = rollPrize(hadNone, outOfStock, prizeSource);
   const cmds = [
-    ['HSET', key, `st${st}`, now, `prize${st}`, prize, 'round', roundId],
-    ['HINCRBY', 'staff:stamps', String(st), '1'],
-    ['HINCRBY', 'prize:counts', prize, '1']
+    ['HSET', key, `st${st}`, now],
+    ['HINCRBY', 'staff:stamps', String(st), '1']
   ];
-  if (roundId) {
-    cmds.push(['HINCRBY', 'prize:round_counts', `${roundId}:${prize}`, '1']);
+  if (o.vid) {
+    cmds.push(
+      ['SADD', `st:${o.vid}`, String(st)],
+      ['HSET', `u:${o.vid}`, 'seen', now],
+      ['ZADD', 'users', now, o.vid]
+    );
   }
-  if (o.vid) cmds.push(['SADD', `st:${o.vid}`, String(st)], ['HSET', `u:${o.vid}`, `prize${st}`, prize, 'seen', now], ['ZADD', 'users', now, o.vid]);
+
+  // Kiểm tra xem thẻ đã đủ 4 dấu chưa (gồm các dấu cũ + dấu trạm hiện tại st)
+  const currentStamps = [1, 2, 3, 4].filter((s) => s === st || o[`st${s}`]);
+  if (currentStamps.length >= 4 && !o.checkout_prize && !o.prize) {
+    // Đã đủ 4 trạm -> Bốc 1 phần quà vòng quay checkout duy nhất
+    const prize = rollPrize(false, outOfStock, prizeSource);
+    cmds.push(
+      ['HSET', key, 'checkout_prize', prize, 'round', roundId],
+      ['HINCRBY', 'prize:counts', prize, '1']
+    );
+    if (roundId) {
+      cmds.push(['HINCRBY', 'prize:round_counts', `${roundId}:${prize}`, '1']);
+    }
+    if (o.vid) {
+      cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+    }
+  }
+
   return cmds;
 }
 
@@ -303,9 +321,20 @@ function stationOfCode(code, at = Date.now()) {
 function passView(h) {
   if (!h || !h.pid) return null;
   const by = (prefix) => Object.fromEntries([1, 2, 3, 4].filter((s) => h[prefix + s]).map((s) => [s, prefix === 'prize' ? h[prefix + s] : Number(h[prefix + s])]));
+  const checkoutPrize = h.checkout_prize || h.prize || null;
+  const prizes = by('prize');
+  if (checkoutPrize) prizes.checkout = checkoutPrize;
   return {
-    pid: h.pid, name: h.name || '', created: Number(h.created || 0), gift: h.gift || null,
-    stamps: by('st'), prizes: by('prize'), given: by('given'), claimed: h.claimed ? Number(h.claimed) : null
+    pid: h.pid,
+    name: h.name || '',
+    created: Number(h.created || 0),
+    gift: h.gift || null,
+    stamps: by('st'),
+    prizes,
+    checkoutPrize,
+    given: by('given'),
+    checkoutGiven: h.checkout_given ? Number(h.checkout_given) : null,
+    claimed: h.claimed ? Number(h.claimed) : null
   };
 }
 

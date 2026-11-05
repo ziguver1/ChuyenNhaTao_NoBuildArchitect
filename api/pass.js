@@ -75,6 +75,41 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'missing_id_or_name' });
   }
 
+  if (req.method === 'POST' && (readBody(req) || {}).action === 'spin') {
+    const b = readBody(req) || {};
+    const pid = String(b.pid || '').toUpperCase();
+    if (!PID_RE.test(pid)) return res.status(400).json({ error: 'input' });
+    const key = `pass:${pid}`;
+    const [h, configData, roundCountsData] = await redis([
+      ['HGETALL', key],
+      ['HGETALL', 'prize:config'],
+      ['HGETALL', 'prize:round_counts']
+    ]);
+    const o = toObject(h);
+    if (!o.pid) return res.status(404).json({ error: 'notfound' });
+    const n = [1, 2, 3, 4].filter((s) => o[`st${s}`]).length;
+    if (n < 4) return res.status(400).json({ error: 'stamps', stamps: n });
+
+    const { rounds, activeId, activeRound } = parseRoundsConfig(toObject(configData));
+    const activeCounts = getRoundCounts(toObject(roundCountsData), activeId);
+    const outOfStock = getRoundOutOfStockSet(activeRound, activeCounts);
+
+    const cmds = [];
+    let prize = o.checkout_prize || o.prize;
+    if (!prize) {
+      prize = rollPrize(false, outOfStock, activeRound.prizes);
+      cmds.push(
+        ['HSET', key, 'checkout_prize', prize, 'round', activeId],
+        ['HINCRBY', 'prize:counts', prize, '1']
+      );
+      if (activeId) cmds.push(['HINCRBY', 'prize:round_counts', `${activeId}:${prize}`, '1']);
+      if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+    }
+    cmds.push(['HGETALL', key]);
+    const out = await redis(cmds);
+    return res.status(200).json({ prize, pass: passView(toObject(out[out.length - 1])) });
+  }
+
   if (req.method === 'POST' && (readBody(req) || {}).action === 'code') {
     const b = readBody(req);
     const pid = String(b.pid || '').toUpperCase();

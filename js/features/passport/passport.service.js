@@ -175,9 +175,18 @@ export function mergeServer(v) {
   const pass = getPass();
   if (!v || !pass || v.pid !== pass.id) return;
   const beforeGiven = JSON.stringify(pass.given || {}),
-    wasClaimed = pass.claimed;
+    wasClaimed = pass.claimed,
+    beforeCheckoutPrize = pass.checkoutPrize;
   pass.serverPrizes = v.prizes || {};
+  if (v.checkoutPrize) {
+    pass.checkoutPrize = v.checkoutPrize;
+    pass.serverPrizes.checkout = v.checkoutPrize;
+    if (!pass.checkoutSpin) {
+      pass.checkoutSpin = { prize: v.checkoutPrize, at: v.claimed || Date.now() };
+    }
+  }
   pass.given = v.given || {};
+  if (v.checkoutGiven) pass.checkoutGiven = v.checkoutGiven;
   if (v.claimed) pass.claimed = true;
   const fresh = Object.keys(v.stamps || {})
     .map(Number)
@@ -194,9 +203,11 @@ export function mergeServer(v) {
     return;
   }
   if (JSON.stringify(pass.given) !== beforeGiven) uiCallbacks.ppRefresh([3, 4, 5, 6]);
-  if (pass.claimed && !wasClaimed) {
+  if ((pass.claimed && !wasClaimed) || (pass.checkoutPrize && !beforeCheckoutPrize)) {
     uiCallbacks.renderCheckout();
-    toast('Nhân sự đã xác nhận trao quà cuối. Chúc bạn năm mới thật ấm!', 'gold', 'gift');
+    if (pass.claimed && !wasClaimed) {
+      toast('Nhân sự đã xác nhận trao quà cuối. Chúc bạn năm mới thật ấm!', 'gold', 'gift');
+    }
   }
 }
 
@@ -391,6 +402,7 @@ export async function restorePass(raw, silent) {
     const serverStamps = serverData.stamps || {};
     const serverPrizes = serverData.prizes || {};
     const serverGiven = serverData.given || {};
+    const chkPrize = serverData.checkoutPrize || serverData.prizes?.checkout || null;
     pass = {
       id: serverData.pid,
       nickname: serverData.name || v,
@@ -403,13 +415,20 @@ export async function restorePass(raw, silent) {
       giftCode: serverData.gift || 'QUA-' + randCode(4),
       claimed: Boolean(serverData.claimed),
       synced: true,
-      serverPrizes: serverPrizes,
+      checkoutPrize: chkPrize,
+      serverPrizes: Object.assign({}, serverPrizes, chkPrize ? { checkout: chkPrize } : {}),
       given: serverGiven,
-      spins: Object.fromEntries(
-        Object.entries(serverPrizes).map(([st, pz]) => [
-          st,
-          { prize: pz, at: serverStamps[st] || Date.now() }
-        ])
+      checkoutGiven: serverData.checkoutGiven || null,
+      checkoutSpin: chkPrize ? { prize: chkPrize, at: serverData.claimed || Date.now() } : null,
+      spins: Object.assign(
+        {},
+        Object.fromEntries(
+          Object.entries(serverPrizes).map(([st, pz]) => [
+            st,
+            { prize: pz, at: serverStamps[st] || Date.now() }
+          ])
+        ),
+        chkPrize ? { checkout: { prize: chkPrize, at: serverData.claimed || Date.now() } } : {}
       )
     };
     setPass(pass);

@@ -220,7 +220,7 @@ export function ppPageHTML(n) {
     return `<div class="pp-page">
       ${ppHead('HÀNH TRÌNH', 'TRANG 2')}
       <h4 class="pp-title">Bốn trạm, bốn dấu</h4>
-      <p class="pp-note">Mỗi trạm đóng một dấu vào trang visa riêng và được quay thưởng một lần. Đủ bốn dấu thì nhận quà ở bàn check-out.</p>
+      <p class="pp-note">Mỗi trạm đóng một con dấu vào trang visa riêng. Đi đủ bốn trạm, bạn đến bàn check-out để tham gia 1 vòng quay may mắn duy nhất và nhận quà.</p>
       <ol class="pp-route">${STATIONS.map((s) => {
         const on = pass.stamps.includes(s.id);
         return `<li class="${on ? 'is-on' : ''}"><button type="button" data-ppgo="${PP.visa(
@@ -242,8 +242,7 @@ export function ppPageHTML(n) {
     const s = STATIONS[id - 1],
       on = pass.stamps.includes(id),
       st = STAMP_STYLE[id],
-      photo = moments[String(id)],
-      spin = spinOf(id);
+      photo = moments[String(id)];
     return `<div class="pp-page pp-visa" style="--ink:${st.ink}">
       ${ppHead('VISA · TRẠM ' + ROMAN_ST[id - 1], 'TRANG ' + n)}
       <h4 class="pp-title">${s.name}</h4>
@@ -275,15 +274,6 @@ export function ppPageHTML(n) {
         on
           ? `<div class="pp-visa-foot">
         ${
-          spin
-            ? `<p class="pp-prize ${spin.prize === 'none' ? 'is-miss' : ''}"><i class="ph-fill ph-${
-                PRIZES[spin.prize].icon
-              }" aria-hidden="true"></i>${PRIZES[spin.prize].label}${
-                pass.given && pass.given[id] && spin.prize !== 'none' ? ' · đã nhận' : ''
-              }</p>`
-            : `<button class="pp-photo-add pp-spin" type="button" data-spin="${id}"><i class="ph ph-spiral" aria-hidden="true"></i> Quay thưởng</button>`
-        }
-        ${
           photo
             ? ''
             : `<button class="pp-photo-add" type="button" data-moment="${id}"><i class="ph ph-camera-plus" aria-hidden="true"></i> Lưu ảnh</button>`
@@ -294,7 +284,8 @@ export function ppPageHTML(n) {
     </div>`;
   }
 
-  if (n === PP.done)
+  if (n === PP.done) {
+    const chkSpin = spinOf('checkout');
     return `<div class="pp-page">
       ${ppHead('HOÀN THÀNH', 'TRANG 7')}
       <h4 class="pp-title">${
@@ -311,10 +302,18 @@ export function ppPageHTML(n) {
       </div>
       <p class="pp-note">${
         total === 4
-          ? 'Mời bạn đến bàn check-out, đưa mã nhận quà bên dưới cho nhân sự.'
-          : 'Mỗi trạm chỉ đóng dấu một lần.'
+          ? (chkSpin
+              ? `Quà vòng quay tốt nghiệp: <strong>${PRIZES[chkSpin.prize]?.label || 'Quà may mắn'}</strong>. Hãy ra bàn check-out nhận quà.`
+              : 'Mời bạn quay vòng quay may mắn ở bàn check-out để nhận quà.')
+          : 'Mỗi trạm tích một dấu vào hộ chiếu.'
       }</p>
+      ${
+        total === 4 && !chkSpin
+          ? `<div style="text-align:center;margin-top:10px;"><button class="btn btn-tet btn-sm" type="button" data-checkout-spin><i class="ph ph-spiral"></i> Quay vòng quay may mắn</button></div>`
+          : ''
+      }
     </div>`;
+  }
 
   if (n === PP.notes)
     return `<div class="pp-page pp-notes">
@@ -465,8 +464,8 @@ export function renderTicket(animate) {
       pickMoment(m.dataset.moment);
       return;
     }
-    const w = e.target.closest('[data-spin]');
-    if (w) openWheel(+w.dataset.spin);
+    const w = e.target.closest('[data-spin]') || e.target.closest('[data-checkout-spin]');
+    if (w) openWheel('checkout');
   });
 
   const PF = window.St && window.St.PageFlip;
@@ -671,14 +670,13 @@ export function doStamp(id, ts, fromServer) {
 
   setTimeout(() => {
     playStamp(st.id);
-    setTimeout(() => {
-      openWheel(st.id).then(() => {
-        if (complete) {
-          ppGo(PP.done);
-          setTimeout(() => playStamp('gold'), reduceMotion ? 80 : 950);
-        }
-      });
-    }, reduceMotion ? 300 : 1100);
+    if (complete) {
+      setTimeout(() => {
+        ppGo(PP.done);
+        setTimeout(() => playStamp('gold'), reduceMotion ? 80 : 950);
+        setTimeout(() => openWheel('checkout'), reduceMotion ? 500 : 1800);
+      }, reduceMotion ? 250 : 800);
+    }
   }, wait);
 
   if (complete) {
@@ -693,14 +691,20 @@ export function doStamp(id, ts, fromServer) {
 }
 
 export function wonList() {
-  const won = STATIONS.map((s) => [s, spinOf(s.id)]).filter(([, x]) => x && x.prize !== 'none');
-  if (!won.length) return '';
-  return `<div class="won"><strong><i class="ph ph-gift" aria-hidden="true"></i> Quà vòng quay</strong>
-    <ul>${won
-      .map(
-        ([s, x]) => `<li><span>${PRIZES[x.prize].label}</span><small>${s.name}</small></li>`
-      )
-      .join('')}</ul></div>`;
+  const spin = spinOf('checkout');
+  if (!spin) return '';
+  const pz = PRIZES[spin.prize] || { label: spin.prize, icon: 'gift' };
+  const isMiss = spin.prize === 'none';
+  const pass = getPass();
+  return `<div class="won">
+    <strong><i class="ph-fill ph-gift" aria-hidden="true"></i> Quà vòng quay tốt nghiệp</strong>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;">
+      <span class="pp-prize ${isMiss ? 'is-miss' : ''}" style="font-size:14px;padding:6px 14px;">
+        <i class="ph-fill ph-${pz.icon || 'gift'}" aria-hidden="true"></i> ${esc(pz.label)}
+      </span>
+      <small style="color:var(--text-muted);font-weight:600;">${pass?.claimed ? '✓ Đã nhận quà' : 'Chờ trao tại bàn Check-out'}</small>
+    </div>
+  </div>`;
 }
 
 export function renderCheckout() {
@@ -713,13 +717,30 @@ export function renderCheckout() {
     return;
   }
   box.hidden = false;
+  const hasSpun = Boolean(spinOf('checkout'));
+
   box.innerHTML = `
-    <div><h3>Chúc mừng, bạn đã đi đủ bốn trạm</h3>
+    <div><h3>Chúc mừng, bạn đã đi đủ bốn trạm!</h3>
     <p style="color:var(--text-muted);margin-top:6px">${
       pass.claimed
-        ? 'Quà đã được trao. Cảm ơn bạn đã đồng hành.'
-        : 'Đưa mã này cho nhân sự tại bàn check-out. Mã chỉ dùng được một lần.'
+        ? 'Quà tốt nghiệp đã được trao. Cảm ơn bạn đã đồng hành cùng Chuyện Nhà Táo!'
+        : 'Bạn có 1 lượt quay may mắn duy nhất để nhận quà tốt nghiệp. Đưa mã nhận quà cho nhân sự tại bàn check-out.'
     }</p></div>
+
+    ${
+      !hasSpun
+        ? `<div class="checkout-wheel-box" style="padding:18px;background:var(--gold-soft);border-radius:16px;text-align:center;display:grid;gap:10px;border:1.5px dashed rgba(184,36,28,0.3);">
+             <strong style="font-size:16px;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;gap:6px;">
+               <i class="ph-fill ph-sparkle" style="color:var(--accent);"></i> Vòng quay may mắn Check-out
+             </strong>
+             <p style="margin:0;font-size:14px;color:var(--text-muted);">Bạn có <strong>1 lượt quay duy nhất</strong> để nhận phần quà của mình!</p>
+             <button class="btn btn-tet btn-block" type="button" id="btn-checkout-spin" style="max-width:280px;margin:4px auto 0;">
+               <i class="ph ph-spiral" aria-hidden="true"></i> Quay vòng quay may mắn
+             </button>
+           </div>`
+        : wonList()
+    }
+
     <p class="gift-code ${pass.claimed ? 'is-claimed' : ''}" aria-label="Mã nhận quà ${pass.giftCode
     .split('')
     .join(' ')}">${pass.giftCode}</p>
@@ -730,7 +751,6 @@ export function renderCheckout() {
         ? '<p class="help"><i class="ph ph-qr-code" aria-hidden="true"></i> Nhân sự quét QR hộ chiếu của bạn ở bàn check-out để xác nhận trao quà.</p><button class="btn btn-primary" type="button" data-show-qr><i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR</button>'
         : '<button class="btn btn-ghost" type="button" id="btn-claim"><i class="ph ph-hand-heart" aria-hidden="true"></i> Nhân sự xác nhận đã trao quà</button>'
     }
-    ${wonList()}
     <div class="optin">
       <strong>Viết Chuyện Nhà Đêm 23 gửi Táo</strong>
       <p style="color:var(--text-muted);font-size:15px">Chuyện Nhà Đêm 23 đã mở. Ghi bốn lời gửi ông Táo và dán ảnh khoảnh khắc ở các trạm.</p>
@@ -739,6 +759,10 @@ export function renderCheckout() {
         <button class="btn btn-quiet" type="button" id="optin-no">Để sau</button>
       </div>
     </div>`;
+
+  $('#btn-checkout-spin')?.addEventListener('click', () => {
+    openWheel('checkout');
+  });
 
   const cb = $('#btn-claim');
   if (cb) {
