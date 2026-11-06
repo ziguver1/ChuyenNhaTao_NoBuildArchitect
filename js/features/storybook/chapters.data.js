@@ -50,14 +50,20 @@ export const CHAPTERS = [
     title: 'Tự soi xét và nhìn lại bản thân',
     meaning: 'Nhìn lại chính mình',
     icon: 'sparkle',
-    locked: true,
-    lockedReason: 'Chương III đang được đội ngũ họa sĩ tỉ mỉ hoàn thiện từng nét vẽ tranh minh họa. Hãy đón chờ nhé!',
+    locked: false,
     badge: {
       name: 'Huy hiệu Nhìn Lại',
       desc: 'Dám nhìn lại thật lòng mình để sống tốt hơn.',
       img: 'images/huychuong/huychuong1.webp'
     },
-    pages: []
+    // Danh sách 5 trang ảnh chương 3
+    pages: [
+      'images/sach/c3_trang1.webp',
+      'images/sach/c3_trang2.webp',
+      'images/sach/c3_trang3.webp',
+      'images/sach/c3_trang4.webp',
+      'images/sach/c3_trang5.webp'
+    ]
   },
   {
     id: 4,
