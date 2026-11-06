@@ -248,14 +248,15 @@ export function onPageChange(p) {
     track('chapter_start', { chapter: ch + 1 });
   }
 
-  // TỰ ĐỘNG TRAO HUY CHƯƠNG KHI LẬT ĐẾN TRANG HUY HIỆU (sau khi đọc xong chương)
-  CHAPTERS.forEach((chObj, chIdx) => {
-    if (!chObj.locked && !book.done.has(chIdx) && p === chObj.badgePage) {
+  // TỰ ĐỘNG TRAO HUY CHƯƠNG MÁI ẤM KHI LẬT ĐẾN TRANG HUY HIỆU (sau khi đọc xong chương 1)
+  const ch0 = CHAPTERS[0];
+  if (ch0 && !book.done.has(0)) {
+    if (p === ch0.badgePage) {
       setTimeout(() => {
-        if (!book.done.has(chIdx)) completeChapter(chIdx);
+        if (!book.done.has(0)) completeChapter(0);
       }, 500);
     }
-  });
+  }
 
   syncTabs();
   const statusEl = $('#flip-status');
