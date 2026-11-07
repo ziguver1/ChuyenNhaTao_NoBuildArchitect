@@ -1312,7 +1312,7 @@ body::after {
 .flip-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 4px; }
 .flip-status { min-width: 200px; text-align: center; font-size: 14px; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .flip-controls .icon-btn[disabled] { opacity: .35; cursor: not-allowed; }
-.flip-hint { text-align: center; font-size: 13px; color: var(--text-dim); margin-top: 8px; }
+.flip-hint { text-align: center; font-size: 13px; color: var(--text-dim); margin: 10px auto 0; max-width: 620px; line-height: 1.6; padding: 0 16px; }
 
 /* Dự phòng khi thư viện không tải: trang xếp ngang, vuốt để xem */
 .flip-stage.is-fallback .flipbook { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 12px; }
