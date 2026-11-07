@@ -32,9 +32,9 @@ export const CHAPTERS = [
     icon: 'flower-lotus',
     locked: false,
     badge: {
-      name: 'Huy hiệu Tôn Kính',
-      desc: 'Trân trọng cội nguồn và thành kính với tổ tiên.',
-      img: 'images/huychuong/huychuong3.webp'
+      name: 'Huy hiệu Nhìn Lại',
+      desc: 'Dám nhìn lại thật lòng mình để sống tốt hơn.',
+      img: 'images/huychuong/huychuong1.webp'
     },
     // Danh sách 4 trang ảnh chương 2
     pages: [
@@ -52,9 +52,9 @@ export const CHAPTERS = [
     icon: 'sparkle',
     locked: false,
     badge: {
-      name: 'Huy hiệu Nhìn Lại',
-      desc: 'Dám nhìn lại thật lòng mình để sống tốt hơn.',
-      img: 'images/huychuong/huychuong1.webp'
+      name: 'Huy hiệu Tôn Kính',
+      desc: 'Trân trọng cội nguồn và thành kính với tổ tiên.',
+      img: 'images/huychuong/huychuong3.webp'
     },
     // Danh sách 5 trang ảnh chương 3
     pages: [
