@@ -1309,9 +1309,56 @@ body::after {
 .pg .game-prompt { font-size: 14px; }
 
 /* Thanh điều khiển dưới sách */
-.flip-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 4px; }
+.flip-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 6px;
+  position: relative;
+  z-index: 10;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+.flip-controls .icon-btn {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(138, 90, 57, 0.3);
+  box-shadow: 0 2px 8px rgba(42, 23, 16, 0.08);
+  color: var(--text, #2a1710);
+  font-size: 20px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform .15s ease, background-color .2s, border-color .2s, opacity .2s, box-shadow .2s;
+}
+.flip-controls .icon-btn i {
+  display: inline-block;
+  font-size: 20px;
+  line-height: 1;
+  pointer-events: none;
+}
+.flip-controls .icon-btn:hover:not([disabled]) {
+  background: #ffffff;
+  border-color: var(--accent, #b93826);
+  color: var(--accent, #b93826);
+  transform: scale(1.06);
+  box-shadow: 0 4px 12px rgba(185, 56, 38, 0.15);
+}
+.flip-controls .icon-btn:active:not([disabled]) {
+  transform: scale(0.96);
+}
+.flip-controls .icon-btn[disabled] {
+  opacity: .35;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.45);
+  border-color: rgba(138, 90, 57, 0.18);
+  box-shadow: none;
+}
 .flip-status { min-width: 200px; text-align: center; font-size: 14px; font-weight: 600; color: var(--text-muted); font-variant-numeric: tabular-nums; }
-.flip-controls .icon-btn[disabled] { opacity: .35; cursor: not-allowed; }
 .flip-hint { text-align: center; font-size: 13px; color: var(--text-dim); margin: 10px auto 0; max-width: 620px; line-height: 1.6; padding: 0 16px; }
 
 /* Dự phòng khi thư viện không tải: trang xếp ngang, vuốt để xem */
