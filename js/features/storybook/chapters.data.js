@@ -71,14 +71,20 @@ export const CHAPTERS = [
     title: 'Khát vọng vươn lên và hướng thiện',
     meaning: 'Mang điều thiện đi tiếp',
     icon: 'fish',
-    locked: true,
-    lockedReason: 'Chương IV đang được đội ngũ họa sĩ tỉ mỉ hoàn thiện từng nét vẽ tranh minh họa. Hãy đón chờ nhé!',
+    locked: false,
     badge: {
       name: 'Huy hiệu Hướng Thiện',
       desc: 'Mang tâm thiện và ước mong tốt đẹp đi tiếp sang năm mới.',
       img: 'images/huychuong/huychuong4.webp'
     },
-    pages: []
+    // Danh sách 5 trang ảnh chương 4
+    pages: [
+      'images/sach/c4_trang1.webp',
+      'images/sach/c4_trang2.webp',
+      'images/sach/c4_trang3.webp',
+      'images/sach/c4_trang4.webp',
+      'images/sach/c4_trang5.webp'
+    ]
   }
 ];
 
