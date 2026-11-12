@@ -35,6 +35,7 @@ import {
   mergeServer,
   startPolling,
   checkedIn,
+  enterGate,
   isTaken,
   withSuffix,
   openRestore
@@ -772,10 +773,30 @@ export function renderCheckout() {
     .join(' ')}">${pass.giftCode}</p>
     ${
       pass.claimed
-        ? ''
+        ? '<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>'
         : server.on
-        ? '<p class="help"><i class="ph ph-qr-code" aria-hidden="true"></i> Nhân sự quét QR hộ chiếu của bạn ở bàn check-out để xác nhận trao quà.</p><button class="btn btn-primary" type="button" data-show-qr><i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR</button>'
-        : '<button class="btn btn-ghost" type="button" id="btn-claim"><i class="ph ph-hand-heart" aria-hidden="true"></i> Nhân sự xác nhận đã trao quà</button>'
+        ? `
+        <div style="display:grid;gap:10px;margin:14px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;">
+          <p class="help" style="margin:0;font-size:14px;color:var(--text);font-weight:600;">
+            <i class="ph-fill ph-storefront" style="color:var(--accent);"></i> Trao quà tại Bàn Check-out:
+          </p>
+          <p style="margin:0;font-size:13px;color:var(--text-muted);">
+            Đưa mã QR cho nhân sự quét để nhận quà, hoặc bấm nút dưới để bật camera tự quét mã tại quầy:
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+            <button class="btn btn-primary" type="button" data-show-qr style="flex:1;min-width:180px;">
+              <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR (Đưa nhân sự quét)
+            </button>
+            <button class="btn btn-secondary" type="button" data-scan-qr style="flex:1;min-width:160px;">
+              <i class="ph ph-camera" aria-hidden="true"></i> Bật camera quét QR
+            </button>
+          </div>
+        </div>`
+        : `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0;">
+          <button class="btn btn-ghost" type="button" id="btn-claim"><i class="ph ph-hand-heart" aria-hidden="true"></i> Nhân sự xác nhận đã trao quà</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-scan-qr><i class="ph ph-camera" aria-hidden="true"></i> Bật camera quét</button>
+        </div>`
     }
     <div class="optin">
       <strong>Viết Chuyện Nhà Đêm 23 gửi Táo</strong>
@@ -839,7 +860,8 @@ export function renderRegister() {
           </div>
         </div>
         <div class="pb-actions">
-          <button class="btn btn-primary btn-sm pb-qr-btn" type="button" data-show-qr><i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR</button>
+          <button class="btn btn-secondary btn-sm pb-cam-btn" type="button" data-scan-qr title="Bật camera quét mã QR trạm"><i class="ph ph-camera" aria-hidden="true"></i> Quét mã</button>
+          <button class="btn btn-primary btn-sm pb-qr-btn" type="button" data-show-qr title="Mở mã QR thẻ của bạn"><i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR</button>
           <button class="btn btn-ghost btn-sm pb-new-btn" type="button" id="btn-new-pass"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i> Tạo thẻ khác</button>
         </div>`;
       const btnNew = $('#btn-new-pass', bar);
@@ -1073,6 +1095,9 @@ export function initPassportUI() {
       )}"></div>
         <p class="qr-big-id">${esc(pass.id)} · ${esc(pass.nickname)}</p>
         <p class="help" style="text-align:center">Đưa màn hình cho nhân sự quét. Quét chậm thì tăng độ sáng màn hình.</p>
+        <div style="display:flex;justify-content:center;margin:6px 0 10px;">
+          <button class="btn btn-outline btn-sm" type="button" data-scan-qr><i class="ph ph-camera" aria-hidden="true"></i> Hoặc bật camera tự quét mã trạm</button>
+        </div>
         ${
           canStamp
             ? `
@@ -1124,6 +1149,162 @@ export function initPassportUI() {
         doSubmitOtp();
       }
     });
+  });
+
+  // =========================================================================
+  // CAMERA QUÉT QR TRỰC TIẾP TRÊN WEB CHO KHÁCH HÀNG (TRẠM & CHECK-OUT)
+  // =========================================================================
+  let userScanner = null;
+  let userScanning = false;
+
+  async function openCameraScanner() {
+    const dlg = $('#dlg-scanner');
+    if (!dlg) return;
+
+    // Đóng hộp thoại ask() nếu đang mở
+    const oldDlg = $('#dlg');
+    if (oldDlg && oldDlg.open) {
+      try { oldDlg.close(); } catch (e) {}
+    }
+
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.hidden = false;
+
+    const loadingEl = $('#user-scanner-loading');
+    if (loadingEl) {
+      loadingEl.hidden = false;
+      loadingEl.innerHTML = `
+        <i class="ph ph-camera" style="font-size:38px; color:var(--gold);" aria-hidden="true"></i>
+        <span style="font-size:14px; font-weight:600;">Đang khởi động camera máy bạn...</span>
+        <small style="color:var(--text-muted); font-size:12px;">Nếu trình duyệt hỏi, hãy chọn "Cho phép" (Allow) quyền camera.</small>
+      `;
+    }
+
+    if (typeof window.Html5Qrcode === 'undefined') {
+      toast('Chưa tải được camera. Bạn có thể nhập mã 6 số bên dưới.', 'err');
+      if (loadingEl) {
+        loadingEl.innerHTML = '<span style="color:#ef4444;padding:16px;text-align:center;">Chưa tải xong camera. Vui lòng nhập mã 6 số bên dưới.</span>';
+      }
+      return;
+    }
+
+    if (!userScanner) {
+      userScanner = new window.Html5Qrcode('user-camera-reader');
+    }
+
+    try {
+      await userScanner.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: (w, h) => {
+            const s = Math.floor(Math.min(w, h) * 0.72);
+            return { width: s, height: s };
+          }
+        },
+        onUserScanSuccess,
+        () => {}
+      );
+      userScanning = true;
+      if (loadingEl) loadingEl.hidden = true;
+    } catch (err) {
+      if (loadingEl) {
+        loadingEl.innerHTML = '<span style="color:#ef4444;padding:16px;text-align:center;">Không mở được camera. Hãy cho phép quyền truy cập camera trong trình duyệt hoặc nhập mã 6 ký tự bên dưới.</span>';
+      }
+      toast('Không mở được camera. Vui lòng kiểm tra quyền camera hoặc nhập mã bên dưới.', 'err');
+    }
+  }
+
+  async function closeCameraScanner() {
+    const dlg = $('#dlg-scanner');
+    if (userScanner && userScanning) {
+      try {
+        await userScanner.stop();
+      } catch (e) {}
+    }
+    userScanning = false;
+    if (dlg) {
+      if (typeof dlg.close === 'function') dlg.close();
+      else dlg.hidden = true;
+    }
+  }
+
+  function onUserScanSuccess(decodedText) {
+    if (navigator.vibrate) navigator.vibrate(60);
+    closeCameraScanner();
+    handleScannedData(decodedText);
+  }
+
+  function handleScannedData(raw) {
+    const text = String(raw || '').trim();
+    let code = text;
+
+    // Trích xuất param nếu là link URL
+    if (text.includes('?')) {
+      try {
+        const url = new URL(text, location.origin);
+        if (url.searchParams.has('tram')) {
+          code = url.searchParams.get('tram');
+        } else if (url.searchParams.has('vao')) {
+          const vao = url.searchParams.get('vao');
+          enterGate(vao);
+          return;
+        }
+      } catch (e) {}
+    }
+
+    code = code.toUpperCase().trim();
+
+    // Cổng check-in
+    if (code === 'CONG23' || code.includes('VAO=CONG23')) {
+      enterGate('CONG23');
+      return;
+    }
+
+    // Các trạm trải nghiệm
+    const st = STATIONS.find((s) => s.code === code || (s.altCodes && s.altCodes.includes(code)));
+    if (st) {
+      addStamp(code);
+      return;
+    }
+
+    toast(`Mã "${code}" chưa khớp với trạm nào. Bạn kiểm tra lại nhé!`, 'err');
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-scan-qr]')) {
+      openCameraScanner();
+      return;
+    }
+    if (e.target.closest('#btn-close-scanner')) {
+      closeCameraScanner();
+      return;
+    }
+  });
+
+  $('#dlg-scanner')?.addEventListener('click', (e) => {
+    if (e.target === $('#dlg-scanner')) {
+      closeCameraScanner();
+    }
+  });
+  $('#dlg-scanner')?.addEventListener('cancel', () => {
+    closeCameraScanner();
+  });
+
+  const submitManualScanner = () => {
+    const val = $('#scanner-manual-input')?.value;
+    if (val) {
+      closeCameraScanner();
+      handleScannedData(val);
+      if ($('#scanner-manual-input')) $('#scanner-manual-input').value = '';
+    }
+  };
+  $('#btn-scanner-manual-submit')?.addEventListener('click', submitManualScanner);
+  $('#scanner-manual-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      submitManualScanner();
+    }
   });
 
   // Chọn ảnh khoảnh khắc

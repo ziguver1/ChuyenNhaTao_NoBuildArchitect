@@ -677,6 +677,44 @@
   <!-- Hộp thoại dùng chung: cảnh báo xoá, trùng tên, lấy lại thẻ (app.js: ask) -->
   <dialog class="dlg" id="dlg" aria-labelledby="dlg-title"></dialog>
 
+  <!-- Modal Bật Camera quét mã QR trực tiếp trên web cho khách -->
+  <dialog class="dlg dlg-scanner" id="dlg-scanner" aria-labelledby="scanner-title">
+    <div class="dlg-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--line); padding-bottom:10px;">
+        <h3 class="dlg-title" id="scanner-title" style="margin:0; font-size:18px; display:flex; align-items:center; gap:8px;">
+          <i class="ph ph-camera" aria-hidden="true" style="color:var(--accent);"></i> Quét mã QR trạm / Check-out
+        </h3>
+        <button class="btn btn-quiet btn-sm" type="button" id="btn-close-scanner" aria-label="Đóng camera" style="padding:4px 8px;">
+          <i class="ph ph-x" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="dlg-body" style="padding-top:10px;">
+        <div id="user-camera-reader" style="width:100%; border-radius:14px; overflow:hidden; background:#000; min-height:240px; position:relative; box-shadow:0 6px 18px rgba(0,0,0,0.5);">
+          <div id="user-scanner-loading" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff3d6; gap:10px; background:#1b120c; padding:20px; text-align:center;">
+            <i class="ph ph-camera" style="font-size:38px; color:var(--gold);" aria-hidden="true"></i>
+            <span style="font-size:14px; font-weight:600;">Đang khởi động camera máy bạn...</span>
+            <small style="color:var(--text-muted); font-size:12px;">Nếu trình duyệt hỏi, hãy chọn "Cho phép" (Allow) quyền truy cập camera.</small>
+          </div>
+        </div>
+
+        <p class="help" style="text-align:center; font-size:13px; margin:4px 0 0;">
+          <i class="ph ph-scan"></i> Hướng camera vào mã QR in trên Standee để quét tự động.
+        </p>
+
+        <div class="qr-fallback-section" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">
+          <p class="qr-fallback-title" style="font-size:12.5px; font-weight:700; margin-bottom:6px; color:var(--text-muted);">
+            <i class="ph ph-warning-circle" aria-hidden="true"></i> Camera bị mờ? Nhập mã 6 ký tự in dưới mã QR:
+          </p>
+          <div style="display:flex; gap:8px; align-items:center; width:100%;">
+            <input class="input" id="scanner-manual-input" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="Ví dụ: TONKI1" style="flex:1; height:42px; margin:0; font-family:monospace; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">
+            <button class="btn btn-primary" type="button" id="btn-scanner-manual-submit" style="flex:none; height:42px; padding:0 16px; white-space:nowrap;">Xác nhận</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Popup nhận Huy Chương kiểu game khi nghe kể xong -->
   <div class="medal-modal" id="medal-modal" role="dialog" aria-modal="true" aria-labelledby="medal-modal-congrats" hidden>
     <div class="medal-modal-backdrop" id="medal-modal-backdrop" aria-hidden="true"></div>
@@ -825,6 +863,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
   <!-- StPageFlip: lật trang sách 3D (PDF S02 gợi ý StPageFlip/Turn.js) -->
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js" defer></script>
   <script src="ca-chep.js" defer></script>
