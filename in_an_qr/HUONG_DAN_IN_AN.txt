@@ -1,0 +1,61 @@
+# HƯỚNG DẪN IN ẤN & VẬN HÀNH MÃ QR SỰ KIỆN
+Chuyện Nhà Táo — Đêm Hội Táo Quân
+Tên miền sự kiện: https://chuyen-nha-tao.vercel.app
+Ngày xuất file: 05:26:43 13/11/2026
+
+====================================================
+DANH MỤC 5 MÃ QR SỰ KIỆN
+====================================================
+
+1. CỔNG CHECK-IN:
+   - Mã dự phòng: CONG23
+   - Đường dẫn: https://chuyen-nha-tao.vercel.app/?vao=CONG23
+   - File PNG: 01_CONG_CHECKIN_CONG23.png (980x980px)
+   - File SVG: 01_CONG_CHECKIN_CONG23.svg (Vector)
+   - Vị trí dán: Cổng chào ra vào, Bàn lễ tân đón tiếp khách.
+   - Nhiệm vụ: Khách quét để mở web, nhập tên & tạo Thẻ Vân Du Ký (TAO-XXXXXX).
+
+2. TRẠM 1 — TÔN KÍNH:
+   - Mã dự phòng: TONKI1
+   - Đường dẫn: https://chuyen-nha-tao.vercel.app/?tram=TONKI1
+   - File PNG: 02_TRAM1_TON_KINH_TONKI1.png
+   - File SVG: 02_TRAM1_TON_KINH_TONKI1.svg
+   - Vị trí: Bàn trải nghiệm Trạm 1.
+
+3. TRẠM 2 — MÁI ẤM:
+   - Mã dự phòng: MAIAM2
+   - Đường dẫn: https://chuyen-nha-tao.vercel.app/?tram=MAIAM2
+   - File PNG: 03_TRAM2_MAI_AM_MAIAM2.png
+   - File SVG: 03_TRAM2_MAI_AM_MAIAM2.svg
+   - Vị trí: Bàn trải nghiệm Trạm 2.
+
+4. TRẠM 3 — NHÌN LẠI:
+   - Mã dự phòng: NHINL3
+   - Đường dẫn: https://chuyen-nha-tao.vercel.app/?tram=NHINL3
+   - File PNG: 04_TRAM3_NHIN_LAI_NHINL3.png
+   - File SVG: 04_TRAM3_NHIN_LAI_NHINL3.svg
+   - Vị trí: Bàn trải nghiệm Trạm 3.
+
+5. TRẠM 4 — HƯỚNG THIỆN:
+   - Mã dự phòng: HUONG4
+   - Đường dẫn: https://chuyen-nha-tao.vercel.app/?tram=HUONG4
+   - File PNG: 05_TRAM4_HUONG_THIEN_HUONG4.png
+   - File SVG: 05_TRAM4_HUONG_THIEN_HUONG4.svg
+   - Vị trí: Bàn trải nghiệm Trạm 4.
+   - Khi quét trạm này (đủ 4 dấu), máy của khách sẽ tự động kích hoạt Vòng Quay May Mắn nhận quà!
+
+====================================================
+KHUYẾN NGHỊ IN ẤN & THIẾT KẾ STANDEE
+====================================================
+
+1. Kích thước & Khung Standee:
+   - Standee để bàn: Khổ A5 (148 x 210 mm) hoặc A4 (210 x 297 mm), kẹp chân mica chữ T hoặc chữ L.
+   - Bảng cổng check-in: Standee chân cuốn chữ X (60 x 160 cm) hoặc dán decal cán bóng.
+   
+2. Định dạng gửi xưởng in:
+   - Nếu tự in văn phòng: Mở file in-ma-qr.html bằng trình duyệt, bấm "In Standee" hoặc Ctrl+P.
+   - Nếu gửi Designer / Nhà in: Gửi trực tiếp các file .svg (file vector không bao giờ vỡ nét) hoặc .png (980x980px).
+
+3. Xử lý sự cố camera khách bị mờ / không quét được:
+   - Mỗi standee đều có in sẵn mã 6 ký tự (CONG23, TONKI1, MAIAM2, NHINL3, HUONG4).
+   - Khách có thể bấm nút "Nhập mã trạm bằng tay" trên Thẻ Vân Du Ký để nhận dấu bình thường.

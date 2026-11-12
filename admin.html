@@ -774,13 +774,29 @@
       <!-- TAB 3: MÃ QR SỰ KIỆN -->
       <section class="adm-tab-panel" id="tab-qr" role="tabpanel" hidden>
         <div class="card" aria-labelledby="qr-title">
-          <div class="toolbar">
+          <div class="toolbar" style="flex-wrap: wrap; gap: 12px;">
             <div>
               <h2 class="sec-title" id="qr-title">Mã QR in cho sự kiện O2O</h2>
-              <p class="sec-sub">Mã cổng: dán ở cổng để người chơi check-in. Nhân sự đóng dấu bằng trang <a href="staff.html">staff.html</a> (quét QR trên hộ chiếu người chơi); mã các trạm chỉ dùng khi chạy thử chưa có máy chủ.</p>
+              <p class="sec-sub">Mã cổng: dán ở cổng chào để người chơi check-in. Mã 4 trạm: in standee để tại từng quầy trải nghiệm. Đủ 4 trạm khách tự quay thưởng, sau đó mang thẻ ra bàn Check-out để nhân sự trao quà.</p>
             </div>
-            <button class="btn btn-primary btn-sm no-print" type="button" onclick="window.print()"><i class="ph ph-printer" aria-hidden="true"></i> In mã QR</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <a href="in-ma-qr.html" target="_blank" class="btn btn-secondary btn-sm no-print" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                <i class="ph ph-printer" aria-hidden="true"></i> Mở trang In Standee A4/A5 Chuyên Nghiệp
+              </a>
+              <button class="btn btn-primary btn-sm no-print" type="button" onclick="window.print()">
+                <i class="ph ph-printer" aria-hidden="true"></i> In nhanh trang này
+              </button>
+            </div>
           </div>
+
+          <div class="no-print" style="background: rgba(255,255,255,0.03); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <label for="adm-qr-domain" style="font-size: 13px; font-weight: 700; color: var(--gold); display: flex; align-items: center; gap: 6px;">
+              <i class="ph ph-globe"></i> Tên miền sự kiện:
+            </label>
+            <input class="input" id="adm-qr-domain" style="flex: 1; min-width: 250px; font-family: monospace; font-size: 13px; padding: 6px 10px;" placeholder="https://chuyen-nha-tao.vercel.app">
+            <button class="btn btn-secondary btn-sm" id="btn-adm-apply-domain" type="button">Áp dụng</button>
+          </div>
+
           <div class="qr-grid" id="qr-grid"></div>
         </div>
       </section>

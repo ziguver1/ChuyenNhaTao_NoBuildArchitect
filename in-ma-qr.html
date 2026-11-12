@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xuất Mã QR & In Standee Sự Kiện — Chuyện Nhà Táo</title>
+  <link rel="icon" href="images/logo.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  
+  <style>
+    :root {
+      --bg: #0c0806;
+      --card-bg: #18110b;
+      --card-border: #3b2514;
+      --text-main: #f5eedf;
+      --text-muted: #a38c78;
+      --gold: #f2bb52;
+      --gold-dark: #b88628;
+      --crimson: #a6241b;
+      --crimson-light: #d63c31;
+      --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-title: 'Cinzel', serif;
+      --font-serif: 'Playfair Display', serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      line-height: 1.5;
+      padding: 24px 16px 80px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(242, 187, 82, 0.12);
+      border: 1px solid rgba(242, 187, 82, 0.3);
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-family: var(--font-title);
+      font-size: clamp(24px, 4vw, 36px);
+      color: var(--gold);
+      letter-spacing: .04em;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Control Box */
+    .control-box {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 32px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .control-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .url-input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .url-input-wrapper {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+    .url-input-wrapper input {
+      width: 100%;
+      background: #0f0a07;
+      border: 1.5px solid var(--gold-dark);
+      border-radius: 10px;
+      padding: 12px 14px 12px 42px;
+      color: #fff;
+      font-size: 15px;
+      font-family: monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .url-input-wrapper input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(242, 187, 82, 0.2);
+    }
+    .url-input-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gold);
+      font-size: 18px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #f2bb52, #d4952b);
+      color: #261405;
+    }
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #ffd37a, #e6a73c);
+      transform: translateY(-1px);
+    }
+    .btn-outline {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .domain-hints {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      align-items: center;
+    }
+    .domain-chip {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--gold);
+      font-family: monospace;
+      font-size: 12px;
+      transition: background 0.15s;
+    }
+    .domain-chip:hover {
+      background: rgba(242, 187, 82, 0.2);
+    }
+
+    /* Grid layout */
+    .qr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    /* QR Card */
+    .qr-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+    .qr-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--crimson));
+    }
+    .station-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(242, 187, 82, 0.1);
+      color: var(--gold);
+      margin-bottom: 10px;
+    }
+    .qr-card-title {
+      font-family: var(--font-title);
+      font-size: 18px;
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .qr-card-sub {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 16px;
+      min-height: 38px;
+    }
+    .qr-canvas-box {
+      background: #ffffff;
+      padding: 16px;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      border: 2px solid var(--gold-dark);
+      width: 232px;
+      height: 232px;
+    }
+    .qr-canvas-box canvas, .qr-canvas-box img {
+      width: 200px !important;
+      height: 200px !important;
+      display: block;
+    }
+    .qr-code-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.5);
+      border: 1px solid var(--gold-dark);
+      padding: 6px 14px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .qr-code-pill span {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .qr-code-pill strong {
+      font-family: monospace;
+      font-size: 16px;
+      color: var(--gold);
+      letter-spacing: .15em;
+    }
+    .qr-url-text {
+      font-size: 11.5px;
+      color: #7a6654;
+      font-family: monospace;
+      word-break: break-all;
+      margin-bottom: 16px;
+      max-width: 100%;
+    }
+    .qr-card-actions {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      margin-top: auto;
+    }
+    .qr-card-actions button {
+      flex: 1;
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    /* Standee Printable Sheet (Hidden by default, shown when printing or previewing) */
+    .standee-container {
+      display: none;
+    }
+
+    /* Print View Styles */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #1a1a1a !important;
+        padding: 0 !important;
+      }
+      .no-print, .header, .control-box, .qr-grid, .guide-section {
+        display: none !important;
+      }
+      .standee-container {
+        display: block !important;
+      }
+      .standee-page {
+        page-break-after: always;
+        break-after: page;
+        height: 100vh;
+        max-height: 297mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        padding: 40px 30px;
+        box-sizing: border-box;
+        text-align: center;
+        background: #fff;
+        border: 12px double #8b1812;
+        outline: 2px solid #b88628;
+        outline-offset: -8px;
+        position: relative;
+      }
+      .standee-header {
+        margin-top: 10px;
+      }
+      .standee-logo-txt {
+        font-family: 'Cinzel', serif;
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: .15em;
+        color: #8b1812;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+      .standee-tagline {
+        font-size: 13px;
+        color: #555;
+        letter-spacing: .06em;
+      }
+      .standee-title-box {
+        margin: 20px 0;
+      }
+      .standee-station-badge {
+        display: inline-block;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: #8b1812;
+        border-bottom: 2px solid #b88628;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+      }
+      .standee-title {
+        font-family: 'Cinzel', serif;
+        font-size: 32px;
+        font-weight: 900;
+        color: #1a1a1a;
+        margin-bottom: 6px;
+      }
+      .standee-desc {
+        font-size: 16px;
+        color: #444;
+        font-style: italic;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      .standee-qr-frame {
+        padding: 24px;
+        border: 4px solid #b88628;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        display: inline-block;
+        margin: 15px 0;
+      }
+      .standee-qr-frame canvas, .standee-qr-frame img {
+        width: 300px !important;
+        height: 300px !important;
+        display: block;
+      }
+      .standee-action-prompt {
+        font-size: 20px;
+        font-weight: 800;
+        color: #8b1812;
+        margin-bottom: 8px;
+        letter-spacing: .04em;
+      }
+      .standee-instruction {
+        font-size: 14px;
+        color: #555;
+        max-width: 480px;
+        line-height: 1.6;
+        margin-bottom: 16px;
+      }
+      .standee-code-box {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #fdf6ec;
+        border: 1.5px dashed #b88628;
+        padding: 8px 24px;
+        border-radius: 8px;
+      }
+      .standee-code-box span {
+        font-size: 13px;
+        color: #666;
+        font-weight: 600;
+      }
+      .standee-code-box strong {
+        font-family: monospace;
+        font-size: 22px;
+        letter-spacing: .2em;
+        color: #8b1812;
+      }
+      .standee-footer {
+        margin-bottom: 10px;
+        font-size: 12px;
+        color: #777;
+        border-top: 1px solid #ddd;
+        padding-top: 8px;
+        width: 80%;
+      }
+    }
+
+    /* Guide Section */
+    .guide-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 40px;
+    }
+    .guide-title {
+      font-size: 18px;
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .guide-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .guide-card h4 {
+      color: var(--gold);
+      font-size: 14.5px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .guide-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-badge">
+        <i class="ph-bold ph-qr-code"></i> O2O Festival Assets
+      </div>
+      <h1>XUẤT MÃ QR & IN BẢNG STANDEE SỰ KIỆN</h1>
+      <p>Tạo và xuất trọn bộ 5 mã QR sắc nét (1024x1024 px) phục vụ in ấn standee để bàn, decal dán cổng chào và 4 trạm trải nghiệm thực tế.</p>
+    </header>
+
+    <!-- Toolbar / Settings -->
+    <section class="control-box">
+      <div class="control-title">
+        <i class="ph-bold ph-sliders"></i> Cấu hình Tên Miền Sự Kiện (Base Domain)
+      </div>
+      <div class="url-input-group">
+        <div class="url-input-wrapper">
+          <i class="ph-bold ph-globe"></i>
+          <input type="text" id="domain-input" placeholder="https://chuyen-nha-tao.vercel.app" value="">
+        </div>
+        <button class="btn btn-gold" id="btn-download-all" type="button">
+          <i class="ph-bold ph-download-simple"></i> Tải trọn bộ 5 ảnh PNG (1024px)
+        </button>
+        <button class="btn btn-outline" id="btn-print-standees" type="button">
+          <i class="ph-bold ph-printer"></i> In 5 Standee A4/A5 (hoặc Lưu PDF)
+        </button>
+      </div>
+      <div class="domain-hints">
+        <span>Gợi ý nhanh:</span>
+        <button class="domain-chip" type="button" data-domain="https://chuyen-nha-tao.vercel.app">https://chuyen-nha-tao.vercel.app</button>
+        <button class="domain-chip" type="button" id="chip-current-origin">Tên miền hiện tại</button>
+      </div>
+    </section>
+
+    <!-- 5 QR Cards Grid -->
+    <div class="qr-grid" id="qr-cards-grid">
+      <!-- Sẽ được render bởi JavaScript -->
+    </div>
+
+    <!-- Hướng dẫn vận hành -->
+    <section class="guide-section">
+      <h3 class="guide-title"><i class="ph-bold ph-info"></i> Hướng Dẫn Vận Hành & Khuyến Nghị In Ấn</h3>
+      <div class="guide-grid">
+        <div class="guide-card">
+          <h4><i class="ph-bold ph-selection-foreground"></i> 1. Kích thước & Chất liệu</h4>
+          <p>Khuyến nghị in standee để bàn kích thước <strong>A5 (148 x 210 mm)</strong> hoặc <strong>A4</strong>, kẹp mica trong suốt hoặc in decal PP bồi formex 5mm để đứng vững tại các quầy trạm.</p>
+        </div>
+        <div class="guide-card">
+          <h4><i class="ph-bold ph-device-mobile-camera"></i> 2. Cách khách hàng quét mã</h4>
+          <p>Độc giả chỉ cần mở <strong>Camera mặc định</strong> của điện thoại hoặc ứng dụng <strong>Zalo</strong> quét mã để mở ngay ứng dụng web mà không cần cài đặt thêm app.</p>
+        </div>
+        <div class="guide-card">
+          <h4><i class="ph-bold ph-key"></i> 3. Mã dự phòng khi camera lỗi</h4>
+          <p>Mỗi trạm đều có <strong>Mã 6 chữ số</strong> in sẵn phía dưới (ví dụ <code>TONKI1</code>). Nếu camera khách bị mờ, khách có thể tự bấm nhập mã trên điện thoại để nhận dấu.</p>
+        </div>
+        <div class="guide-card">
+          <h4><i class="ph-bold ph-gift"></i> 4. Khâu Check-out trao quà</h4>
+          <p>Khi khách hoàn thành Trạm 4 và quay thưởng, họ sẽ đưa mã QR Thẻ Vân Du Ký trên máy của họ cho nhân viên tại <strong>Bàn Check-out</strong> quét bằng <a href="staff.html" style="color:var(--gold);">staff.html</a> để nhận quà.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- STANDALONE PRINTABLE STANDEE SHEETS (Trang in ẩn, chỉ kích hoạt khi bấm Print) -->
+  <div class="standee-container" id="standee-print-sheets">
+    <!-- Render tự động bởi JS -->
+  </div>
+
+  <script src="js/vendor/qrcode.min.js"></script>
+  <script>
+    // Định nghĩa danh mục 5 trạm/cổng chuẩn của sự kiện
+    const STATIONS_DATA = [
+      {
+        id: 'cong',
+        num: 0,
+        badge: 'CỔNG VÀO SỰ KIỆN',
+        name: 'Cổng Khai Hội — Check-in',
+        sub: 'Quét để tạo Thẻ Vân Du Ký, nhập tên và bắt đầu hành trình',
+        code: 'CONG23',
+        param: 'vao=CONG23',
+        icon: 'door',
+        role: 'Bàn tiếp đón / Cổng check-in',
+        actionPrompt: 'QUÉT MÃ ĐỂ NHẬN THẺ VÂN DU KÝ'
+      },
+      {
+        id: 'tram1',
+        num: 1,
+        badge: 'TRẠM 1',
+        name: 'Trạm Tôn Kính',
+        sub: 'Thắp sáng lòng biết ơn & Tôn kính nguồn cội tổ tiên',
+        code: 'TONKI1',
+        param: 'tram=TONKI1',
+        icon: 'flame',
+        role: 'Bàn trải nghiệm Trạm 1',
+        actionPrompt: 'QUÉT MÃ ĐỂ TÍCH DẤU TRẠM 1'
+      },
+      {
+        id: 'tram2',
+        num: 2,
+        badge: 'TRẠM 2',
+        name: 'Trạm Mái Ấm',
+        sub: 'Gắn kết yêu thương & Lan tỏa hơi ấm gia đình sum vầy',
+        code: 'MAIAM2',
+        param: 'tram=MAIAM2',
+        icon: 'house',
+        role: 'Bàn trải nghiệm Trạm 2',
+        actionPrompt: 'QUÉT MÃ ĐỂ TÍCH DẤU TRẠM 2'
+      },
+      {
+        id: 'tram3',
+        num: 3,
+        badge: 'TRẠM 3',
+        name: 'Trạm Nhìn Lại',
+        sub: 'Lắng đọng tâm tư & Chiêm nghiệm chặng đường một năm đã qua',
+        code: 'NHINL3',
+        param: 'tram=NHINL3',
+        icon: 'scroll',
+        role: 'Bàn trải nghiệm Trạm 3',
+        actionPrompt: 'QUÉT MÃ ĐỂ TÍCH DẤU TRẠM 3'
+      },
+      {
+        id: 'tram4',
+        num: 4,
+        badge: 'TRẠM 4',
+        name: 'Trạm Hướng Thiện',
+        sub: 'Gieo mầm điều lành & Kích hoạt Vòng Quay May Mắn 100% trúng quà',
+        code: 'HUONG4',
+        param: 'tram=HUONG4',
+        icon: 'gift',
+        role: 'Bàn trải nghiệm Trạm 4 (Chặng cuối)',
+        actionPrompt: 'QUÉT MÃ TÍCH ĐỦ 4 DẤU & QUAY THƯỞNG'
+      }
+    ];
+
+    // Lấy domain mặc định
+    function getDefaultDomain() {
+      if (location.origin && !location.origin.includes('localhost') && !location.origin.includes('127.0.0.1')) {
+        return location.origin;
+      }
+      return 'https://chuyen-nha-tao.vercel.app';
+    }
+
+    const domainInput = document.getElementById('domain-input');
+    domainInput.value = getDefaultDomain();
+
+    const chipCurrent = document.getElementById('chip-current-origin');
+    chipCurrent.textContent = location.origin;
+    chipCurrent.dataset.domain = location.origin;
+
+    // Lưu danh sách instance QRCode và DataURL
+    const qrInstances = {};
+    const qrDataUrls = {};
+
+    function cleanDomain(d) {
+      let res = (d || '').trim();
+      if (!res.startsWith('http://') && !res.startsWith('https://')) {
+        res = 'https://' + res;
+      }
+      return res.replace(/\/+$/, '');
+    }
+
+    function renderCards() {
+      const base = cleanDomain(domainInput.value);
+      const grid = document.getElementById('qr-cards-grid');
+      const printSheets = document.getElementById('standee-print-sheets');
+      grid.innerHTML = '';
+      printSheets.innerHTML = '';
+
+      STATIONS_DATA.forEach((s, idx) => {
+        const fullUrl = `${base}/?${s.param}`;
+
+        // 1. Thẻ giao diện web
+        const card = document.createElement('div');
+        card.className = 'qr-card';
+        card.innerHTML = `
+          <div class="station-badge"><i class="ph-bold ph-${s.icon}"></i> ${s.badge}</div>
+          <h2 class="qr-card-title">${s.name}</h2>
+          <p class="qr-card-sub">${s.sub}</p>
+          <div class="qr-canvas-box" id="qr-box-${s.id}"></div>
+          <div class="qr-code-pill">
+            <span>Mã dự phòng:</span>
+            <strong>${s.code}</strong>
+          </div>
+          <div class="qr-url-text">${fullUrl}</div>
+          <div class="qr-card-actions">
+            <button class="btn btn-gold" type="button" onclick="downloadSingleQR('${s.id}')">
+              <i class="ph-bold ph-download-simple"></i> Tải PNG (1024px)
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+
+        // 2. Tấm Standee in ấn (A4/A5)
+        const sheet = document.createElement('div');
+        sheet.className = 'standee-page';
+        sheet.innerHTML = `
+          <div class="standee-header">
+            <div class="standee-logo-txt">CHUYỆN NHÀ TÁO</div>
+            <div class="standee-tagline">Hành Trình Vân Du Ký — Đêm Hội Táo Quân</div>
+          </div>
+
+          <div class="standee-title-box">
+            <div class="standee-station-badge">${s.badge}</div>
+            <h1 class="standee-title">${s.name}</h1>
+            <p class="standee-desc">${s.sub}</p>
+          </div>
+
+          <div class="standee-qr-frame" id="standee-qr-box-${s.id}"></div>
+
+          <div>
+            <div class="standee-action-prompt">${s.actionPrompt}</div>
+            <p class="standee-instruction">
+              Mở <strong>Camera điện thoại</strong> hoặc <strong>ứng dụng Zalo</strong> quét mã QR phía trên để tham gia hành trình và nhận phần quà may mắn.
+            </p>
+            <div class="standee-code-box">
+              <span>Mã nhập tay (nếu camera mờ):</span>
+              <strong>${s.code}</strong>
+            </div>
+          </div>
+
+          <div class="standee-footer">
+            Vị trí đặt: ${s.role} • Bản quyền © 2026 Chuyện Nhà Táo
+          </div>
+        `;
+        printSheets.appendChild(sheet);
+
+        // Render QR Code chất lượng cao (1024x1024)
+        setTimeout(() => {
+          const boxEl = document.getElementById(`qr-box-${s.id}`);
+          const standeeBoxEl = document.getElementById(`standee-qr-box-${s.id}`);
+
+          if (boxEl) {
+            boxEl.innerHTML = '';
+            new QRCode(boxEl, {
+              text: fullUrl,
+              width: 512,
+              height: 512,
+              colorDark: '#1b120c',
+              colorLight: '#ffffff',
+              correctLevel: QRCode.CorrectLevel.H
+            });
+          }
+
+          if (standeeBoxEl) {
+            standeeBoxEl.innerHTML = '';
+            new QRCode(standeeBoxEl, {
+              text: fullUrl,
+              width: 600,
+              height: 600,
+              colorDark: '#1b120c',
+              colorLight: '#ffffff',
+              correctLevel: QRCode.CorrectLevel.H
+            });
+          }
+
+          // Tạo ảnh PNG siêu nét 1024x1024 để tải
+          setTimeout(() => {
+            const tempDiv = document.createElement('div');
+            new QRCode(tempDiv, {
+              text: fullUrl,
+              width: 1024,
+              height: 1024,
+              colorDark: '#1b120c',
+              colorLight: '#ffffff',
+              correctLevel: QRCode.CorrectLevel.H
+            });
+            setTimeout(() => {
+              const canvas = tempDiv.querySelector('canvas');
+              if (canvas) {
+                qrDataUrls[s.id] = canvas.toDataURL('image/png');
+              } else {
+                const img = tempDiv.querySelector('img');
+                if (img) qrDataUrls[s.id] = img.src;
+              }
+            }, 100);
+          }, 50);
+        }, 50);
+      });
+    }
+
+    // Tải 1 file QR đơn lẻ
+    window.downloadSingleQR = function(id) {
+      const s = STATIONS_DATA.find(x => x.id === id);
+      if (!s) return;
+      const dataUrl = qrDataUrls[id];
+      if (!dataUrl) {
+        alert('Đang khởi tạo mã QR, vui lòng thử lại sau giây lát!');
+        return;
+      }
+      const filename = `QR_${s.id.toUpperCase()}_${s.code}_1024px.png`;
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    // Tải toàn bộ 5 file PNG
+    document.getElementById('btn-download-all').addEventListener('click', () => {
+      let delay = 0;
+      STATIONS_DATA.forEach((s) => {
+        setTimeout(() => {
+          downloadSingleQR(s.id);
+        }, delay);
+        delay += 350; // Tránh browser chặn multi-download
+      });
+    });
+
+    // In toàn bộ standee
+    document.getElementById('btn-print-standees').addEventListener('click', () => {
+      window.print();
+    });
+
+    // Cập nhật khi gõ domain
+    domainInput.addEventListener('input', () => {
+      renderCards();
+    });
+
+    // Chọn chip domain
+    document.querySelectorAll('.domain-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        domainInput.value = chip.dataset.domain;
+        renderCards();
+      });
+    });
+
+    // Khởi chạy lần đầu
+    window.addEventListener('load', () => {
+      renderCards();
+    });
+  </script>
+</body>
+</html>

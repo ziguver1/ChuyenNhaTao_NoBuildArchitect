@@ -2091,39 +2091,90 @@
   // =========================================================================
   // MÃ QR SỰ KIỆN (TAB 3)
   // =========================================================================
+  function getQRBaseUrl() {
+    const input = $('#adm-qr-domain');
+    let base = input && input.value ? input.value.trim() : location.origin;
+    if (!base.startsWith('http://') && !base.startsWith('https://')) {
+      base = 'https://' + base;
+    }
+    return base.replace(/\/+$/, '') + '/';
+  }
+
   function renderQR() {
-    const base = location.origin + '/';
+    const domainInput = $('#adm-qr-domain');
+    if (domainInput && !domainInput.value) {
+      if (location.origin && !location.origin.includes('localhost') && !location.origin.includes('127.0.0.1')) {
+        domainInput.value = location.origin;
+      } else {
+        domainInput.value = 'https://chuyen-nha-tao.vercel.app';
+      }
+    }
+
+    const base = getQRBaseUrl();
     const items = [['Cổng check-in', 'Quét để check-in sự kiện', GATE_CODE, `${base}?vao=${GATE_CODE}`]].concat(
       STATIONS.map(([name, code]) => [name, 'Quét để đóng dấu và quay thưởng', code, `${base}?tram=${code}`])
     );
     const grid = $('#qr-grid');
-    if (!grid || grid.dataset.done) return;
-    grid.dataset.done = '1';
+    if (!grid) return;
     grid.innerHTML = items
       .map(
         ([t, sub, code, url], i) =>
-          `<div class="qr-card"><strong>${t}</strong><span>${sub}</span><div id="qr-${i}"></div><code>${code}</code><small>${url}</small></div>`
+          `<div class="qr-card">
+            <strong>${t}</strong>
+            <span>${sub}</span>
+            <div id="qr-${i}"></div>
+            <code>${code}</code>
+            <small style="word-break:break-all; max-width:100%;">${url}</small>
+            <button class="btn btn-secondary btn-sm no-print" type="button" style="margin-top:6px;" onclick="downloadAdminQR(${i}, '${code}')">
+              <i class="ph ph-download-simple"></i> Tải ảnh PNG
+            </button>
+          </div>`
       )
       .join('');
+
     const draw = () =>
       items.forEach(([, , , url], i) => {
+        const el = document.getElementById('qr-' + i);
+        if (!el) return;
+        el.innerHTML = '';
         if (typeof QRCode === 'undefined') {
-          const el = document.getElementById('qr-' + i);
-          if (el) el.textContent = url;
+          el.textContent = url;
           return;
         }
-        new QRCode(document.getElementById('qr-' + i), {
+        new QRCode(el, {
           text: url,
           width: 150,
           height: 150,
           colorDark: '#1b120c',
           colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.M
+          correctLevel: QRCode.CorrectLevel.H
         });
       });
+
     if (typeof QRCode !== 'undefined') draw();
     else window.addEventListener('load', draw, { once: true });
   }
+
+  window.downloadAdminQR = function(i, code) {
+    const el = document.getElementById('qr-' + i);
+    if (!el) return;
+    const canvas = el.querySelector('canvas');
+    let url = canvas ? canvas.toDataURL('image/png') : null;
+    if (!url) {
+      const img = el.querySelector('img');
+      if (img) url = img.src;
+    }
+    if (!url) {
+      alert('Chưa tạo xong ảnh QR, vui lòng thử lại sau giây lát!');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `QR_${code}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   // =========================================================================
   // EVENT LISTENERS & KHỞI CHẠY
@@ -2147,6 +2198,15 @@
     });
 
     $('#btn-reload')?.addEventListener('click', load);
+
+    // Đổi domain và vẽ lại mã QR O2O
+    $('#btn-adm-apply-domain')?.addEventListener('click', renderQR);
+    $('#adm-qr-domain')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        renderQR();
+      }
+    });
 
     $('#btn-csv')?.addEventListener('click', exportPeopleCSV);
     $('#btn-csv-interact')?.addEventListener('click', exportInteractionCSV);
