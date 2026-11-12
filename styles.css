@@ -3515,6 +3515,54 @@ body::after {
 .btn-tet { background: #b8241c; color: #fff3d6; border: 2px solid #f3d27a; box-shadow: 0 0 0 2px #b8241c, 0 10px 22px -10px rgba(120, 20, 5, .7); font-weight: 800; letter-spacing: .02em; }
 .btn-tet:hover { background: #a11d14; }
 .btn-tet i { color: #f3d27a; }
+
+/* Huy hiệu +1 Lượt Quay và Nút Quay May Mắn */
+.wheel-ticket-banner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #fff3d6, #ffe082);
+  border: 1.5px solid #d48806;
+  border-radius: 999px;
+  padding: 6px 16px;
+  margin: 0 auto 10px;
+  box-shadow: 0 4px 12px rgba(212, 136, 6, 0.22);
+  transition: all 0.3s ease;
+  animation: pulseTicketBadge 2s infinite ease-in-out;
+}
+.wheel-ticket-banner i {
+  font-size: 20px;
+  color: #b8241c;
+}
+.wheel-ticket-banner span {
+  font-size: 14px;
+  font-weight: 700;
+  color: #7a1a0e;
+}
+.wheel-ticket-banner .plus-badge {
+  background: #b8241c;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: .04em;
+  box-shadow: 0 2px 4px rgba(184, 36, 28, 0.35);
+}
+@keyframes pulseTicketBadge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.btn-spin-active {
+  box-shadow: 0 0 0 2px #b8241c, 0 8px 24px -4px rgba(184, 36, 28, 0.55) !important;
+  animation: pulseSpinBtn 1.8s infinite ease-in-out;
+}
+@keyframes pulseSpinBtn {
+  0%, 100% { transform: translateY(0); box-shadow: 0 0 0 2px #b8241c, 0 8px 24px -4px rgba(184, 36, 28, 0.55); }
+  50% { transform: translateY(-2px); box-shadow: 0 0 0 3px #f3d27a, 0 12px 28px -4px rgba(184, 36, 28, 0.7); }
+}
+
 /* Lớp hoa đào và pháo nổ, phủ màn hình, không chặn thao tác */
 .tet-fx { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 3; pointer-events: none; }
 

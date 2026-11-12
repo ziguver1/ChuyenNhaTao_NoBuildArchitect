@@ -305,12 +305,21 @@ export function ppPageHTML(n) {
         total === 4
           ? (chkSpin
               ? `Quà vòng quay tốt nghiệp: <strong>${PRIZES[chkSpin.prize]?.label || 'Quà may mắn'}</strong>. Hãy ra bàn check-out nhận quà.`
-              : 'Mời bạn quay vòng quay may mắn ở bàn check-out để nhận quà.')
+              : 'Chúc mừng bạn hoàn thành 4 trạm! Bạn có 1 lượt quay tốt nghiệp.')
           : 'Mỗi trạm tích một dấu vào hộ chiếu.'
       }</p>
       ${
         total === 4 && !chkSpin
-          ? `<div style="text-align:center;margin-top:10px;"><button class="btn btn-tet btn-sm" type="button" data-checkout-spin><i class="ph ph-spiral"></i> Quay vòng quay may mắn</button></div>`
+          ? `<div style="text-align:center;margin-top:8px;">
+               <div class="wheel-ticket-banner" style="margin:0 auto 8px;padding:3px 12px;font-size:12px;">
+                 <i class="ph-fill ph-ticket" style="font-size:16px;"></i>
+                 <span>Bạn có <strong>1 lượt quay</strong></span>
+                 <span class="plus-badge">+1</span>
+               </div>
+               <button class="btn btn-tet btn-sm btn-spin-active" type="button" data-checkout-spin>
+                 <i class="ph-fill ph-spiral"></i> Quay lấy lộc (1 lượt)
+               </button>
+             </div>`
           : ''
       }
     </div>`;
@@ -693,7 +702,7 @@ export function doStamp(id, ts, fromServer) {
 
   if (complete) {
     track('passport_complete');
-    toast('Đủ bốn dấu rồi. Mời bạn đến bàn check-out nhận quà.', 'gold', 'gift');
+    toast('✦ Chúc mừng hoàn thành 4 trạm! Bạn nhận được +1 LƯỢT QUAY MAY MẮN!', 'gold', 'spiral');
     const fc = $('#form-code');
     if (fc) fc.remove();
     renderCheckout();
@@ -742,12 +751,17 @@ export function renderCheckout() {
     ${
       !hasSpun
         ? `<div class="checkout-wheel-box" style="padding:18px;background:var(--gold-soft);border-radius:16px;text-align:center;display:grid;gap:10px;border:1.5px dashed rgba(184,36,28,0.3);">
+             <div class="wheel-ticket-banner" style="margin: 0 auto;">
+               <i class="ph-fill ph-ticket"></i>
+               <span>Phần thưởng: <strong>+1 LƯỢT QUAY MAY MẮN</strong></span>
+               <span class="plus-badge">+1</span>
+             </div>
              <strong style="font-size:16px;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;gap:6px;">
                <i class="ph-fill ph-sparkle" style="color:var(--accent);"></i> Vòng quay may mắn Check-out
              </strong>
-             <p style="margin:0;font-size:14px;color:var(--text-muted);">Bạn có <strong>1 lượt quay duy nhất</strong> để nhận phần quà của mình!</p>
-             <button class="btn btn-tet btn-block" type="button" id="btn-checkout-spin" style="max-width:280px;margin:4px auto 0;">
-               <i class="ph ph-spiral" aria-hidden="true"></i> Quay vòng quay may mắn
+             <p style="margin:0;font-size:14px;color:var(--text-muted);">Bạn vừa nhận được <strong>1 lượt quay tốt nghiệp</strong>. Bấm nút dưới để quay lấy quà!</p>
+             <button class="btn btn-tet btn-block btn-spin-active" type="button" id="btn-checkout-spin" style="max-width:280px;margin:4px auto 0;">
+               <i class="ph-fill ph-spiral" aria-hidden="true"></i> Bấm để quay ngay (1 lượt)
              </button>
            </div>`
         : wonList()

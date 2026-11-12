@@ -458,7 +458,15 @@ export function openWheel(target = 'checkout') {
     tone: 'tet',
     title: 'Vòng quay may mắn Check-out',
     dismissible: false,
-    html: `<p class="tet-sub">✦ Vòng quay may mắn tốt nghiệp ✦<br>Chúc mừng bạn đã hoàn thành bốn trạm! Bạn có 1 lượt quay duy nhất để nhận quà.</p>
+    html: `
+      <div style="text-align:center;margin-bottom:8px;">
+        <div class="wheel-ticket-banner" id="wheel-banner" aria-label="Bạn có 1 lượt quay">
+          <i class="ph-fill ph-ticket" aria-hidden="true"></i>
+          <span>Bạn có: <strong id="wheel-spins-count">1 lượt quay</strong></span>
+          <span class="plus-badge">+1</span>
+        </div>
+      </div>
+      <p class="tet-sub">✦ Vòng quay may mắn tốt nghiệp ✦<br>Chúc mừng bạn đã hoàn thành bốn trạm! Dùng <strong>1 lượt quay</strong> để nhận quà tốt nghiệp.</p>
       <div class="wheel-wrap">
         <span class="wheel-pin" aria-hidden="true"><svg viewBox="0 0 40 52"><path d="M20 50 L6 20 A14 14 0 1 1 34 20 Z" fill="#b8241c" stroke="#f3d27a" stroke-width="2.5"/>${blossom(
           20,
@@ -468,7 +476,9 @@ export function openWheel(target = 'checkout') {
         <div class="wheel" id="wheel">${wheelSVG()}</div>
       </div>
       <p class="wheel-result" id="wheel-result" aria-live="polite"></p>
-      <button class="btn btn-tet btn-block" type="button" id="wheel-spin"><i class="ph ph-spiral" aria-hidden="true"></i> Quay lấy lộc</button>`,
+      <button class="btn btn-tet btn-block btn-spin-active" type="button" id="wheel-spin">
+        <i class="ph-fill ph-spiral" aria-hidden="true"></i> Quay lấy lộc (1 lượt)
+      </button>`,
     buttons: [{ label: 'Để sau', value: 'later', cls: 'btn-quiet', id: 'wheel-close' }]
   });
 
@@ -502,7 +512,15 @@ export function spinWheel(target = 'checkout') {
   } catch (e) {}
 
   const btn = $('#wheel-spin');
-  if (btn) btn.disabled = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.classList.remove('btn-spin-active');
+    btn.innerHTML = '<i class="ph ph-spinner-gap ph-spin"></i> Đang quay lấy lộc...';
+  }
+  const countEl = $('#wheel-spins-count');
+  if (countEl) countEl.textContent = '0 lượt';
+  const bannerTag = $('.wheel-ticket-banner .plus-badge');
+  if (bannerTag) bannerTag.style.display = 'none';
   const closeBtn = $('#wheel-close');
   if (closeBtn) closeBtn.disabled = true;
 
@@ -552,6 +570,13 @@ export function spinWheel(target = 'checkout') {
 
   const reveal = () => {
     isWheelSpinning = false;
+    const banner = $('#wheel-banner') || $('.wheel-ticket-banner');
+    if (banner) {
+      banner.innerHTML = `<i class="ph-fill ph-check-circle" style="color:#16a34a;font-size:18px;"></i> <span>Đã dùng <strong>1 lượt quay</strong></span>`;
+      banner.style.background = '#dcfce7';
+      banner.style.borderColor = '#22c55e';
+      banner.style.animation = 'none';
+    }
     const pz = PRIZES[prize] || PRIZES.sticker,
       win = prize !== 'none';
     const res = $('#wheel-result');
