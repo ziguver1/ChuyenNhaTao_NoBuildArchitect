@@ -74,57 +74,55 @@ function readBody(req) {
 
 const PID_RE = /^(TAO|OFF)-[A-Z0-9]{6}$/;
 
-const DEFAULT_PRIZE_SET = new Set(['sticker', 'keychain', 'blindbox', 'none']);
+const DEFAULT_PRIZE_SET = new Set(['keychain', 'sticker', 'tote', 'blindbox', 'none']);
 const PRIZE_KEYS = {
   has(k) {
     return typeof k === 'string' && (DEFAULT_PRIZE_SET.has(k) || /^[a-zA-Z0-9_-]{1,32}$/.test(k));
   }
 };
 
-// Danh mục các phần quà mặc định của sự kiện
+// Danh mục các phần quà mặc định của sự kiện: 150 phần quà (60 móc khoá + 60 sticker + 21 túi tote + 9 blindbox)
 const DEFAULT_PRIZES = [
-  { key: 'sticker', name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', stock: 70, rate: 45, isGift: true },
-  { key: 'keychain', name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', stock: 20, rate: 20, isGift: true },
-  { key: 'blindbox', name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', stock: 3, rate: 5, isGift: true },
-  { key: 'none', name: 'Chúc may mắn lần sau', short: 'Lời chúc', color: '#2f6a47', ink: '#fff3d6', icon: 'clover', stock: 0, rate: 30, isGift: false }
+  { key: 'keychain', name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', stock: 60, rate: 40, isGift: true },
+  { key: 'sticker', name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', stock: 60, rate: 40, isGift: true },
+  { key: 'tote', name: 'Túi tote Táo Quân', short: 'Túi tote', color: '#1f4e8c', ink: '#ffffff', icon: 'tote', stock: 21, rate: 14, isGift: true },
+  { key: 'blindbox', name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', stock: 9, rate: 6, isGift: true }
 ];
 
 // Cấu hình các Đợt (Rounds) mặc định của sự kiện để phân bổ kho quà đều đặn theo ca/thời điểm
 const DEFAULT_ROUNDS = [
   {
     id: 'round_1',
-    name: 'Đợt 1: Khởi động (Sáng 23)',
+    name: 'Đợt 1: Ngày đầu (150 quà)',
     status: 'active',
     prizes: JSON.parse(JSON.stringify(DEFAULT_PRIZES))
   },
   {
     id: 'round_2',
-    name: 'Đợt 2: Cao điểm (Chiều 23)',
+    name: 'Đợt 2: Cao điểm (150 quà)',
     status: 'upcoming',
-    prizes: [
-      { key: 'sticker', name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', stock: 70, rate: 45, isGift: true },
-      { key: 'keychain', name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', stock: 20, rate: 20, isGift: true },
-      { key: 'blindbox', name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', stock: 4, rate: 5, isGift: true },
-      { key: 'none', name: 'Chúc may mắn lần sau', short: 'Lời chúc', color: '#2f6a47', ink: '#fff3d6', icon: 'clover', stock: 0, rate: 30, isGift: false }
-    ]
+    prizes: JSON.parse(JSON.stringify(DEFAULT_PRIZES))
   },
   {
     id: 'round_3',
-    name: 'Đợt 3: Đêm hội Táo Quân (Tối 23)',
+    name: 'Đợt 3: Đêm hội Táo Quân (150 quà)',
     status: 'upcoming',
-    prizes: [
-      { key: 'sticker', name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', stock: 60, rate: 40, isGift: true },
-      { key: 'keychain', name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', stock: 10, rate: 25, isGift: true },
-      { key: 'blindbox', name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', stock: 3, rate: 10, isGift: true },
-      { key: 'none', name: 'Chúc may mắn lần sau', short: 'Lời chúc', color: '#2f6a47', ink: '#fff3d6', icon: 'clover', stock: 0, rate: 25, isGift: false }
-    ]
+    prizes: JSON.parse(JSON.stringify(DEFAULT_PRIZES))
   }
 ];
 
 const DEFAULT_PRIZE_STOCK = {
-  blindbox: 10,
-  keychain: 50,
-  sticker: 200
+  keychain: 60,
+  sticker: 60,
+  tote: 21,
+  blindbox: 9
+};
+
+const DEFAULT_PRIZE_RATES = {
+  keychain: 40,
+  sticker: 40,
+  tote: 14,
+  blindbox: 6
 };
 
 // Đảm bảo cấu trúc mảng prizes chuẩn cho mỗi round
@@ -147,8 +145,9 @@ function ensureRoundPrizes(r = {}) {
   const stock = r.stock || {};
   const rates = r.rates || {};
   const baseDefs = {
-    sticker: { name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', isGift: true },
     keychain: { name: 'Móc khoá cá chép', short: 'Móc khoá', color: '#e3a92b', ink: '#4a2408', icon: 'key', isGift: true },
+    sticker: { name: 'Sticker Táo Quân', short: 'Sticker', color: '#b8241c', ink: '#fff3d6', icon: 'sticker', isGift: true },
+    tote: { name: 'Túi tote Táo Quân', short: 'Túi tote', color: '#1f4e8c', ink: '#ffffff', icon: 'tote', isGift: true },
     blindbox: { name: 'Blindbox bí ẩn', short: 'Blindbox', color: '#33245c', ink: '#f3d27a', icon: 'gift', isGift: true },
     none: { name: 'Chúc may mắn lần sau', short: 'Lời chúc', color: '#2f6a47', ink: '#fff3d6', icon: 'clover', isGift: false }
   };
@@ -233,7 +232,7 @@ function getRoundOutOfStockSet(round, roundCounts = {}) {
 // Tương thích ngược
 function getOutOfStockSet(stockObj = {}, countsObj = {}) {
   const out = new Set();
-  ['blindbox', 'keychain', 'sticker'].forEach((k) => {
+  ['blindbox', 'keychain', 'sticker', 'tote'].forEach((k) => {
     const max = stockObj[k] !== undefined && stockObj[k] !== '' ? Number(stockObj[k]) : DEFAULT_PRIZE_STOCK[k];
     const count = Number(countsObj[k] || 0);
     if (count >= max) {
@@ -366,7 +365,7 @@ module.exports = {
   rollPrize,
   PRIZE_KEYS,
   DEFAULT_PRIZE_STOCK,
-  DEFAULT_PRIZE_RATES: { sticker: 45, keychain: 20, blindbox: 5, none: 30 },
+  DEFAULT_PRIZE_RATES,
   DEFAULT_PRIZES,
   DEFAULT_ROUNDS,
   ensureRoundPrizes,

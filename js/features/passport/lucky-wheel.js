@@ -13,6 +13,13 @@ import { STATIONS, PP } from './stations.data.js';
 import { getPass, setPass, savePassToHistory } from './passport.state.js';
 
 export const PRIZES = {
+  keychain: {
+    label: 'Móc khoá cá chép',
+    short: 'Móc khoá',
+    icon: 'key',
+    color: '#e3a92b',
+    ink: '#4a2408'
+  },
   sticker: {
     label: 'Sticker Táo Quân',
     short: 'Sticker',
@@ -20,12 +27,12 @@ export const PRIZES = {
     color: '#b8241c',
     ink: '#fff3d6'
   },
-  keychain: {
-    label: 'Móc khoá cá chép',
-    short: 'Móc khoá',
-    icon: 'key',
-    color: '#e3a92b',
-    ink: '#4a2408'
+  tote: {
+    label: 'Túi tote Táo Quân',
+    short: 'Túi tote',
+    icon: 'tote',
+    color: '#1f4e8c',
+    ink: '#ffffff'
   },
   blindbox: {
     label: 'Blindbox bí ẩn',
@@ -44,18 +51,15 @@ export const PRIZES = {
 };
 
 export const WHEEL = [
-  { prize: 'sticker', share: 9 },
-  { prize: 'none', share: 10 },
-  { prize: 'keychain', share: 7 },
-  { prize: 'sticker', share: 9 },
-  { prize: 'none', share: 10 },
-  { prize: 'sticker', share: 9 },
-  { prize: 'blindbox', share: 5 },
-  { prize: 'sticker', share: 9 },
-  { prize: 'keychain', share: 7 },
-  { prize: 'none', share: 10 },
-  { prize: 'sticker', share: 9 },
-  { prize: 'keychain', share: 6 }
+  { prize: 'keychain', share: 13.3 },
+  { prize: 'sticker', share: 13.3 },
+  { prize: 'tote', share: 7 },
+  { prize: 'keychain', share: 13.3 },
+  { prize: 'sticker', share: 13.3 },
+  { prize: 'blindbox', share: 6 },
+  { prize: 'keychain', share: 13.4 },
+  { prize: 'sticker', share: 13.4 },
+  { prize: 'tote', share: 7 }
 ];
 
 // Cập nhật cấu hình nan quạt & giải thưởng động từ Đợt quay đang hoạt động
@@ -114,6 +118,9 @@ export async function syncWheelFromActiveRound() {
       if (d.activeRound && Array.isArray(d.activeRound.prizes)) {
         applyPrizesToWheel(d.activeRound.prizes);
         store.set('cnt_active_wheel_prizes', d.activeRound.prizes);
+      }
+      if (Array.isArray(d.outOfStock)) {
+        store.set('cnt_out_of_stock', d.outOfStock);
       }
     }
   } catch (e) {}
@@ -524,7 +531,9 @@ export function spinWheel(target = 'checkout') {
   const closeBtn = $('#wheel-close');
   if (closeBtn) closeBtn.disabled = true;
 
-  const pool = WHEEL.map((x, i) => i);
+  const outOfStock = new Set(store.get('cnt_out_of_stock', []));
+  const inStockPool = WHEEL.map((x, i) => i).filter((i) => !outOfStock.has(WHEEL[i].prize));
+  const pool = inStockPool.length ? inStockPool : WHEEL.map((x, i) => i);
   let r = Math.random() * pool.reduce((a, i) => a + WHEEL[i].share, 0),
     k = pool[0];
   for (const i of pool) {
@@ -534,9 +543,11 @@ export function spinWheel(target = 'checkout') {
   }
 
   const fixed = pass.checkoutPrize || (pass.serverPrizes && (pass.serverPrizes.checkout || pass.serverPrizes[4]));
-  if (fixed) {
+  if (fixed && (!outOfStock.has(fixed) || !inStockPool.length)) {
     const ks = WHEEL.map((x, i) => (x.prize === fixed ? i : -1)).filter((i) => i >= 0);
     if (ks.length) k = ks[Math.floor(Math.random() * ks.length)];
+  } else if (fixed && outOfStock.has(fixed) && inStockPool.length) {
+    k = inStockPool[Math.floor(Math.random() * inStockPool.length)];
   }
   const at = segStart(k) + WHEEL[k].share * 3.6 * (0.15 + Math.random() * 0.7);
   const prize = WHEEL[k].prize;

@@ -11,7 +11,13 @@
   // Giữ khớp với app.js (STATIONS, PRIZES)
   const STATIONS = ['Trạm Tôn Kính', 'Trạm Mái Ấm', 'Trạm Nhìn Lại', 'Trạm Hướng Thiện'];
   const PLACES = [[1, STATIONS[0]], [2, STATIONS[1]], [3, STATIONS[2]], [4, STATIONS[3]], [0, 'Bàn check-out (trao quà cuối)']];
-  const PRIZE = { sticker: 'Sticker Táo Quân', keychain: 'Móc khoá cá chép', blindbox: 'Blindbox bí ẩn', none: 'Không trúng' };
+  const PRIZE = {
+    keychain: 'Móc khoá cá chép',
+    sticker: 'Sticker Táo Quân',
+    tote: 'Túi tote Táo Quân',
+    blindbox: 'Blindbox bí ẩn',
+    none: 'Không trúng'
+  };
   const PID_RE = /(TAO|OFF)-[A-Z0-9]{6}/;
 
   // Phiên đăng nhập: lưu trong tab, tự hết hạn sau 8 tiếng

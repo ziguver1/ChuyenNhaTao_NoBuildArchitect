@@ -5,7 +5,7 @@
 //        Mỗi thẻ sai 8 lần thì khoá 15 phút.
 // Mã thẻ đóng vai trò "chìa khoá" của người chơi: ai có mã mới đọc được thẻ, và chỉ đọc chứ không sửa được dấu.
 // Redis: pass:{pid} hash  pid, name, vid, created, gift, st{n} (giờ đóng dấu), prize{n}, given{n}, claimed
-const { configured, redis, toObject, readBody, PID_RE, passView, stampCmds, stationOfCode, plainName, parseRoundsConfig, getRoundCounts, getRoundOutOfStockSet } = require('./_store');
+const { configured, redis, toObject, readBody, PID_RE, passView, stampCmds, stationOfCode, plainName, parseRoundsConfig, getRoundCounts, getRoundOutOfStockSet, rollPrize, PRIZE_KEYS } = require('./_store');
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
@@ -18,15 +18,21 @@ module.exports = async (req, res) => {
 
     // 0. Lấy thông tin vòng quay may mắn của Đợt đang hoạt động
     if (action === 'wheel') {
-      const [configData] = await redis([['HGETALL', 'prize:config']]);
+      const [configData, roundCountsData] = await redis([
+        ['HGETALL', 'prize:config'],
+        ['HGETALL', 'prize:round_counts']
+      ]);
       const { activeId, activeRound } = parseRoundsConfig(toObject(configData));
+      const activeCounts = getRoundCounts(toObject(roundCountsData), activeId);
+      const outOfStock = getRoundOutOfStockSet(activeRound, activeCounts);
       return res.status(200).json({
         ok: true,
         activeRound: {
           id: activeId,
           name: activeRound.name,
           prizes: activeRound.prizes
-        }
+        },
+        outOfStock: Array.from(outOfStock)
       });
     }
 
