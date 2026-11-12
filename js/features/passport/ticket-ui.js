@@ -32,6 +32,7 @@ import {
   pushPass,
   pullPass,
   stampByCode,
+  mergeServer,
   startPolling,
   checkedIn,
   isTaken,
@@ -652,7 +653,18 @@ export function doStamp(id, ts, fromServer) {
   savePassToHistory(pass);
   renderRegister();
   track('stamp_added', { station: id, by: fromServer ? 'staff' : 'self' });
-  if (!fromServer) measure('stamp', { st: id });
+  if (!fromServer) {
+    measure('stamp', { st: id });
+    if (navigator.onLine && pass.id && pass.id.startsWith('TAO-')) {
+      fetch('/api/pass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'stamp', pid: pass.id, station: id })
+      }).then((r) => r.json()).then((d) => {
+        if (d && d.pass) mergeServer(d.pass);
+      }).catch(() => {});
+    }
+  }
   const complete = pass.stamps.length === 4;
   const hint = $('#pp-staff-hint');
   if (hint && complete) hint.hidden = true;

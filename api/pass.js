@@ -110,6 +110,40 @@ module.exports = async (req, res) => {
     return res.status(200).json({ prize, pass: passView(toObject(out[out.length - 1])) });
   }
 
+  if (req.method === 'POST' && ((readBody(req) || {}).action === 'stamp' || (readBody(req) || {}).action === 'station')) {
+    const b = readBody(req) || {};
+    const pid = String(b.pid || '').toUpperCase();
+    if (!PID_RE.test(pid)) return res.status(400).json({ error: 'input' });
+
+    const STATION_CODES = {
+      TONKI1: 1, HUONG1: 1, NEPNH3: 1,
+      MAIAM2: 2,
+      NHINL3: 3,
+      HUONG4: 4, TOTLA4: 4
+    };
+    const rawCode = String(b.code || b.tram || '').trim().toUpperCase();
+    const st = Number(b.station) || STATION_CODES[rawCode];
+    if (!(st >= 1 && st <= 4)) return res.status(400).json({ error: 'station' });
+
+    const key = `pass:${pid}`;
+    const [h, configData, roundCountsData] = await redis([
+      ['HGETALL', key],
+      ['HGETALL', 'prize:config'],
+      ['HGETALL', 'prize:round_counts']
+    ]);
+    const o = toObject(h);
+    if (!o.pid) return res.status(404).json({ error: 'notfound' });
+
+    const { rounds, activeId, activeRound } = parseRoundsConfig(toObject(configData));
+    const activeCounts = getRoundCounts(toObject(roundCountsData), activeId);
+    const outOfStock = getRoundOutOfStockSet(activeRound, activeCounts);
+
+    const cmds = o[`st${st}`] ? [] : stampCmds(o, key, st, String(Date.now()), outOfStock, activeId, activeRound.prizes);
+    cmds.push(['HGETALL', key]);
+    const out = await redis(cmds);
+    return res.status(200).json({ station: st, note: o[`st${st}`] ? 'already' : '', pass: passView(toObject(out[out.length - 1])) });
+  }
+
   if (req.method === 'POST' && (readBody(req) || {}).action === 'code') {
     const b = readBody(req);
     const pid = String(b.pid || '').toUpperCase();

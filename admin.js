@@ -255,7 +255,7 @@
           last: stats.last,
           chapters: get('chapters_done', []).map((i) => i + 1).sort(),
           stamps: pass ? pass.stamps.slice().sort() : [],
-          prizes: [1, 2, 3, 4].map((s) => (spins[s] ? spins[s].prize : null)),
+          prizes: (pass && (pass.checkoutPrize || (pass.checkoutSpin && pass.checkoutSpin.prize))) ? [pass.checkoutPrize || pass.checkoutSpin.prize] : [],
           claimed: !!(pass && pass.claimed),
           checkin: (get('checkin', null) || {}).at || 0,
           first: 0,
@@ -331,7 +331,7 @@
       const last = pages[pages.length - 1];
       const stamps = isAnon ? [] : (chs.length >= 3 ? [1, 2, 3, 4] : (chs.length === 2 ? [1, 2] : [1]));
       const pKeys = ['sticker', 'keychain', 'blindbox', 'none'];
-      const prizes = stamps.map((_, sIdx) => pKeys[(i + sIdx) % pKeys.length]);
+      const prizes = stamps.length === 4 ? [pKeys[i % pKeys.length]] : [];
 
       rows.push({
         vid: `v-demo-${(i + 1).toString().padStart(2, '0')}`,

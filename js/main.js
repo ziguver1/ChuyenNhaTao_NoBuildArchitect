@@ -118,13 +118,7 @@ function initApp() {
     setTimeout(() => restorePass(the, false), 350);
   }
 
-  if (tram && server.on) {
-    toast(
-      'Ở sự kiện, nhân sự sẽ quét mã QR trên hộ chiếu của bạn để đóng dấu.',
-      'info',
-      'qr-code'
-    );
-  } else if (tram) {
+  if (tram) {
     const pass = getPass();
     if (pass) {
       setTimeout(() => {
