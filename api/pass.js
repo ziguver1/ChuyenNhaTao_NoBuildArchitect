@@ -97,7 +97,8 @@ module.exports = async (req, res) => {
     const cmds = [];
     let prize = o.checkout_prize || o.prize;
     if (!prize) {
-      prize = rollPrize(false, outOfStock, activeRound.prizes);
+      const clientPrize = (b.prize && PRIZE_KEYS.has(b.prize) && !outOfStock.has(b.prize)) ? b.prize : null;
+      prize = clientPrize || rollPrize(false, outOfStock, activeRound.prizes);
       cmds.push(
         ['HSET', key, 'checkout_prize', prize, 'round', activeId],
         ['HINCRBY', 'prize:counts', prize, '1']

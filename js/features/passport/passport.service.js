@@ -181,7 +181,7 @@ export function mergeServer(v) {
   if (v.checkoutPrize) {
     pass.checkoutPrize = v.checkoutPrize;
     pass.serverPrizes.checkout = v.checkoutPrize;
-    if (!pass.checkoutSpin) {
+    if (v.claimed && !pass.checkoutSpin) {
       pass.checkoutSpin = { prize: v.checkoutPrize, at: v.claimed || Date.now() };
     }
   }

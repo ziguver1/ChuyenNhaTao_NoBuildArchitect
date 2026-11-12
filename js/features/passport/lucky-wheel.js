@@ -535,7 +535,7 @@ export function spinWheel(target = 'checkout') {
     fetch('/api/pass', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'spin', pid: pass.id })
+      body: JSON.stringify({ action: 'spin', pid: pass.id, prize })
     }).then((r) => r.json()).then((d) => {
       if (d.pass && d.pass.checkoutPrize) {
         pass.checkoutPrize = d.pass.checkoutPrize;
