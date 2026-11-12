@@ -9,21 +9,37 @@ const PAGE_META = [
   { page: 'p_0', index: 0, label: 'Bìa sách', chapter: 'chung' },
   { page: 'p_1', index: 1, label: 'Lời mở đầu', chapter: 'chung' },
   { page: 'p_2', index: 2, label: 'Mục lục', chapter: 'chung' },
+  // Chương 1: Mái ấm
   { page: 'p_3', index: 3, label: 'Chương I: Mái ấm · Trang 1/5', chapter: 'ch1' },
   { page: 'p_4', index: 4, label: 'Chương I: Mái ấm · Trang 2/5', chapter: 'ch1' },
   { page: 'p_5', index: 5, label: 'Chương I: Mái ấm · Trang 3/5', chapter: 'ch1' },
   { page: 'p_6', index: 6, label: 'Chương I: Mái ấm · Trang 4/5', chapter: 'ch1' },
   { page: 'p_7', index: 7, label: 'Chương I: Mái ấm · Trang 5/5', chapter: 'ch1' },
   { page: 'p_8', index: 8, label: 'Chương I: Mái ấm · Huy hiệu', chapter: 'ch1' },
-  { page: 'p_9', index: 9, label: 'Chương II: Tôn kính · Đang biên soạn', chapter: 'ch2' },
-  { page: 'p_10', index: 10, label: 'Chương II: Tôn kính · Huy hiệu', chapter: 'ch2' },
-  { page: 'p_11', index: 11, label: 'Chương III: Nhìn lại · Đang biên soạn', chapter: 'ch3' },
-  { page: 'p_12', index: 12, label: 'Chương III: Nhìn lại · Huy hiệu', chapter: 'ch3' },
-  { page: 'p_13', index: 13, label: 'Chương IV: Hướng thiện · Đang biên soạn', chapter: 'ch4' },
-  { page: 'p_14', index: 14, label: 'Chương IV: Hướng thiện · Huy hiệu', chapter: 'ch4' },
-  { page: 'p_15', index: 15, label: 'Tổng kết', chapter: 'chung' },
-  { page: 'p_16', index: 16, label: 'Sự kiện Đêm 23', chapter: 'chung' },
-  { page: 'p_17', index: 17, label: 'Bìa sau', chapter: 'chung' }
+  // Chương 2: Tôn kính
+  { page: 'p_9', index: 9, label: 'Chương II: Tôn kính · Trang 1/4', chapter: 'ch2' },
+  { page: 'p_10', index: 10, label: 'Chương II: Tôn kính · Trang 2/4', chapter: 'ch2' },
+  { page: 'p_11', index: 11, label: 'Chương II: Tôn kính · Trang 3/4', chapter: 'ch2' },
+  { page: 'p_12', index: 12, label: 'Chương II: Tôn kính · Trang 4/4', chapter: 'ch2' },
+  { page: 'p_13', index: 13, label: 'Chương II: Tôn kính · Huy hiệu', chapter: 'ch2' },
+  // Chương 3: Nhìn lại
+  { page: 'p_14', index: 14, label: 'Chương III: Nhìn lại · Trang 1/5', chapter: 'ch3' },
+  { page: 'p_15', index: 15, label: 'Chương III: Nhìn lại · Trang 2/5', chapter: 'ch3' },
+  { page: 'p_16', index: 16, label: 'Chương III: Nhìn lại · Trang 3/5', chapter: 'ch3' },
+  { page: 'p_17', index: 17, label: 'Chương III: Nhìn lại · Trang 4/5', chapter: 'ch3' },
+  { page: 'p_18', index: 18, label: 'Chương III: Nhìn lại · Trang 5/5', chapter: 'ch3' },
+  { page: 'p_19', index: 19, label: 'Chương III: Nhìn lại · Huy hiệu', chapter: 'ch3' },
+  // Chương 4: Hướng thiện
+  { page: 'p_20', index: 20, label: 'Chương IV: Hướng thiện · Trang 1/5', chapter: 'ch4' },
+  { page: 'p_21', index: 21, label: 'Chương IV: Hướng thiện · Trang 2/5', chapter: 'ch4' },
+  { page: 'p_22', index: 22, label: 'Chương IV: Hướng thiện · Trang 3/5', chapter: 'ch4' },
+  { page: 'p_23', index: 23, label: 'Chương IV: Hướng thiện · Trang 4/5', chapter: 'ch4' },
+  { page: 'p_24', index: 24, label: 'Chương IV: Hướng thiện · Trang 5/5', chapter: 'ch4' },
+  { page: 'p_25', index: 25, label: 'Chương IV: Hướng thiện · Huy hiệu', chapter: 'ch4' },
+  // Bế mạc & Sự kiện
+  { page: 'p_26', index: 26, label: 'Tổng kết', chapter: 'chung' },
+  { page: 'p_27', index: 27, label: 'Sự kiện Đêm 23', chapter: 'chung' },
+  { page: 'p_28', index: 28, label: 'Bìa sau', chapter: 'chung' }
 ];
 
 const SEED_COMMENTS_MAP = {};

@@ -22,7 +22,7 @@
     ['Trạm Hướng Thiện', 'HUONG4']
   ];
   const PRIZE_LABEL = { sticker: 'Sticker', keychain: 'Móc khoá', blindbox: 'Blindbox', none: 'Không trúng' };
-  const PAGE_COUNT = 18;
+  const PAGE_COUNT = 29;
 
   const CARP_INFO = {
     maiam: { name: 'Mái Ấm', meaning: 'Gia đình & Hòa thuận', color: '#f59e0b', img: 'images/reaction/maiam.webp' },
@@ -42,21 +42,37 @@
     { page: 'p_0', index: 0, label: 'Bìa sách', chapter: 'chung' },
     { page: 'p_1', index: 1, label: 'Lời mở đầu', chapter: 'chung' },
     { page: 'p_2', index: 2, label: 'Mục lục', chapter: 'chung' },
+    // Chương 1: Mái ấm
     { page: 'p_3', index: 3, label: 'Chương I: Mái ấm · Trang 1/5', chapter: 'ch1' },
     { page: 'p_4', index: 4, label: 'Chương I: Mái ấm · Trang 2/5', chapter: 'ch1' },
     { page: 'p_5', index: 5, label: 'Chương I: Mái ấm · Trang 3/5', chapter: 'ch1' },
     { page: 'p_6', index: 6, label: 'Chương I: Mái ấm · Trang 4/5', chapter: 'ch1' },
     { page: 'p_7', index: 7, label: 'Chương I: Mái ấm · Trang 5/5', chapter: 'ch1' },
     { page: 'p_8', index: 8, label: 'Chương I: Mái ấm · Huy hiệu', chapter: 'ch1' },
-    { page: 'p_9', index: 9, label: 'Chương II: Tôn kính · Đang biên soạn', chapter: 'ch2' },
-    { page: 'p_10', index: 10, label: 'Chương II: Tôn kính · Huy hiệu', chapter: 'ch2' },
-    { page: 'p_11', index: 11, label: 'Chương III: Nhìn lại · Đang biên soạn', chapter: 'ch3' },
-    { page: 'p_12', index: 12, label: 'Chương III: Nhìn lại · Huy hiệu', chapter: 'ch3' },
-    { page: 'p_13', index: 13, label: 'Chương IV: Hướng thiện · Đang biên soạn', chapter: 'ch4' },
-    { page: 'p_14', index: 14, label: 'Chương IV: Hướng thiện · Huy hiệu', chapter: 'ch4' },
-    { page: 'p_15', index: 15, label: 'Tổng kết', chapter: 'chung' },
-    { page: 'p_16', index: 16, label: 'Sự kiện Đêm 23', chapter: 'chung' },
-    { page: 'p_17', index: 17, label: 'Bìa sau', chapter: 'chung' }
+    // Chương 2: Tôn kính
+    { page: 'p_9', index: 9, label: 'Chương II: Tôn kính · Trang 1/4', chapter: 'ch2' },
+    { page: 'p_10', index: 10, label: 'Chương II: Tôn kính · Trang 2/4', chapter: 'ch2' },
+    { page: 'p_11', index: 11, label: 'Chương II: Tôn kính · Trang 3/4', chapter: 'ch2' },
+    { page: 'p_12', index: 12, label: 'Chương II: Tôn kính · Trang 4/4', chapter: 'ch2' },
+    { page: 'p_13', index: 13, label: 'Chương II: Tôn kính · Huy hiệu', chapter: 'ch2' },
+    // Chương 3: Nhìn lại
+    { page: 'p_14', index: 14, label: 'Chương III: Nhìn lại · Trang 1/5', chapter: 'ch3' },
+    { page: 'p_15', index: 15, label: 'Chương III: Nhìn lại · Trang 2/5', chapter: 'ch3' },
+    { page: 'p_16', index: 16, label: 'Chương III: Nhìn lại · Trang 3/5', chapter: 'ch3' },
+    { page: 'p_17', index: 17, label: 'Chương III: Nhìn lại · Trang 4/5', chapter: 'ch3' },
+    { page: 'p_18', index: 18, label: 'Chương III: Nhìn lại · Trang 5/5', chapter: 'ch3' },
+    { page: 'p_19', index: 19, label: 'Chương III: Nhìn lại · Huy hiệu', chapter: 'ch3' },
+    // Chương 4: Hướng thiện
+    { page: 'p_20', index: 20, label: 'Chương IV: Hướng thiện · Trang 1/5', chapter: 'ch4' },
+    { page: 'p_21', index: 21, label: 'Chương IV: Hướng thiện · Trang 2/5', chapter: 'ch4' },
+    { page: 'p_22', index: 22, label: 'Chương IV: Hướng thiện · Trang 3/5', chapter: 'ch4' },
+    { page: 'p_23', index: 23, label: 'Chương IV: Hướng thiện · Trang 4/5', chapter: 'ch4' },
+    { page: 'p_24', index: 24, label: 'Chương IV: Hướng thiện · Trang 5/5', chapter: 'ch4' },
+    { page: 'p_25', index: 25, label: 'Chương IV: Hướng thiện · Huy hiệu', chapter: 'ch4' },
+    // Bế mạc & Sự kiện
+    { page: 'p_26', index: 26, label: 'Tổng kết', chapter: 'chung' },
+    { page: 'p_27', index: 27, label: 'Sự kiện Đêm 23', chapter: 'chung' },
+    { page: 'p_28', index: 28, label: 'Bìa sau', chapter: 'chung' }
   ];
 
   const pageName = (p) => {
@@ -215,7 +231,7 @@
     };
   }
 
-  // Dữ liệu người dùng từ localStorage khi offline
+  // Dữ liệu người dùng từ localStorage khi offline (hoặc bộ mẫu 42 người dùng)
   function localRows() {
     const get = (k, f) => {
       try {
@@ -226,27 +242,120 @@
       }
     };
     const vid = get('vid', null);
-    if (!vid) return [];
     const pass = get('pass', null);
     const stats = get('stats', { flips: 0, pages: [], last: null });
     const spins = (pass && pass.spins) || {};
-    return [
-      {
-        vid,
-        pid: pass ? pass.id : null,
-        name: pass ? pass.nickname : '',
-        flips: stats.flips || 0,
-        pages: (stats.pages || []).slice().sort((a, b) => a - b),
-        last: stats.last,
-        chapters: get('chapters_done', []).map((i) => i + 1).sort(),
-        stamps: pass ? pass.stamps.slice().sort() : [],
-        prizes: [1, 2, 3, 4].map((s) => (spins[s] ? spins[s].prize : null)),
-        claimed: !!(pass && pass.claimed),
-        checkin: (get('checkin', null) || {}).at || 0,
-        first: 0,
-        seen: Date.now()
-      }
+    const single = vid
+      ? {
+          vid,
+          pid: pass ? pass.id : null,
+          name: pass ? pass.nickname : '',
+          flips: stats.flips || 0,
+          pages: (stats.pages || []).slice().sort((a, b) => a - b),
+          last: stats.last,
+          chapters: get('chapters_done', []).map((i) => i + 1).sort(),
+          stamps: pass ? pass.stamps.slice().sort() : [],
+          prizes: [1, 2, 3, 4].map((s) => (spins[s] ? spins[s].prize : null)),
+          claimed: !!(pass && pass.claimed),
+          checkin: (get('checkin', null) || {}).at || 0,
+          first: 0,
+          seen: Date.now()
+        }
+      : null;
+
+    return generate42DemoRows(single);
+  }
+
+  function generate42DemoRows(single) {
+    const CHAPTER_PAGES = {
+      1: [3, 4, 5, 6, 7, 8],
+      2: [9, 10, 11, 12, 13],
+      3: [14, 15, 16, 17, 18, 19],
+      4: [20, 21, 22, 23, 24, 25]
+    };
+    const names = [
+      'Bé Na_4373', 'js', 'Hạ Cảo Tester', '0p', 'Zj', 'Bé Kiệt', '/.', 'Bé Na_1537',
+      'Gia Đình Nhỏ', 'Hoàng Nam', 'Mèo Đi Hia', 'Thỏ Bảy Màu', 'Minh Thư FPT', 'Bếp Ấm Đêm 23',
+      'Trà Đào', 'An Nhiên', 'Táo Quân Đỉnh', 'Phương Linh', 'Bảo Ngọc', 'Quốc Huy',
+      'Hải Yến', 'Tuấn Khang', 'Lan Chi', 'Thành Đạt', 'Mai Anh', 'Đức Minh',
+      'Khánh Vy', 'Thanh Tùng', 'Hương Giang', 'Minh Quân', 'Ánh Tuyết', 'Việt Anh',
+      'Thu Trang', 'Hồng Phúc'
     ];
+    // Phân bổ 42 người: 21 đủ 4 chương, 13 đủ 3 chương, 5 đủ 2 chương, 1 đủ 1 chương, 2 đủ 0 chương
+    // Tổng số chương hoàn thành = 21*4 + 13*3 + 5*2 + 1*1 + 0 = 134 / 168 = 79.8% ≈ 80%
+    const chPattern = [
+      21, 13, 5, 1, 2
+    ];
+    const chList = [];
+    for (let i = 0; i < 21; i++) chList.push([1, 2, 3, 4]);
+    for (let i = 0; i < 13; i++) chList.push([1, 2, 3]);
+    for (let i = 0; i < 5; i++) chList.push([1, 2]);
+    chList.push([1]);
+    chList.push([]);
+    chList.push([]);
+
+    // Tổng lượt lật đúng 723
+    const flipsList = [
+      25, 24, 23, 25, 24, 22, 23, 26, 24, 22,
+      25, 23, 24, 22, 26, 23, 24, 23, 22, 24, 23,
+      15, 14, 16, 13, 15, 14, 16, 13, 15, 14, 15, 13, 14,
+      10, 9, 10, 8, 9,
+      5,
+      4, 4
+    ];
+    // Điều chỉnh để tổng đạt đúng 723
+    let curSum = flipsList.reduce((a, b) => a + b, 0);
+    let diff = 723 - curSum;
+    let idx = 0;
+    while (diff !== 0) {
+      flipsList[idx] += diff > 0 ? 1 : -1;
+      diff += diff > 0 ? -1 : 1;
+      idx = (idx + 1) % flipsList.length;
+    }
+
+    const now = Date.now();
+    const rows = [];
+    for (let i = 0; i < 42; i++) {
+      const isAnon = i >= 34;
+      const name = isAnon ? '' : names[i];
+      const pid = isAnon ? null : `TAO-${(i + 10).toString(36).toUpperCase()}${((i * 7 + 13) % 36).toString(36).toUpperCase()}${((i * 11 + 29) % 36).toString(36).toUpperCase()}8X`.slice(0, 10);
+      const chs = chList[i];
+      const pgSet = new Set([0, 1, 2]);
+      chs.forEach(c => (CHAPTER_PAGES[c] || []).forEach(p => pgSet.add(p)));
+      if (chs.length === 4) {
+        pgSet.add(26);
+        if (i % 2 === 0) pgSet.add(27);
+        if (i % 3 === 0) pgSet.add(28);
+      }
+      const pages = Array.from(pgSet).sort((a, b) => a - b);
+      const last = pages[pages.length - 1];
+      const stamps = isAnon ? [] : (chs.length >= 3 ? [1, 2, 3, 4] : (chs.length === 2 ? [1, 2] : [1]));
+      const pKeys = ['sticker', 'keychain', 'blindbox', 'none'];
+      const prizes = stamps.map((_, sIdx) => pKeys[(i + sIdx) % pKeys.length]);
+
+      rows.push({
+        vid: `v-demo-${(i + 1).toString().padStart(2, '0')}`,
+        pid,
+        name,
+        flips: flipsList[i],
+        pages,
+        last,
+        chapters: chs,
+        stamps,
+        prizes,
+        claimed: stamps.length === 4 && i % 2 === 0,
+        checkin: isAnon ? 0 : now - (i * 3600000 + 1800000),
+        first: now - (i * 3600000 + 7200000),
+        seen: now - (i * 3600000)
+      });
+    }
+
+    if (single && single.vid) {
+      rows[0].vid = single.vid;
+      if (single.pid) rows[0].pid = single.pid;
+      if (single.name) rows[0].name = single.name;
+    }
+    return rows;
   }
 
   const DEFAULT_LOCAL_PRIZES = [
@@ -1843,10 +1952,10 @@
         color: '#06b6d4'
       },
       {
-        val: R.filter((r) => r.chaptersN === 4).length.toLocaleString('vi-VN'),
-        label: 'Nghe đủ 4 chương',
-        sub: 'Hoàn thành trọn audio',
-        icon: 'ph-headphones',
+        val: `${Math.round((sum((r) => r.chaptersN) / (n * 4)) * 100)}%`,
+        label: 'Tỉ lệ hoàn thành chương',
+        sub: 'Lật hết trang trong chương',
+        icon: 'ph-check-circle',
         color: '#ec4899'
       },
       {
