@@ -6,6 +6,66 @@ import { $, $$ } from './dom.js';
 import { hasGsap, reduceMotion } from './motion.js';
 
 let dlgAbort = null;
+let bodyScrollY = 0;
+let lockDepth = 0;
+
+/**
+ * Khóa cuộn trang nền tuyệt đối trên mobile (iOS Safari, Android Chrome)
+ * Sử dụng position: fixed với top âm để giữ nguyên vị trí xem, không giật layout.
+ */
+export function lockBodyScroll() {
+  if (lockDepth === 0) {
+    bodyScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.documentElement.classList.add('has-dialog-open');
+    document.body.classList.add('has-dialog-open');
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${bodyScrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+  }
+  lockDepth++;
+}
+
+/**
+ * Mở khóa cuộn trang và phục hồi chính xác vị trí cuộn trước đó
+ */
+export function unlockBodyScroll() {
+  if (lockDepth > 0) {
+    lockDepth--;
+  }
+  if (lockDepth === 0) {
+    document.documentElement.classList.remove('has-dialog-open');
+    document.body.classList.remove('has-dialog-open');
+    document.body.style.removeProperty('position');
+    document.body.style.removeProperty('top');
+    document.body.style.removeProperty('left');
+    document.body.style.removeProperty('right');
+    document.body.style.removeProperty('width');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+    window.scrollTo(0, bodyScrollY);
+  }
+}
+
+export function forceUnlockBodyScroll() {
+  lockDepth = 0;
+  document.documentElement.classList.remove('has-dialog-open');
+  document.body.classList.remove('has-dialog-open');
+  document.body.style.removeProperty('position');
+  document.body.style.removeProperty('top');
+  document.body.style.removeProperty('left');
+  document.body.style.removeProperty('right');
+  document.body.style.removeProperty('width');
+  document.body.style.removeProperty('overflow');
+  document.body.style.removeProperty('padding-right');
+  window.scrollTo(0, bodyScrollY);
+}
 
 export function ask({ title, html, tone = '', buttons, dismissible = true }) {
   const dlg = $('#dlg');
@@ -49,6 +109,7 @@ export function ask({ title, html, tone = '', buttons, dismissible = true }) {
     const done = (v) => {
       if (!settled) {
         settled = true;
+        unlockBodyScroll();
         if (dlg && dlg.open) {
           try {
             dlg.close(v || '');
@@ -106,8 +167,19 @@ export function ask({ title, html, tone = '', buttons, dismissible = true }) {
       { signal }
     );
 
+    dlg.addEventListener(
+      'touchmove',
+      (e) => {
+        if (e.target === dlg) {
+          e.preventDefault();
+        }
+      },
+      { signal, passive: false }
+    );
+
     dlg.addEventListener('close', () => done(dlg.returnValue), { signal, once: true });
 
+    lockBodyScroll();
     try {
       dlg.showModal();
     } catch (err) {

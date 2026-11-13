@@ -3,7 +3,7 @@
  */
 import { $, $$ } from '../../core/dom.js';
 import { store } from '../../core/storage.js';
-import { ask } from '../../core/dialog.js';
+import { ask, lockBodyScroll, unlockBodyScroll } from '../../core/dialog.js';
 import { toast } from '../../core/toast.js';
 import { sound } from '../../core/audio.js';
 import { track } from '../../analytics/tracker.js';
@@ -867,8 +867,17 @@ export function showFeedbackPopup() {
     if (err) err.hidden = true;
   }
 
-  if (typeof dlg.showModal === 'function') dlg.showModal();
-  else dlg.hidden = false;
+  lockBodyScroll();
+
+  if (typeof dlg.showModal === 'function') {
+    try {
+      dlg.showModal();
+    } catch (e) {
+      dlg.hidden = false;
+    }
+  } else {
+    dlg.hidden = false;
+  }
 
   // Hiệu ứng confetti
   if (typeof window.confetti === 'function') {
@@ -1411,6 +1420,8 @@ export function initPassportUI() {
       try { oldDlg.close(); } catch (e) {}
     }
 
+    lockBodyScroll();
+
     if (typeof dlg.showModal === 'function') dlg.showModal();
     else dlg.hidden = false;
 
@@ -1526,14 +1537,29 @@ export function initPassportUI() {
     }
   });
 
-  $('#dlg-scanner')?.addEventListener('click', (e) => {
-    if (e.target === $('#dlg-scanner')) {
+  const dlgScanner = $('#dlg-scanner');
+  if (dlgScanner) {
+    dlgScanner.addEventListener('close', () => {
+      unlockBodyScroll();
+    });
+    dlgScanner.addEventListener(
+      'touchmove',
+      (e) => {
+        if (e.target === dlgScanner) {
+          e.preventDefault();
+        }
+      },
+      { passive: false }
+    );
+    dlgScanner.addEventListener('click', (e) => {
+      if (e.target === dlgScanner) {
+        closeCameraScanner();
+      }
+    });
+    dlgScanner.addEventListener('cancel', () => {
       closeCameraScanner();
-    }
-  });
-  $('#dlg-scanner')?.addEventListener('cancel', () => {
-    closeCameraScanner();
-  });
+    });
+  }
 
   const submitManualScanner = () => {
     const val = $('#scanner-manual-input')?.value;
@@ -1666,6 +1692,33 @@ export function initPassportUI() {
       if (err) err.hidden = true;
     });
   });
+
+  const dlgFeedback = $('#dlg-feedback');
+  if (dlgFeedback) {
+    // Luôn mở khóa cuộn trang khi dialog feedback đóng (dù qua nút hay ESC)
+    dlgFeedback.addEventListener('close', () => {
+      unlockBodyScroll();
+    });
+
+    // Chặn vuốt chạm trên vùng viền mờ (backdrop) để không làm rung/cuộn trang bên dưới
+    dlgFeedback.addEventListener(
+      'touchmove',
+      (e) => {
+        if (e.target === dlgFeedback) {
+          e.preventDefault();
+        }
+      },
+      { passive: false }
+    );
+
+    // Chạm vào vùng nền mờ bên ngoài để đóng modal
+    dlgFeedback.addEventListener('click', (e) => {
+      if (e.target === dlgFeedback) {
+        if (typeof dlgFeedback.close === 'function') dlgFeedback.close();
+        else dlgFeedback.hidden = true;
+      }
+    });
+  }
 
   $('#btn-feedback-skip')?.addEventListener('click', () => {
     const dlg = $('#dlg-feedback');
