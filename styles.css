@@ -2390,7 +2390,7 @@ body::after {
 /* =========================================================================
    HỘ CHIẾU THÔNG HÀNH (S05): cuốn hộ chiếu lật trang, mỗi trạm một trang visa
    ========================================================================= */
-.pp-stage { position: relative; padding: 6px 0 22px; outline: none; }
+.pp-stage { position: relative; padding: 6px 0 22px; outline: none; max-width: 360px; margin: 0 auto; width: 100%; }
 .pp-stage:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 4px; border-radius: 12px; }
 .pp-stage::after { content: ""; position: absolute; left: 14%; right: 14%; bottom: 4px; height: 24px; z-index: -1; background: radial-gradient(50% 50% at 50% 50%, rgba(80, 18, 25, .28), transparent 70%); filter: blur(4px); }
 .pp-book { margin: 0 auto; transform: translateZ(0); }
@@ -2427,17 +2427,17 @@ body::after {
 .pp-pg .mono, .pp-mrz { font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace; }
 
 /* Trang thông tin */
-.pp-data { display: grid; grid-template-columns: 84px 1fr; gap: 12px; align-items: start; margin-top: 4px; }
-.pp-photo { width: 84px; height: 104px; display: grid; place-items: center; border-radius: 6px; font-size: 42px; font-weight: 800; color: #fff7ea;
+.pp-data { display: grid; grid-template-columns: 78px 1fr; gap: 10px; align-items: start; margin-top: 4px; }
+.pp-photo { width: 78px; height: 96px; display: grid; place-items: center; border-radius: 6px; font-size: 38px; font-weight: 800; color: #fff7ea;
   background: linear-gradient(160deg, #c7321a, #7a170b); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, .5), 0 2px 6px rgba(0, 0, 0, .2); }
-.pp-fields { display: grid; gap: 6px; margin: 0; }
-.pp-fields dt { font-size: 9.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #8c635a; }
-.pp-fields dd { margin: 0; font-size: 14px; font-weight: 700; color: #381510; word-break: break-word; }
-.pp-qr-row { display: flex; gap: 12px; align-items: center; margin-top: 4px; }
-.pp-qr { flex: none; padding: 6px; background: #fffdf7; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(179, 38, 30, .2); }
-.pp-qr img, .pp-qr canvas { width: 112px !important; height: 112px !important; display: block; }
-.pp-qr-row p { font-size: 12px; line-height: 1.45; color: #6a463e; }
-.pp-mrz { margin-top: auto; display: grid; gap: 2px; font-size: 10.5px; letter-spacing: .06em; color: #381510; background: rgba(255, 255, 255, .7); padding: 6px 8px; border-radius: 4px; overflow: hidden; white-space: nowrap; }
+.pp-fields { display: grid; gap: 4px; margin: 0; }
+.pp-fields dt { font-size: 9px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #8c635a; }
+.pp-fields dd { margin: 0; font-size: 13.5px; font-weight: 700; color: #381510; word-break: break-word; line-height: 1.25; }
+.pp-qr-row { display: flex; gap: 10px; align-items: center; margin-top: 4px; background: rgba(255, 255, 255, 0.45); padding: 6px 8px; border-radius: 8px; border: 1px dashed rgba(179, 38, 30, 0.2); }
+.pp-qr { flex: none; padding: 4px; background: #fffdf7; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(179, 38, 30, .2); }
+.pp-qr img, .pp-qr canvas { width: 96px !important; height: 96px !important; display: block; }
+.pp-qr-row p { font-size: 11.5px; line-height: 1.4; color: #6a463e; margin: 0; flex: 1; min-width: 0; }
+.pp-mrz { margin-top: auto; display: grid; gap: 2px; font-size: 10px; letter-spacing: .06em; color: #381510; background: rgba(255, 255, 255, .7); padding: 5px 8px; border-radius: 4px; overflow: hidden; white-space: nowrap; }
 .pp-mrz span { overflow: hidden; text-overflow: clip; }
 
 /* Trang hành trình */
@@ -4428,7 +4428,7 @@ body::after {
   grid-template-columns: 1fr !important;
 }
 .passport-grid.has-passport > div:last-child {
-  max-width: 720px;
+  max-width: 440px;
   margin: 0 auto;
   width: 100%;
 }

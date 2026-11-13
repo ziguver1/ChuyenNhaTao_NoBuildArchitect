@@ -371,22 +371,25 @@ export function ppRefresh(pages) {
 }
 
 export function ppQR() {
-  const el = $('#pp-qr');
   const pass = getPass();
-  if (!el || !pass) return;
-  if (typeof window.QRCode !== 'undefined') {
-    el.innerHTML = '';
-    new window.QRCode(el, {
-      text: location.origin + '/?the=' + pass.id,
-      width: 112,
-      height: 112,
-      colorDark: '#1b120c',
-      colorLight: '#fffdf7',
-      correctLevel: window.QRCode.CorrectLevel.M
-    });
-  } else {
-    el.innerHTML = `<span class="mono" style="font-size:11px">${pass.id}</span>`;
-  }
+  if (!pass) return;
+  const els = $$('#pp-qr, .pp-qr');
+  if (!els.length) return;
+  els.forEach((el) => {
+    if (typeof window.QRCode !== 'undefined') {
+      el.innerHTML = '';
+      new window.QRCode(el, {
+        text: location.origin + '/?the=' + pass.id,
+        width: 96,
+        height: 96,
+        colorDark: '#1b120c',
+        colorLight: '#fffdf7',
+        correctLevel: window.QRCode.CorrectLevel.M
+      });
+    } else {
+      el.innerHTML = `<span class="mono" style="font-size:11px">${pass.id}</span>`;
+    }
+  });
 }
 
 export function ppGo(p) {
@@ -497,14 +500,17 @@ export function renderTicket(animate) {
   let flipSafetyTimer = 0;
 
   if (PF) {
+    const stageWidth = Math.min(340, Math.max(260, (slot.clientWidth || window.innerWidth) - 24));
+    const stageHeight = Math.min(480, Math.max(370, Math.round(stageWidth * 1.38)));
+
     pp.flip = new PF(bookEl, {
-      width: 320,
-      height: 450,
+      width: stageWidth,
+      height: stageHeight,
       size: 'stretch',
-      minWidth: 240,
-      maxWidth: 360,
-      minHeight: 340,
-      maxHeight: 506,
+      minWidth: stageWidth,
+      maxWidth: stageWidth,
+      minHeight: stageHeight,
+      maxHeight: stageHeight,
       showCover: true,
       usePortrait: true,
       autoSize: true,
@@ -1081,7 +1087,6 @@ export function initPassportUI() {
   setPassGetter(getPass);
 
   const fName = $('#f-nickname'),
-    fPhone = $('#f-phone'),
     fEmail = $('#f-email'),
     fConsent = $('#f-consent'),
     chkOther = $('#chk-source-other'),
@@ -1137,20 +1142,6 @@ export function initPassportUI() {
     return !msg;
   }
 
-  function validatePhone() {
-    if (!fPhone) return false;
-    const v = fPhone.value.trim();
-    const cleanDigits = v.replace(/\D/g, '');
-    let msg = '';
-    if (!v) {
-      msg = 'Vui lòng nhập số điện thoại của bạn.';
-    } else if (cleanDigits.length < 9 || cleanDigits.length > 11) {
-      msg = 'Số điện thoại chưa hợp lệ (cần từ 9 - 11 chữ số, ví dụ: 0912345678).';
-    }
-    setFieldError(fPhone, $('#f-phone-err'), msg);
-    return !msg;
-  }
-
   function validateEmail() {
     if (!fEmail) return false;
     const v = fEmail.value.trim();
@@ -1197,12 +1188,6 @@ export function initPassportUI() {
       if (fName.getAttribute('aria-invalid') === 'true') validateName();
     });
   }
-  if (fPhone) {
-    fPhone.addEventListener('blur', validatePhone);
-    fPhone.addEventListener('input', () => {
-      if (fPhone.getAttribute('aria-invalid') === 'true') validatePhone();
-    });
-  }
   if (fEmail) {
     fEmail.addEventListener('blur', validateEmail);
     fEmail.addEventListener('input', () => {
@@ -1213,15 +1198,13 @@ export function initPassportUI() {
   $('#form-register')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const okName = validateName(),
-      okPhone = validatePhone(),
       okEmail = validateEmail(),
       okAge = validateAge(),
       okSource = validateSource();
     const summary = $('#error-summary');
-    if (!okName || !okPhone || !okEmail || !okAge || !okSource) {
+    if (!okName || !okEmail || !okAge || !okSource) {
       const items = [];
       if (!okName) items.push('<a href="#f-nickname">Nhập tên hoặc nickname</a>');
-      if (!okPhone) items.push('<a href="#f-phone">Nhập số điện thoại</a>');
       if (!okEmail) items.push('<a href="#f-email">Nhập đúng địa chỉ email</a>');
       if (!okAge) items.push('<a href="#lbl-age">Chọn nhóm tuổi</a>');
       if (!okSource) items.push('<a href="#lbl-source">Chọn kênh biết đến sự kiện</a>');
@@ -1235,7 +1218,7 @@ export function initPassportUI() {
     }
     if (summary) summary.hidden = true;
     let nickname = fName.value.trim();
-    const phone = fPhone ? fPhone.value.trim() : '';
+    const phone = '';
     const email = fEmail ? fEmail.value.trim() : '';
     const ageEl = document.querySelector('input[name="age"]:checked');
     const age = ageEl ? ageEl.value : '';
