@@ -108,9 +108,9 @@
 
       <nav class="nav-links" aria-label="Điều hướng chính">
         <a href="#doc-sach" data-nav>Đọc sách</a>
-        <a href="#tram-trai-nghiem" data-nav>Vân Du Ký <span class="nav-lock-badge">Coming Soon</span></a>
+        <a href="#tram-trai-nghiem" data-nav>Vân Du Ký</a>
         <!-- Góp ý của cô: bỏ "Thẻ Vị Táo" (biến giá trị thành tính cách), thay bằng Chuyện Nhà Đêm 23 ghi đủ 4 giá trị -->
-        <a href="#la-so" data-nav>Chuyện Nhà Đêm 23 <span class="nav-lock-badge">Coming Soon</span></a>
+        <a href="#la-so" data-nav>Chuyện Nhà Đêm 23</a>
       </nav>
 
       <div class="header-actions">
@@ -130,8 +130,8 @@
 
   <div class="mobile-menu" id="mobile-menu" aria-label="Menu">
     <a href="#doc-sach">Đọc sách <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
-    <a href="#tram-trai-nghiem">Vân Du Ký <span class="nav-lock-badge">Coming Soon</span> <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
-    <a href="#la-so">Chuyện Nhà Đêm 23 <span class="nav-lock-badge">Coming Soon</span> <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <a href="#tram-trai-nghiem">Vân Du Ký <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <a href="#la-so">Chuyện Nhà Đêm 23 <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
     <a class="btn btn-primary btn-block" href="#doc-sach" data-track="cta_open_book" data-track-from="menu">Mở cuốn sách</a>
   </div>
 
@@ -306,18 +306,8 @@
         <div class="psb-layer psb-bottom"></div>
       </div>
       <div class="container">
-        <!-- Khóa chức năng: COMING SOON -->
-        <div class="coming-soon-card reveal" id="passport-coming-soon">
-          <div class="cs-icon-lock" aria-hidden="true">
-            <i class="ph-fill ph-lock-key"></i>
-          </div>
-          <h3 class="cs-title">Vân Du Ký</h3>
-          <div class="cs-status-tag">Coming Soon</div>
-        </div>
-
-        <div class="is-feature-locked" hidden>
-          <!-- Thanh tiện ích lệnh bài: hiện khi người dùng đã có thẻ, thay thế form cồng kềnh -->
-          <div class="passport-bar" id="passport-bar" hidden aria-live="polite"></div>
+        <!-- Thanh tiện ích lệnh bài: hiện khi người dùng đã có thẻ, thay thế form cồng kềnh -->
+        <div class="passport-bar" id="passport-bar" hidden aria-live="polite"></div>
 
           <!-- Phần giới thiệu hiện khoảng 8 giây rồi thu vào bóng thoại hướng dẫn ở góc dưới trái (#guide) -->
           <div class="pp-intro" id="pp-intro"><div class="pp-intro-in">
@@ -391,7 +381,6 @@
               <div class="checkout" id="checkout" hidden aria-live="polite"></div>
             </div>
           </div>
-        </div>
       </div>
     </section>
 
@@ -409,17 +398,7 @@
       <!-- Canvas trải dài trọn vẹn toàn bộ Chuyện Nhà Đêm 23 & xuyên suốt qua cầu hoàng hôn -->
       <canvas class="la-so-bg-canvas" id="la-so-bg-canvas" aria-hidden="true"></canvas>
       <div class="container">
-        <!-- Khóa chức năng: COMING SOON -->
-        <div class="coming-soon-card reveal" id="laso-coming-soon">
-          <div class="cs-icon-lock" aria-hidden="true">
-            <i class="ph-fill ph-lock-key"></i>
-          </div>
-          <h3 class="cs-title">Chuyện Nhà Đêm 23</h3>
-          <div class="cs-status-tag">Coming Soon</div>
-        </div>
-
-        <div class="is-feature-locked" hidden>
-          <div class="section-head reveal">
+        <div class="section-head reveal">
             <span class="tag-phase"><i class="ph ph-scroll" aria-hidden="true"></i> Year in Values</span>
             <h2 id="letter-title">Chuyện Nhà Đêm 23</h2>
             <p>Ngày 23 tháng Chạp, ông Táo mang Chuyện Nhà Đêm 23 về trời kể chuyện một năm của mỗi nhà. Đi đủ bốn trạm ở sự kiện là mở Chuyện Nhà Đêm 23: ghi đủ bốn giá trị, kèm những khoảnh khắc bạn chụp.</p>
@@ -602,7 +581,6 @@
             </aside>
           </div>
         </div>
-        </div>
       </div>
     </section>
 
@@ -654,8 +632,8 @@
             <h4>Trải nghiệm</h4>
             <ul>
               <li><a href="#doc-sach">Đọc sách</a></li>
-              <li><a href="#tram-trai-nghiem">Vân Du Ký <span class="footer-lock-badge">Coming Soon</span></a></li>
-              <li><a href="#la-so">Chuyện Nhà Đêm 23 <span class="footer-lock-badge">Coming Soon</span></a></li>
+              <li><a href="#tram-trai-nghiem">Vân Du Ký</a></li>
+              <li><a href="#la-so">Chuyện Nhà Đêm 23</a></li>
             </ul>
           </div>
           <div>
@@ -749,7 +727,7 @@
   <!-- Chọn ảnh khoảnh khắc (dùng chung cho trang visa trong hộ chiếu và Chuyện Nhà Đêm 23) -->
   <input class="sr-only" type="file" id="moment-input" accept="image/*" tabindex="-1" aria-hidden="true">
   <!-- Ghi chú hướng dẫn kiểu bóng thoại truyện tranh (phần thẻ thông hành): bật lên ~8 giây rồi thu thành bóng thoại góc dưới trái -->
-  <aside class="guide is-feature-locked" id="guide" hidden>
+  <aside class="guide" id="guide" hidden>
     <div class="guide-note" id="guide-note" role="dialog" aria-labelledby="guide-title" tabindex="-1">
       <button class="guide-x" type="button" aria-label="Thu gọn hướng dẫn"><i class="ph ph-minus" aria-hidden="true"></i></button>
       <h3 class="guide-title" id="guide-title">Đi bốn trạm thế nào?</h3>
