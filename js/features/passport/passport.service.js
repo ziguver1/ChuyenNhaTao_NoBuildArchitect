@@ -233,9 +233,12 @@ export function startPolling() {
   };
   const tick = () => {
     const isForeground = document.visibilityState === 'visible';
+    const pass = getPass();
+    const isCheckoutPending = Boolean(pass && pass.stamps && pass.stamps.length >= 4 && !pass.claimed);
     const isActive =
       isForeground &&
       (server.inView ||
+        isCheckoutPending ||
         Boolean($('#dlg')?.open) ||
         Boolean($('#dlg-scanner')?.open) ||
         Boolean($('#pass-modal')?.open));
