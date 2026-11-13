@@ -1502,8 +1502,22 @@ export function initPassportUI() {
     }
 
     try {
+      // 1. Thử lấy ID camera sau (rear/back) trực tiếp để tránh trình duyệt fallback sang intent quay video
+      let cameraConfig = { facingMode: 'environment' };
+      try {
+        if (typeof window.Html5Qrcode.getCameras === 'function') {
+          const cameras = await window.Html5Qrcode.getCameras();
+          if (cameras && cameras.length > 0) {
+            const backCam = cameras.find((c) => /back|rear|environment|sau/i.test(c.label)) || cameras[cameras.length - 1];
+            if (backCam && backCam.id) {
+              cameraConfig = backCam.id;
+            }
+          }
+        }
+      } catch (camErr) {}
+
       await userScanner.start(
-        { facingMode: 'environment' },
+        cameraConfig,
         {
           fps: 15,
           qrbox: (w, h) => {
@@ -1520,9 +1534,9 @@ export function initPassportUI() {
       userScanner = null;
       userScanning = false;
       if (loadingEl) {
-        loadingEl.innerHTML = '<span style="color:#ef4444;padding:16px;text-align:center;">Không mở được camera. Hãy cho phép quyền truy cập camera trong trình duyệt hoặc nhập mã 6 ký tự bên dưới.</span>';
+        loadingEl.innerHTML = '<span style="color:#ef4444;padding:16px;text-align:center;">Không mở được camera trực tiếp. Bạn bấm nút "Chụp ảnh / Tải ảnh QR" hoặc nhập mã 6 ký tự bên dưới nhé.</span>';
       }
-      toast('Không mở được camera. Vui lòng kiểm tra quyền camera hoặc nhập mã bên dưới.', 'err');
+      toast('Không mở được camera. Bạn có thể chụp ảnh QR hoặc nhập mã bên dưới.', 'err');
     }
   }
 
@@ -1652,6 +1666,36 @@ export function initPassportUI() {
       submitManualScanner();
     }
   });
+
+  // Quét QR bằng cách chụp ảnh / tải ảnh (cho máy bị chuyển sang chế độ quay video)
+  const fileInput = $('#scanner-file-input');
+  const btnFile = $('#btn-scanner-file');
+  if (btnFile && fileInput) {
+    btnFile.addEventListener('click', () => {
+      fileInput.value = '';
+      fileInput.click();
+    });
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      toast('Đang đọc mã QR từ ảnh...', 'info');
+      try {
+        let fileScanner = userScanner;
+        if (!fileScanner && typeof window.Html5Qrcode !== 'undefined') {
+          fileScanner = new window.Html5Qrcode('user-camera-reader', {
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+          });
+        }
+        if (!fileScanner) throw new Error('No scanner');
+        const decodedText = await fileScanner.scanFile(file, false);
+        if (decodedText) {
+          onUserScanSuccess(decodedText);
+        }
+      } catch (err) {
+        toast('Không tìm thấy mã QR trong ảnh. Bạn chụp lại góc gần và rõ nét hơn hoặc nhập mã 6 ký tự nhé!', 'err');
+      }
+    });
+  }
 
   // Chọn ảnh khoảnh khắc
   const momentInput = $('#moment-input');

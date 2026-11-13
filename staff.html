@@ -101,6 +101,10 @@
           <h2 id="scan-title">Quét QR trên hộ chiếu người chơi</h2>
           <div id="reader"><div class="scan-idle"><i class="ph ph-camera" aria-hidden="true"></i><span>Bấm "Mở camera" rồi đưa QR ở trang thông tin hộ chiếu vào khung.</span></div></div>
           <button class="btn btn-primary btn-xl" type="button" id="btn-cam"><i class="ph ph-camera" aria-hidden="true"></i> Mở camera</button>
+          <div style="display:flex;gap:8px;margin-top:-6px;">
+            <input type="file" id="staff-file-input" accept="image/*" class="sr-only" tabindex="-1">
+            <button class="btn btn-quiet btn-sm" type="button" id="btn-staff-file" style="flex:1;min-height:36px;"><i class="ph ph-image"></i> Quét từ ảnh chụp</button>
+          </div>
           <form class="manual" id="manual" novalidate>
             <label class="sr-only" for="manual-id">Mã thẻ</label>
             <input class="input" id="manual-id" placeholder="Hoặc nhập mã (VD: H3KKZX hay TAO-H3KKZX)" autocomplete="off" autocapitalize="characters" spellcheck="false">

@@ -133,8 +133,20 @@
           useBarCodeDetectorIfSupported: true
         }
       });
+      // 1. Thử lấy ID camera sau (rear/back) trực tiếp để tránh trình duyệt fallback sang intent quay video
+      let cameraConfig = { facingMode: 'environment' };
+      try {
+        if (typeof Html5Qrcode.getCameras === 'function') {
+          const cams = await Html5Qrcode.getCameras();
+          if (cams && cams.length > 0) {
+            const back = cams.find((c) => /back|rear|environment|sau/i.test(c.label)) || cams[cams.length - 1];
+            if (back && back.id) cameraConfig = back.id;
+          }
+        }
+      } catch (e) {}
+
       await scanner.start(
-        { facingMode: 'environment' },
+        cameraConfig,
         {
           fps: 15,
           qrbox: (w, h) => {
@@ -201,6 +213,32 @@
     if (!pid) { notice('Mã thẻ có dạng TAO-XXXXXX (hoặc nhập 6 ký tự cuối).'); return; }
     lookup(pid);
   });
+
+  // Quét QR từ ảnh chụp cho nhân sự
+  const staffFileInput = $('#staff-file-input');
+  const btnStaffFile = $('#btn-staff-file');
+  if (btnStaffFile && staffFileInput) {
+    btnStaffFile.addEventListener('click', () => {
+      staffFileInput.value = '';
+      staffFileInput.click();
+    });
+    staffFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      notice('Đang nhận diện mã QR từ ảnh...', 'ok');
+      try {
+        if (!scanner) {
+          scanner = new Html5Qrcode('reader', {
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+          });
+        }
+        const text = await scanner.scanFile(file, false);
+        if (text) onScan(text);
+      } catch (err) {
+        notice('Không tìm thấy mã QR trong ảnh. Thử chụp lại rõ hơn hoặc nhập mã thẻ.');
+      }
+    });
+  }
 
   // ---------------------------------------------------------------- tra thẻ và thao tác
   async function lookup(pid) {

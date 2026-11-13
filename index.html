@@ -733,13 +733,20 @@
           </div>
         </div>
 
-        <p class="help" style="text-align:center; font-size:13px; margin:4px 0 0;">
-          <i class="ph ph-scan"></i> Hướng camera vào mã QR in trên Standee để quét tự động.
+        <div style="display:flex; gap:8px; justify-content:center; margin-top:10px;">
+          <input type="file" id="scanner-file-input" accept="image/*" class="sr-only" tabindex="-1">
+          <button class="btn btn-outline btn-sm" type="button" id="btn-scanner-file" style="flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:40px;">
+            <i class="ph-bold ph-image" aria-hidden="true"></i> Chụp ảnh / Tải ảnh mã QR
+          </button>
+        </div>
+
+        <p class="help" style="text-align:center; font-size:12.5px; margin:6px 0 0; color:var(--text-muted);">
+          <i class="ph ph-scan"></i> Hướng camera vào mã QR, hoặc bấm nút trên để chụp ảnh rõ nét.
         </p>
 
         <div class="qr-fallback-section" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">
           <p class="qr-fallback-title" style="font-size:12.5px; font-weight:700; margin-bottom:6px; color:var(--text-muted);">
-            <i class="ph ph-warning-circle" aria-hidden="true"></i> Camera bị mờ? Nhập mã 6 ký tự in dưới mã QR:
+            <i class="ph ph-warning-circle" aria-hidden="true"></i> Camera bị lỗi hoặc chuyển sang quay video? Nhập mã 6 ký tự:
           </p>
           <div style="display:flex; gap:8px; align-items:center; width:100%;">
             <input class="input" id="scanner-manual-input" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="Ví dụ: TONKI1" style="flex:1; height:42px; margin:0; font-family:monospace; font-weight:700; letter-spacing:.08em; text-transform:uppercase;">
