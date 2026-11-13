@@ -55,6 +55,10 @@ export async function pushPass(tries = 0) {
       body: JSON.stringify({
         pid: pass.id,
         name: pass.nickname,
+        phone: pass.phone || '',
+        email: pass.email || '',
+        age: pass.age || '',
+        source: pass.source || '',
         vid: meter.vid,
         gift: pass.giftCode
       })

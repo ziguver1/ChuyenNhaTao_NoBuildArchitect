@@ -996,8 +996,11 @@ export function initPassportUI() {
   setPassGetter(getPass);
 
   const fName = $('#f-nickname'),
+    fPhone = $('#f-phone'),
     fEmail = $('#f-email'),
-    fConsent = $('#f-consent');
+    fConsent = $('#f-consent'),
+    chkOther = $('#chk-source-other'),
+    txtOther = $('#f-source-other-text');
 
   // Tự động điền tên nếu người dùng đã nhập trước đó ở phần Lưu bút đọc sách
   const prefilledName = store.get('user_nickname');
@@ -1007,6 +1010,34 @@ export function initPassportUI() {
   fName?.addEventListener('input', () => {
     const v = fName.value.trim();
     if (v) store.set('user_nickname', v);
+  });
+
+  chkOther?.addEventListener('change', () => {
+    if (txtOther) {
+      txtOther.disabled = !chkOther.checked;
+      if (chkOther.checked) {
+        txtOther.focus();
+      } else {
+        txtOther.value = '';
+      }
+    }
+    validateSource();
+  });
+
+  txtOther?.addEventListener('input', () => {
+    if (chkOther && !chkOther.checked && txtOther.value.trim()) {
+      chkOther.checked = true;
+      txtOther.disabled = false;
+    }
+    validateSource();
+  });
+
+  document.querySelectorAll('input[name="age"]').forEach((r) => {
+    r.addEventListener('change', validateAge);
+  });
+
+  document.querySelectorAll('input[name="source"]').forEach((c) => {
+    c.addEventListener('change', validateSource);
   });
 
   function validateName() {
@@ -1020,16 +1051,55 @@ export function initPassportUI() {
     setFieldError(fName, $('#f-nickname-err'), msg);
     return !msg;
   }
+
+  function validatePhone() {
+    if (!fPhone) return false;
+    const v = fPhone.value.trim();
+    const cleanDigits = v.replace(/\D/g, '');
+    let msg = '';
+    if (!v) {
+      msg = 'Vui lòng nhập số điện thoại của bạn.';
+    } else if (cleanDigits.length < 9 || cleanDigits.length > 11) {
+      msg = 'Số điện thoại chưa hợp lệ (cần từ 9 - 11 chữ số, ví dụ: 0912345678).';
+    }
+    setFieldError(fPhone, $('#f-phone-err'), msg);
+    return !msg;
+  }
+
   function validateEmail() {
     if (!fEmail) return false;
     const v = fEmail.value.trim();
-    const msg =
-      v && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
-        ? 'Email chưa đúng định dạng, ví dụ: ban@email.com'
-        : '';
+    let msg = '';
+    if (!v) {
+      msg = 'Vui lòng nhập địa chỉ email của bạn (bắt buộc).';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) {
+      msg = 'Email chưa đúng định dạng, ví dụ: ban@email.com';
+    }
     setFieldError(fEmail, $('#f-email-err'), msg);
     return !msg;
   }
+
+  function validateAge() {
+    const selected = document.querySelector('input[name="age"]:checked');
+    const msg = !selected ? 'Vui lòng chọn nhóm tuổi của bạn.' : '';
+    const errBox = $('#f-age-err');
+    if (errBox) errBox.innerHTML = msg ? `<i class="ph ph-warning-circle" aria-hidden="true"></i>${msg}` : '';
+    return !msg;
+  }
+
+  function validateSource() {
+    const checked = Array.from(document.querySelectorAll('input[name="source"]:checked'));
+    let msg = '';
+    if (!checked.length) {
+      msg = 'Vui lòng chọn ít nhất một kênh bạn biết đến sự kiện.';
+    } else if (chkOther && chkOther.checked && txtOther && !txtOther.value.trim()) {
+      msg = 'Bạn đã chọn "Mục khác", vui lòng điền thông tin kênh.';
+    }
+    const errBox = $('#f-source-err');
+    if (errBox) errBox.innerHTML = msg ? `<i class="ph ph-warning-circle" aria-hidden="true"></i>${msg}` : '';
+    return !msg;
+  }
+
   function setFieldError(input, out, msg) {
     if (!input) return;
     input.setAttribute('aria-invalid', msg ? 'true' : 'false');
@@ -1042,6 +1112,12 @@ export function initPassportUI() {
       if (fName.getAttribute('aria-invalid') === 'true') validateName();
     });
   }
+  if (fPhone) {
+    fPhone.addEventListener('blur', validatePhone);
+    fPhone.addEventListener('input', () => {
+      if (fPhone.getAttribute('aria-invalid') === 'true') validatePhone();
+    });
+  }
   if (fEmail) {
     fEmail.addEventListener('blur', validateEmail);
     fEmail.addEventListener('input', () => {
@@ -1052,12 +1128,18 @@ export function initPassportUI() {
   $('#form-register')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const okName = validateName(),
-      okEmail = validateEmail();
+      okPhone = validatePhone(),
+      okEmail = validateEmail(),
+      okAge = validateAge(),
+      okSource = validateSource();
     const summary = $('#error-summary');
-    if (!okName || !okEmail) {
+    if (!okName || !okPhone || !okEmail || !okAge || !okSource) {
       const items = [];
       if (!okName) items.push('<a href="#f-nickname">Nhập tên hoặc nickname</a>');
-      if (!okEmail) items.push('<a href="#f-email">Kiểm tra lại email</a>');
+      if (!okPhone) items.push('<a href="#f-phone">Nhập số điện thoại</a>');
+      if (!okEmail) items.push('<a href="#f-email">Nhập đúng địa chỉ email</a>');
+      if (!okAge) items.push('<a href="#lbl-age">Chọn nhóm tuổi</a>');
+      if (!okSource) items.push('<a href="#lbl-source">Chọn kênh biết đến sự kiện</a>');
       const sumList = $('#error-summary-list');
       if (sumList) sumList.innerHTML = items.join('');
       if (summary) {
@@ -1068,6 +1150,18 @@ export function initPassportUI() {
     }
     if (summary) summary.hidden = true;
     let nickname = fName.value.trim();
+    const phone = fPhone ? fPhone.value.trim() : '';
+    const email = fEmail ? fEmail.value.trim() : '';
+    const ageEl = document.querySelector('input[name="age"]:checked');
+    const age = ageEl ? ageEl.value : '';
+    const sources = Array.from(document.querySelectorAll('input[name="source"]:checked')).map(el => {
+      if (el.value === 'Mục khác') {
+        const custom = txtOther ? txtOther.value.trim() : '';
+        return custom ? `Khác: ${custom}` : 'Mục khác';
+      }
+      return el.value;
+    });
+    const source = sources.join(', ');
     const offline = !navigator.onLine;
 
     if (!offline && isTaken(nickname)) {
@@ -1102,14 +1196,16 @@ export function initPassportUI() {
       btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Đang tạo thẻ…</span>';
     }
 
-    const consent = fConsent ? fConsent.checked : false;
-    const email = fEmail ? fEmail.value.trim() : '';
+    const consent = fConsent ? fConsent.checked : true;
 
     setTimeout(() => {
       const pass = {
         id: (offline ? 'OFF-' : 'TAO-') + randCode(6),
         nickname,
-        email: consent && email ? email : null,
+        phone,
+        email,
+        age,
+        source,
         consent,
         stamps: [],
         giftCode: 'QUA-' + randCode(4),
@@ -1139,8 +1235,6 @@ export function initPassportUI() {
           'info',
           'wifi-slash'
         );
-      else if (!consent && email)
-        toast('Thẻ đã sẵn sàng. Vì bạn chưa đồng ý, chúng tôi không lưu email.', 'ok');
       else
         toast(
           'Thẻ thông hành đã sẵn sàng. Đưa mã QR cho nhân sự ở mỗi trạm nhé.',

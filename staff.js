@@ -179,7 +179,7 @@
       const n = Object.keys(p.stamps).length;
       const checkoutPrize = p.checkoutPrize || (p.prizes && p.prizes.checkout);
       box.innerHTML = `
-        <div class="who"><div><strong>${esc(p.name)}</strong><span class="mono">${esc(p.pid)}</span></div><span class="badge-n">${n}/4 dấu</span></div>
+        <div class="who"><div><strong>${esc(p.name)}</strong><span class="mono">${esc(p.pid)}</span>${p.phone ? ` <small style="color:var(--text-muted);font-weight:normal;">(${esc(p.phone)})</small>` : ''}</div><span class="badge-n">${n}/4 dấu</span></div>
         <div class="stamps4">${[1, 2, 3, 4].map((s) => `<div class="${p.stamps[s] ? 'on' : ''} ${s === place ? 'here' : ''}">
           <i class="ph${p.stamps[s] ? '-fill' : ''} ph-${p.stamps[s] ? 'seal-check' : 'circle-dashed'}" aria-hidden="true"></i>${STATIONS[s - 1].replace('Trạm ', '')}
           <small>${p.stamps[s] ? 'Đã đóng' : 'Chưa'}</small></div>`).join('')}</div>

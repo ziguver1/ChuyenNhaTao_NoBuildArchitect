@@ -326,6 +326,10 @@ function passView(h) {
   return {
     pid: h.pid,
     name: h.name || '',
+    phone: h.phone || null,
+    email: h.email || null,
+    age: h.age || null,
+    source: h.source || null,
     created: Number(h.created || 0),
     gift: h.gift || null,
     stamps: by('st'),

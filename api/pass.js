@@ -181,6 +181,10 @@ module.exports = async (req, res) => {
     const b = readBody(req) || {};
     const pid = String(b.pid || '').toUpperCase();
     const name = typeof b.name === 'string' ? b.name.trim().slice(0, 24) : '';
+    const phone = typeof b.phone === 'string' ? b.phone.trim().slice(0, 20) : '';
+    const email = typeof b.email === 'string' ? b.email.trim().slice(0, 100) : '';
+    const age = typeof b.age === 'string' ? b.age.trim().slice(0, 50) : '';
+    const source = Array.isArray(b.source) ? b.source.join(', ') : typeof b.source === 'string' ? b.source.trim().slice(0, 200) : '';
     const vid = /^[A-Za-z0-9-]{8,40}$/.test(b.vid || '') ? b.vid : '';
     const gift = /^QUA-[A-Z0-9]{4}$/.test(b.gift || '') ? b.gift : '';
     if (!PID_RE.test(pid) || name.length < 2) return res.status(400).json({ error: 'input' });
@@ -197,7 +201,11 @@ module.exports = async (req, res) => {
       ['HSET', key, 'name', name, 'created', String(Date.now())],
       ['HSET', 'name2pid', plainName(name), pid]
     ];
-    if (vid) cmds.push(['HSET', key, 'vid', vid], ['HSET', `u:${vid}`, 'pid', pid, 'name', name], ['HSET', 'pid2vid', pid, vid]);
+    if (phone) cmds.push(['HSET', key, 'phone', phone]);
+    if (email) cmds.push(['HSET', key, 'email', email]);
+    if (age) cmds.push(['HSET', key, 'age', age]);
+    if (source) cmds.push(['HSET', key, 'source', source]);
+    if (vid) cmds.push(['HSET', key, 'vid', vid], ['HSET', `u:${vid}`, 'pid', pid, 'name', name, 'phone', phone, 'email', email, 'age', age, 'source', source], ['HSET', 'pid2vid', pid, vid]);
     if (gift) cmds.push(['HSET', key, 'gift', gift]);
     cmds.push(['ZADD', 'passes', String(Date.now()), pid], ['HGETALL', key]);
     const out = await redis(cmds);

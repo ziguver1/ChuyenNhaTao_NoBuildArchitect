@@ -250,6 +250,10 @@
           vid,
           pid: pass ? pass.id : null,
           name: pass ? pass.nickname : '',
+          phone: pass ? pass.phone : null,
+          email: pass ? pass.email : null,
+          age: pass ? pass.age : null,
+          source: pass ? pass.source : null,
           flips: stats.flips || 0,
           pages: (stats.pages || []).slice().sort((a, b) => a - b),
           last: stats.last,
@@ -337,6 +341,10 @@
         vid: `v-demo-${(i + 1).toString().padStart(2, '0')}`,
         pid,
         name,
+        phone: isAnon ? null : `09${(i * 1234567 + 89).toString().padStart(8, '0').slice(0, 8)}`,
+        email: isAnon ? null : `user${i + 1}@gmail.com`,
+        age: isAnon ? null : ['Dưới 18 tuổi', '18 – 24 tuổi', '25 – 30 tuổi', 'Trên 30 tuổi'][i % 4],
+        source: isAnon ? null : ['Facebook', 'TikTok', 'Threads', 'Bạn bè / Người thân rủ đi', 'Vô tình đi ngang qua sự kiện'][i % 5],
         flips: flipsList[i],
         pages,
         last,
@@ -354,6 +362,10 @@
       rows[0].vid = single.vid;
       if (single.pid) rows[0].pid = single.pid;
       if (single.name) rows[0].name = single.name;
+      if (single.phone) rows[0].phone = single.phone;
+      if (single.email) rows[0].email = single.email;
+      if (single.age) rows[0].age = single.age;
+      if (single.source) rows[0].source = single.source;
     }
     return rows;
   }
@@ -1992,7 +2004,7 @@
     const { k, dir } = state.sort;
     $$('th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === k ? (dir > 0 ? 'ascending' : 'descending') : 'none'));
     const rows = state.rows
-      .filter((r) => !state.q || (r.pid || '').toLowerCase().includes(state.q) || (r.name || '').toLowerCase().includes(state.q))
+      .filter((r) => !state.q || (r.pid || '').toLowerCase().includes(state.q) || (r.name || '').toLowerCase().includes(state.q) || (r.phone || '').includes(state.q) || (r.email || '').toLowerCase().includes(state.q))
       .sort((a, b) => {
         const x = a[k] == null ? -1 : a[k], y = b[k] == null ? -1 : b[k];
         return (x > y ? 1 : x < y ? -1 : 0) * dir;
@@ -2004,6 +2016,10 @@
             (r) => `<tr>
         <td><span class="mono">${esc(r.pid || '—')}</span></td>
         <td>${esc(r.name || '(chưa tạo thẻ)')}${r.checkin ? ' <small title="Đã check-in sự kiện">· đã tới</small>' : ''}</td>
+        <td><span class="mono">${esc(r.phone || '—')}</span></td>
+        <td>${esc(r.email || '—')}</td>
+        <td>${esc(r.age || '—')}</td>
+        <td>${esc(r.source || '—')}</td>
         <td class="num">${r.flips}</td>
         <td class="num">${r.pagesN}/${PAGE_COUNT}<span class="bar"><i style="width:${Math.round((r.pagesN / PAGE_COUNT) * 100)}%"></i></span></td>
         <td>${pageName(r.last)}</td>
@@ -2014,7 +2030,7 @@
       </tr>`
           )
           .join('')
-      : `<tr><td class="empty" colspan="9">Chưa có ai${state.q ? ' khớp với ô tìm kiếm' : ''}.</td></tr>`;
+      : `<tr><td class="empty" colspan="13">Chưa có ai${state.q ? ' khớp với ô tìm kiếm' : ''}.</td></tr>`;
   }
 
   function render() {
@@ -2028,7 +2044,7 @@
   // =========================================================================
   function exportPeopleCSV() {
     const head = [
-      'Mã thẻ', 'Tên', 'Check-in sự kiện', 'Lượt lật trang', 'Số trang đã xem', 'Các trang đã xem',
+      'Mã thẻ', 'Tên', 'Số điện thoại', 'Email', 'Độ tuổi', 'Kênh biết đến', 'Check-in sự kiện', 'Lượt lật trang', 'Số trang đã xem', 'Các trang đã xem',
       'Đang xem trang', 'Chương đã nghe', 'Dấu trạm', 'Quà trạm 1', 'Quà trạm 2', 'Quà trạm 3', 'Quà trạm 4',
       'Đã nhận quà cuối', 'Lần đầu', 'Gần nhất', 'Mã trình duyệt'
     ];
@@ -2036,7 +2052,7 @@
     const time = (t) => (t ? new Date(t).toISOString() : '');
     const lines = state.rows.map((r) =>
       [
-        r.pid, r.name, time(r.checkin), r.flips, r.pagesN, r.pages.join(' '), r.last, r.chapters.join(' '), r.stamps.join(' '),
+        r.pid, r.name, r.phone, r.email, r.age, r.source, time(r.checkin), r.flips, r.pagesN, r.pages.join(' '), r.last, r.chapters.join(' '), r.stamps.join(' '),
         ...r.prizes.map((p) => (p ? PRIZE_LABEL[p] : '')), r.claimed ? 'có' : '', time(r.first), time(r.seen), r.vid
       ]
         .map(cell)

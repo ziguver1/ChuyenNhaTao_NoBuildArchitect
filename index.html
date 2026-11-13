@@ -337,7 +337,7 @@
               <!-- Chưa có thẻ: tạo thẻ (ở nhà trước sự kiện hoặc ngay tại cổng) -->
               <div id="register-open">
               <h3>Tạo thẻ thông hành</h3>
-              <p class="lead">Tạo trước ở nhà hoặc ngay tại cổng sự kiện. Chỉ cần một cái tên, email là tùy chọn, dùng để gửi thông tin quà.</p>
+              <p class="lead">Tạo trước ở nhà hoặc ngay tại cổng sự kiện. Điền đầy đủ thông tin bên dưới để nhận thẻ thông hành và tham gia tích dấu nhận quà.</p>
 
               <form class="form" id="form-register" novalidate>
                 <div class="error-summary" id="error-summary" role="alert" tabindex="-1" hidden>
@@ -346,21 +346,84 @@
                 </div>
 
                 <div class="field">
-                  <label for="f-nickname">Tên hoặc nickname</label>
+                  <label for="f-nickname">Tên hoặc nickname <span class="req">*</span></label>
                   <input class="input" id="f-nickname" name="nickname" type="text" autocomplete="nickname" maxlength="24" required aria-describedby="f-nickname-help f-nickname-err" placeholder="Ví dụ: Bé Na, Minh Khôi">
                   <p class="help" id="f-nickname-help">Tên này sẽ in trên hộ chiếu và Chuyện Nhà Đêm 23 của bạn.</p>
                   <p class="error-text" id="f-nickname-err" aria-live="polite"></p>
                 </div>
 
                 <div class="field">
-                  <label for="f-email">Email <span class="opt">(không bắt buộc)</span></label>
-                  <input class="input" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" aria-describedby="f-email-err" placeholder="ban@email.com">
+                  <label for="f-phone">Số điện thoại của bạn <span class="req">*</span></label>
+                  <input class="input" id="f-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" required aria-describedby="f-phone-err" placeholder="Ví dụ: 0912345678">
+                  <p class="error-text" id="f-phone-err" aria-live="polite"></p>
+                </div>
+
+                <div class="field">
+                  <label for="f-email">Địa chỉ Email của bạn <span class="req">*</span></label>
+                  <input class="input" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="f-email-err" placeholder="ban@email.com">
                   <p class="error-text" id="f-email-err" aria-live="polite"></p>
                 </div>
 
+                <div class="field" role="radiogroup" aria-labelledby="lbl-age">
+                  <label id="lbl-age">Bạn bao nhiêu tuổi? <span class="req">*</span></label>
+                  <div class="form-options form-options-grid">
+                    <label class="option-pill">
+                      <input type="radio" name="age" value="Dưới 18 tuổi" required>
+                      <span>Dưới 18 tuổi</span>
+                    </label>
+                    <label class="option-pill">
+                      <input type="radio" name="age" value="18 – 24 tuổi">
+                      <span>18 – 24 tuổi</span>
+                    </label>
+                    <label class="option-pill">
+                      <input type="radio" name="age" value="25 – 30 tuổi">
+                      <span>25 – 30 tuổi</span>
+                    </label>
+                    <label class="option-pill">
+                      <input type="radio" name="age" value="Trên 30 tuổi">
+                      <span>Trên 30 tuổi</span>
+                    </label>
+                  </div>
+                  <p class="error-text" id="f-age-err" aria-live="polite"></p>
+                </div>
+
+                <div class="field" role="group" aria-labelledby="lbl-source">
+                  <label id="lbl-source">Bạn biết đến Sự kiện trải nghiệm "Chuyện Nhà Táo" thông qua đâu? <span class="req">*</span></label>
+                  <div class="form-options form-options-list">
+                    <label class="option-check">
+                      <input type="checkbox" name="source" value="Facebook">
+                      <span>Facebook</span>
+                    </label>
+                    <label class="option-check">
+                      <input type="checkbox" name="source" value="TikTok">
+                      <span>TikTok</span>
+                    </label>
+                    <label class="option-check">
+                      <input type="checkbox" name="source" value="Threads">
+                      <span>Threads</span>
+                    </label>
+                    <label class="option-check">
+                      <input type="checkbox" name="source" value="Bạn bè / Người thân rủ đi">
+                      <span>Bạn bè / Người thân rủ đi</span>
+                    </label>
+                    <label class="option-check">
+                      <input type="checkbox" name="source" value="Vô tình đi ngang qua sự kiện">
+                      <span>Vô tình đi ngang qua sự kiện</span>
+                    </label>
+                    <div class="option-other-row">
+                      <label class="option-check">
+                        <input type="checkbox" name="source" value="Mục khác" id="chk-source-other">
+                        <span>Mục khác:</span>
+                      </label>
+                      <input class="input input-sm" type="text" id="f-source-other-text" placeholder="Nhập kênh khác..." maxlength="60" disabled>
+                    </div>
+                  </div>
+                  <p class="error-text" id="f-source-err" aria-live="polite"></p>
+                </div>
+
                 <label class="check" for="f-consent">
-                  <input id="f-consent" name="consent" type="checkbox">
-                  <span>Tôi đồng ý để Chuyện Nhà Táo lưu email nhằm gửi thông tin nhận quà và lời mời viết Chuyện Nhà Đêm 23 gửi Táo. <a href="#du-lieu">Xem chính sách dữ liệu</a>.</span>
+                  <input id="f-consent" name="consent" type="checkbox" checked required>
+                  <span>Tôi đồng ý cung cấp thông tin để Chuyện Nhà Táo lưu trữ phục vụ việc trao quà và hỗ trợ sự kiện. <a href="#du-lieu">Xem chính sách dữ liệu</a>.</span>
                 </label>
 
                 <button class="btn btn-primary btn-block" type="submit" id="btn-register">

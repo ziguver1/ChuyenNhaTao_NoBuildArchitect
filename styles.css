@@ -1534,6 +1534,111 @@ body::after {
 .form-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--text-dim); }
 .linklike { background: none; border: 0; padding: 0; min-height: 44px; color: var(--accent-ink); text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
 
+.req { color: #b8241c; font-weight: 700; margin-left: 3px; }
+
+/* Radio options theo dạng Pill Card */
+.form-options-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 4px;
+}
+@media (max-width: 480px) {
+  .form-options-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+.option-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: var(--radius-input, 10px);
+  background: var(--surface, #ffffff);
+  border: 1px solid rgba(138, 90, 57, 0.28);
+  font-size: 14.5px;
+  color: var(--text, #2a1710);
+  cursor: pointer;
+  transition: all .2s ease;
+  user-select: none;
+}
+.option-pill:hover {
+  border-color: var(--accent, #b93826);
+  background: rgba(185, 56, 38, 0.03);
+}
+.option-pill:has(input:checked) {
+  border-color: var(--accent, #b93826);
+  background: rgba(185, 56, 38, 0.08);
+  color: #8c1d14;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px var(--accent, #b93826);
+}
+.option-pill input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent, #b93826);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Checkbox options theo dạng List */
+.form-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+.option-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--radius-input, 8px);
+  background: rgba(255, 252, 246, 0.6);
+  border: 1px solid rgba(138, 90, 57, 0.18);
+  font-size: 14.5px;
+  color: var(--text, #2a1710);
+  cursor: pointer;
+  transition: all .15s ease;
+  user-select: none;
+}
+.option-check:hover {
+  background: rgba(185, 56, 38, 0.04);
+  border-color: rgba(185, 56, 38, 0.35);
+}
+.option-check:has(input:checked) {
+  background: rgba(185, 56, 38, 0.08);
+  border-color: var(--accent, #b93826);
+  color: #8c1d14;
+  font-weight: 600;
+}
+.option-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent, #b93826);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.option-other-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.option-other-row .option-check {
+  flex-shrink: 0;
+}
+.option-other-row .input-sm {
+  flex: 1;
+  min-width: 180px;
+  min-height: 42px;
+  padding: 8px 14px;
+  font-size: 14px;
+}
+
 /* Thẻ thông hành */
 .ticket {
   position: relative; overflow: hidden; padding: clamp(22px, 4vw, 32px);
