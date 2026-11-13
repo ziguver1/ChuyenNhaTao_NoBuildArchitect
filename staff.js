@@ -20,6 +20,18 @@
   };
   const PID_RE = /(TAO|OFF)-[A-Z0-9]{6}/;
 
+  function extractPid(raw) {
+    if (!raw) return null;
+    let s = String(raw).trim();
+    try { s = decodeURIComponent(s); } catch (e) {}
+    s = s.toUpperCase().replace(/\s+/g, '');
+    const m = s.match(/(TAO|OFF)-[A-Z0-9]{6}/);
+    if (m) return m[0];
+    const shortM = s.match(/^[A-Z0-9]{6}$/);
+    if (shortM) return 'TAO-' + shortM[0];
+    return null;
+  }
+
   // Phiên đăng nhập: lưu trong tab, tự hết hạn sau 8 tiếng
   const SESSION = 'cnt_staff', TTL = 8 * 3600 * 1000;
   const getSession = () => { try { const v = JSON.parse(sessionStorage.getItem(SESSION) || 'null'); return v && Date.now() - v.at < TTL ? v : null; } catch (e) { return null; } };
@@ -104,9 +116,26 @@
   async function startScan() {
     if (typeof Html5Qrcode === 'undefined') { notice('Chưa tải được thư viện quét QR. Kiểm tra mạng, hoặc nhập mã thẻ bằng tay.'); return; }
     $('#result').hidden = true;
-    if (!scanner) scanner = new Html5Qrcode('reader');
+    if (!scanner) {
+      scanner = new Html5Qrcode('reader', {
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
+      });
+    }
     try {
-      await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: (w, h) => { const s = Math.floor(Math.min(w, h) * 0.7); return { width: s, height: s }; } }, onScan, () => {});
+      await scanner.start(
+        { facingMode: 'environment' },
+        {
+          fps: 15,
+          qrbox: (w, h) => {
+            const s = Math.floor(Math.min(w, h) * 0.85);
+            return { width: s, height: s };
+          }
+        },
+        onScan,
+        () => {}
+      );
       scanning = true;
       $('#btn-cam').innerHTML = '<i class="ph ph-stop-circle" aria-hidden="true"></i> Tắt camera';
     } catch (err) {
@@ -120,17 +149,17 @@
   }
   $('#btn-cam').addEventListener('click', () => (scanning ? stopScan() : startScan()));
   function onScan(text) {
-    const m = String(text).toUpperCase().match(PID_RE);
-    if (!m) { notice('QR này không phải hộ chiếu Chuyện Nhà Táo.'); return; }
+    const pid = extractPid(text);
+    if (!pid) { notice('QR này không phải hộ chiếu Chuyện Nhà Táo.'); return; }
     if (navigator.vibrate) navigator.vibrate(60);
     stopScan();
-    lookup(m[0]);
+    lookup(pid);
   }
   $('#manual').addEventListener('submit', (e) => {
     e.preventDefault();
-    const m = $('#manual-id').value.toUpperCase().replace(/\s/g, '').match(PID_RE);
-    if (!m) { notice('Mã thẻ có dạng TAO- và 6 ký tự.'); return; }
-    lookup(m[0]);
+    const pid = extractPid($('#manual-id').value);
+    if (!pid) { notice('Mã thẻ có dạng TAO-XXXXXX (hoặc nhập 6 ký tự cuối).'); return; }
+    lookup(pid);
   });
 
   // ---------------------------------------------------------------- tra thẻ và thao tác

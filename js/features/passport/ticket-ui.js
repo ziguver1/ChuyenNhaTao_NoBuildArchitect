@@ -205,7 +205,7 @@ export function ppPageHTML(n) {
           <div><dt>Nơi cấp</dt><dd>Bếp lửa nhà mình</dd></div>
         </dl>
       </div>
-      <div class="pp-qr-row">
+      <div class="pp-qr-row" data-show-qr style="cursor:pointer;" title="Chạm để phóng to mã QR">
         <div class="pp-qr" id="pp-qr" role="img" aria-label="Mã QR của thẻ ${pass.id}"></div>
         <p>${
           pass.synced
@@ -213,7 +213,7 @@ export function ppPageHTML(n) {
               ? 'Đã check-in sự kiện. Quét mã ở mỗi trạm để đóng dấu.'
               : 'Đến sự kiện, quét mã ở mỗi trạm để đóng dấu.'
             : 'Thẻ tạo lúc mất mạng (mã OFF-). Nhân sự vẫn quét và đóng dấu được, thẻ tự đồng bộ khi có mạng.'
-        }</p>
+        }<br><span style="display:inline-flex;align-items:center;gap:3px;font-size:10.5px;color:var(--accent);font-weight:700;margin-top:2px;"><i class="ph ph-magnifying-glass-plus"></i> Chạm để mở mã to cho nhân sự quét</span></p>
       </div>
       <div class="pp-mrz" aria-hidden="true"><span>${esc(l1)}</span><span>${esc(l2)}</span></div>
     </div>`;
@@ -382,8 +382,8 @@ export function ppQR() {
         text: location.origin + '/?the=' + pass.id,
         width: 96,
         height: 96,
-        colorDark: '#1b120c',
-        colorLight: '#fffdf7',
+        colorDark: '#000000',
+        colorLight: '#ffffff',
         correctLevel: window.QRCode.CorrectLevel.M
       });
     } else {
@@ -968,14 +968,14 @@ export function renderCheckout() {
             <i class="ph-fill ph-storefront" style="color:var(--accent);"></i> Trao quà tại Bàn Check-out:
           </p>
           <p style="margin:0;font-size:13px;color:var(--text-muted);">
-            Đưa mã QR cho nhân sự quét để nhận quà, hoặc bấm nút dưới để bật camera tự quét mã tại quầy:
+            Đưa mã QR cho nhân sự tại bàn Check-out quét xác nhận để nhận quà:
           </p>
           <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
-            <button class="btn btn-primary" type="button" data-show-qr style="flex:1;min-width:180px;">
+            <button class="btn btn-primary" type="button" data-show-qr style="flex:1;min-width:200px;">
               <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR (Đưa nhân sự quét)
             </button>
-            <button class="btn btn-secondary" type="button" data-scan-qr style="flex:1;min-width:160px;">
-              <i class="ph ph-camera" aria-hidden="true"></i> Bật camera quét QR
+            <button class="btn btn-ghost btn-sm" type="button" data-scan-qr style="font-size:12.5px;">
+              <i class="ph ph-camera" aria-hidden="true"></i> Bật camera tự quét
             </button>
           </div>
         </div>`
