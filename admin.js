@@ -254,6 +254,9 @@
           email: pass ? pass.email : null,
           age: pass ? pass.age : null,
           source: pass ? pass.source : null,
+          favStation: (pass && pass.feedback) ? pass.feedback.favStation : null,
+          rating: (pass && pass.feedback) ? pass.feedback.rating : null,
+          feedbackComment: (pass && pass.feedback) ? pass.feedback.comment : null,
           flips: stats.flips || 0,
           pages: (stats.pages || []).slice().sort((a, b) => a - b),
           last: stats.last,
@@ -351,6 +354,9 @@
         chapters: chs,
         stamps,
         prizes,
+        favStation: isAnon ? null : ['Trạm 1 (Chuyện nhà ngày 23 - Tôn Kính)', 'Trạm 2 (Bếp nhà còn ấm - Mái Ấm)', 'Trạm 3 (Một năm nhìn lại - Nhìn Lại)', 'Trạm 4 (Gieo điều lành - Hướng Thiện)'][i % 4],
+        rating: isAnon ? null : (5 - (i % 2)),
+        feedbackComment: isAnon ? null : (i % 3 === 0 ? 'Sự kiện rất ý nghĩa và ấm áp!' : ''),
         claimed: stamps.length === 4 && i % 2 === 0,
         checkin: isAnon ? 0 : now - (i * 3600000 + 1800000),
         first: now - (i * 3600000 + 7200000),
@@ -366,6 +372,9 @@
       if (single.email) rows[0].email = single.email;
       if (single.age) rows[0].age = single.age;
       if (single.source) rows[0].source = single.source;
+      if (single.favStation) rows[0].favStation = single.favStation;
+      if (single.rating) rows[0].rating = single.rating;
+      if (single.feedbackComment) rows[0].feedbackComment = single.feedbackComment;
     }
     return rows;
   }
@@ -2004,7 +2013,7 @@
     const { k, dir } = state.sort;
     $$('th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === k ? (dir > 0 ? 'ascending' : 'descending') : 'none'));
     const rows = state.rows
-      .filter((r) => !state.q || (r.pid || '').toLowerCase().includes(state.q) || (r.name || '').toLowerCase().includes(state.q) || (r.phone || '').includes(state.q) || (r.email || '').toLowerCase().includes(state.q))
+      .filter((r) => !state.q || (r.pid || '').toLowerCase().includes(state.q) || (r.name || '').toLowerCase().includes(state.q) || (r.phone || '').includes(state.q) || (r.email || '').toLowerCase().includes(state.q) || (r.favStation || '').toLowerCase().includes(state.q))
       .sort((a, b) => {
         const x = a[k] == null ? -1 : a[k], y = b[k] == null ? -1 : b[k];
         return (x > y ? 1 : x < y ? -1 : 0) * dir;
@@ -2026,11 +2035,13 @@
         <td>${dots(r.chapters)} ${r.chaptersN}/4</td>
         <td>${dots(r.stamps)} ${r.stampsN}/4</td>
         <td>${esc(r.prizesTxt || '—')}${r.claimed ? ' · <strong>đã nhận quà cuối</strong>' : ''}</td>
+        <td>${r.favStation ? `<span style="font-weight:600;color:var(--accent);">${esc(r.favStation)}</span>` : '—'}</td>
+        <td>${r.rating ? `<span style="color:#f59e0b;">${'★'.repeat(r.rating)}</span> <small>(${r.rating}/5)</small>` : '—'}</td>
         <td>${r.seen ? new Date(r.seen).toLocaleString('vi-VN') : '—'}</td>
       </tr>`
           )
           .join('')
-      : `<tr><td class="empty" colspan="13">Chưa có ai${state.q ? ' khớp với ô tìm kiếm' : ''}.</td></tr>`;
+      : `<tr><td class="empty" colspan="15">Chưa có ai${state.q ? ' khớp với ô tìm kiếm' : ''}.</td></tr>`;
   }
 
   function render() {
@@ -2046,14 +2057,16 @@
     const head = [
       'Mã thẻ', 'Tên', 'Số điện thoại', 'Email', 'Độ tuổi', 'Kênh biết đến', 'Check-in sự kiện', 'Lượt lật trang', 'Số trang đã xem', 'Các trang đã xem',
       'Đang xem trang', 'Chương đã nghe', 'Dấu trạm', 'Quà trạm 1', 'Quà trạm 2', 'Quà trạm 3', 'Quà trạm 4',
-      'Đã nhận quà cuối', 'Lần đầu', 'Gần nhất', 'Mã trình duyệt'
+      'Đã nhận quà cuối', 'Trạm thích nhất', 'Độ hài lòng (sao)', 'Góp ý / Cảm nhận', 'Lần đầu', 'Gần nhất', 'Mã trình duyệt'
     ];
     const cell = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
     const time = (t) => (t ? new Date(t).toISOString() : '');
     const lines = state.rows.map((r) =>
       [
         r.pid, r.name, r.phone, r.email, r.age, r.source, time(r.checkin), r.flips, r.pagesN, r.pages.join(' '), r.last, r.chapters.join(' '), r.stamps.join(' '),
-        ...r.prizes.map((p) => (p ? PRIZE_LABEL[p] : '')), r.claimed ? 'có' : '', time(r.first), time(r.seen), r.vid
+        ...r.prizes.map((p) => (p ? PRIZE_LABEL[p] : '')), r.claimed ? 'có' : '',
+        r.favStation, r.rating, r.feedbackComment,
+        time(r.first), time(r.seen), r.vid
       ]
         .map(cell)
         .join(',')

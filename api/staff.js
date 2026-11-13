@@ -6,7 +6,7 @@
 //   {action:'checkout', pid}              → xác nhận đã trao quà cuối (đủ 4 dấu)
 //   {action:'code', station}              → mã dự phòng 6 số của trạm (đổi mỗi phút) để người chơi tự nhập
 // Sai mật khẩu 5 lần thì khoá 15 phút.
-const { configured, redis, toObject, readBody, PID_RE, passView, checkKey, stampCmds, stationCode, CODE_STEP, parseRoundsConfig, getRoundCounts, getRoundOutOfStockSet } = require('./_store');
+const { configured, redis, toObject, readBody, PID_RE, passView, checkKey, stampCmds, stationCode, CODE_STEP, parseRoundsConfig, getRoundCounts, getRoundOutOfStockSet, rollPrize } = require('./_store');
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');

@@ -81,6 +81,37 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'missing_id_or_name' });
   }
 
+  if (req.method === 'POST' && (readBody(req) || {}).action === 'feedback') {
+    const b = readBody(req) || {};
+    const pid = String(b.pid || '').toUpperCase();
+    if (!PID_RE.test(pid)) return res.status(400).json({ error: 'input' });
+    const key = `pass:${pid}`;
+    const [h] = await redis([['HGETALL', key]]);
+    const o = toObject(h);
+    if (!o.pid) return res.status(404).json({ error: 'notfound' });
+
+    const favStation = typeof b.favStation === 'string' ? b.favStation.trim().slice(0, 100) : '';
+    const rating = Math.min(5, Math.max(1, Number(b.rating) || 5));
+    const comment = typeof b.comment === 'string' ? b.comment.trim().slice(0, 500) : '';
+    const now = String(Date.now());
+
+    const cmds = [
+      ['HSET', key, 'fav_station', favStation, 'rating', String(rating), 'feedback_comment', comment, 'feedback_at', now]
+    ];
+    if (o.vid) {
+      cmds.push(['HSET', `u:${o.vid}`, 'fav_station', favStation, 'rating', String(rating), 'feedback_comment', comment]);
+    }
+    if (favStation) {
+      cmds.push(['HINCRBY', 'feedback:fav_stations', favStation, '1']);
+    }
+    cmds.push(['HINCRBY', 'feedback:ratings', String(rating), '1']);
+    cmds.push(['LPUSH', 'feedback:list', JSON.stringify({ pid, name: o.name || '', favStation, rating, comment, at: Number(now) })]);
+    cmds.push(['HGETALL', key]);
+
+    const out = await redis(cmds);
+    return res.status(200).json({ ok: true, pass: passView(toObject(out[out.length - 1])) });
+  }
+
   if (req.method === 'POST' && (readBody(req) || {}).action === 'spin') {
     const b = readBody(req) || {};
     const pid = String(b.pid || '').toUpperCase();

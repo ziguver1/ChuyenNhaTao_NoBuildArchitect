@@ -21,6 +21,7 @@ let uiCallbacks = {
   renderTicket: (animate) => {},
   renderRegister: () => {},
   renderCheckout: () => {},
+  showFeedbackPopup: () => {},
   ppRefresh: (pages) => {},
   ppGo: (p) => {},
   doStamp: (id, ts, fromServer) => {}
@@ -211,6 +212,9 @@ export function mergeServer(v) {
     uiCallbacks.renderCheckout();
     if (pass.claimed && !wasClaimed) {
       toast('Nhân sự đã xác nhận trao quà cuối. Chúc bạn năm mới thật ấm!', 'gold', 'gift');
+      setTimeout(() => {
+        uiCallbacks.showFeedbackPopup?.();
+      }, 500);
     }
   }
 }
@@ -223,9 +227,45 @@ export const waiting = () => {
 export function startPolling() {
   clearInterval(server.timer);
   server.timer = setInterval(() => {
-    if (document.visibilityState === 'visible' && server.inView && waiting()) pullPass();
-  }, 6000);
+    const isForeground = document.visibilityState === 'visible';
+    const isActive = isForeground && (server.inView || Boolean($('#dlg')?.open) || Boolean($('#dlg-scanner')?.open) || Boolean($('#pass-modal')?.open));
+    if (isActive && waiting()) pullPass();
+  }, 3000);
   pullPass();
+}
+
+export async function sendFeedback({ favStation, rating, comment }) {
+  const pass = getPass();
+  if (!pass) return { ok: false };
+  pass.feedback = { favStation, rating, comment, at: Date.now() };
+  pass.feedbackAnswered = true;
+  setPass(pass);
+  savePassToHistory(pass);
+  track('feedback_submit', { favStation, rating });
+
+  if (server.on && navigator.onLine) {
+    try {
+      const res = await fetch('/api/pass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'feedback',
+          pid: pass.id,
+          favStation,
+          rating,
+          comment
+        })
+      });
+      if (res.ok && isJson(res)) {
+        const d = await res.json();
+        if (d.pass) mergeServer(d.pass);
+        return { ok: true };
+      }
+    } catch (e) {
+      /* offline */
+    }
+  }
+  return { ok: true, offline: true };
 }
 
 export function initPollingObserver() {

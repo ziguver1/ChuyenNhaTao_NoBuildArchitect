@@ -38,7 +38,8 @@ import {
   enterGate,
   isTaken,
   withSuffix,
-  openRestore
+  openRestore,
+  sendFeedback
 } from './passport.service.js';
 import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js';
 
@@ -811,6 +812,66 @@ export function wonList() {
   </div>`;
 }
 
+const RATING_DESC = {
+  1: '1/5 - Chưa hài lòng',
+  2: '2/5 - Cần cải thiện',
+  3: '3/5 - Bình thường',
+  4: '4/5 - Hài lòng',
+  5: '5/5 - Rất tuyệt vời!'
+};
+
+export function updateFeedbackStars(val) {
+  const v = Math.min(5, Math.max(1, Number(val) || 5));
+  const input = $('#fb-rating-input');
+  if (input) input.value = String(v);
+  const desc = $('#fb-star-desc');
+  if (desc) desc.textContent = RATING_DESC[v] || `${v}/5`;
+  $$('#fb-stars-picker .star-btn').forEach((btn) => {
+    const bVal = Number(btn.dataset.val || 0);
+    btn.classList.toggle('on', bVal <= v);
+  });
+}
+
+export function showFeedbackPopup() {
+  const pass = getPass();
+  if (!pass || pass.feedbackAnswered) return;
+
+  // 1. Đóng hộp thoại ask() nếu đang mở (ví dụ đang hiện mã QR cho nhân sự quét)
+  const oldDlg = $('#dlg');
+  if (oldDlg && oldDlg.open) {
+    try { oldDlg.close(); } catch (e) {}
+  }
+
+  // 2. Đóng camera scanner nếu đang mở
+  const dlgScan = $('#dlg-scanner');
+  if (dlgScan && dlgScan.open) {
+    try { dlgScan.close(); } catch (e) {}
+  }
+
+  const dlg = $('#dlg-feedback');
+  if (!dlg) return;
+
+  // Reset form
+  const form = $('#form-feedback');
+  if (form) {
+    form.reset();
+    $$('#feedback-stations-group input[name="favStation"]').forEach((r) => (r.checked = false));
+    updateFeedbackStars(5);
+    const err = $('#err-feedback-station');
+    if (err) err.hidden = true;
+  }
+
+  if (typeof dlg.showModal === 'function') dlg.showModal();
+  else dlg.hidden = false;
+
+  // Hiệu ứng confetti
+  if (typeof window.confetti === 'function') {
+    try {
+      window.confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
+    } catch (e) {}
+  }
+}
+
 export function renderCheckout() {
   const pass = getPass();
   const box = $('#checkout');
@@ -855,7 +916,23 @@ export function renderCheckout() {
     .join(' ')}">${pass.giftCode}</p>
     ${
       pass.claimed
-        ? '<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>'
+        ? `<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>
+           ${
+             pass.feedbackAnswered && pass.feedback
+               ? `<div style="padding:12px 16px;background:var(--surface-2);border-radius:12px;border:1px solid var(--line);margin:10px 0;text-align:center;">
+                    <div style="font-size:13.5px;color:var(--text-muted);"><i class="ph-fill ph-heart" style="color:var(--accent);"></i> Trạm bạn thích nhất: <strong style="color:var(--text);">${esc(pass.feedback.favStation || '')}</strong></div>
+                    <div style="font-size:12px;color:var(--gold);margin-top:4px;">${'★'.repeat(pass.feedback.rating || 5)}${'☆'.repeat(5 - (pass.feedback.rating || 5))} · Đã gửi đánh giá</div>
+                  </div>`
+               : `<div class="checkout-feedback-prompt" style="padding:14px;background:var(--gold-soft);border-radius:14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed var(--gold);">
+                    <div>
+                      <strong style="color:var(--accent);font-size:14.5px;display:flex;align-items:center;gap:6px;"><i class="ph-fill ph-chat-circle-heart"></i> Bạn thích trạm nào nhất?</strong>
+                      <small style="color:var(--text-muted);display:block;margin-top:2px;">Hãy gửi đánh giá nhanh cho ban tổ chức nhé!</small>
+                    </div>
+                    <button class="btn btn-primary btn-sm" type="button" id="btn-open-feedback-checkout" style="white-space:nowrap;flex:none;">
+                      Đánh giá ngay
+                    </button>
+                  </div>`
+           }`
         : server.on
         ? `
         <div style="display:grid;gap:10px;margin:14px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;">
@@ -893,6 +970,10 @@ export function renderCheckout() {
     openWheel('checkout');
   });
 
+  $('#btn-open-feedback-checkout')?.addEventListener('click', () => {
+    showFeedbackPopup();
+  });
+
   const cb = $('#btn-claim');
   if (cb) {
     cb.addEventListener('click', () => {
@@ -906,6 +987,9 @@ export function renderCheckout() {
       measure('claim');
       toast('Đã ghi nhận trao quà. Chúc bạn một năm mới thật ấm.', 'gold', 'gift');
       renderCheckout();
+      setTimeout(() => {
+        showFeedbackPopup();
+      }, 500);
     });
   }
   $('#optin-yes')?.addEventListener('click', () => track('optin_yes'));
@@ -985,6 +1069,7 @@ export function initPassportUI() {
     renderTicket,
     renderRegister,
     renderCheckout,
+    showFeedbackPopup,
     ppRefresh,
     ppGo,
     doStamp
@@ -1579,5 +1664,71 @@ export function initPassportUI() {
     if (typeof window.resetMedals === 'function') window.resetMedals();
     if (typeof window.renderLetter === 'function') window.renderLetter();
     toast('Đã xoá dữ liệu trên máy này.', 'ok');
+  });
+
+  // =========================================================================
+  // XỬ LÝ SỰ KIỆN POPUP FEEDBACK ("BẠN THÍCH TRẠM NÀO NHẤT?")
+  // =========================================================================
+  const fbPicker = $('#fb-stars-picker');
+  if (fbPicker) {
+    fbPicker.addEventListener('click', (e) => {
+      const btn = e.target.closest('.star-btn');
+      if (btn && btn.dataset.val) updateFeedbackStars(btn.dataset.val);
+    });
+  }
+
+  $$('#feedback-stations-group input[name="favStation"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      const err = $('#err-feedback-station');
+      if (err) err.hidden = true;
+    });
+  });
+
+  $('#btn-feedback-skip')?.addEventListener('click', () => {
+    const dlg = $('#dlg-feedback');
+    if (dlg) {
+      if (typeof dlg.close === 'function') dlg.close();
+      else dlg.hidden = true;
+    }
+  });
+
+  $('#form-feedback')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const checkedRadio = $('input[name="favStation"]:checked');
+    const err = $('#err-feedback-station');
+    if (!checkedRadio) {
+      if (err) {
+        err.hidden = false;
+        err.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      return;
+    }
+    if (err) err.hidden = true;
+
+    const favStation = checkedRadio.value;
+    const rating = Number($('#fb-rating-input')?.value || 5);
+    const comment = ($('#fb-comment')?.value || '').trim();
+
+    const submitBtn = $('#btn-feedback-submit');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Đang gửi...';
+    }
+
+    try {
+      await sendFeedback({ favStation, rating, comment });
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="ph-fill ph-paper-plane-tilt"></i> Gửi phản hồi';
+      }
+      const dlg = $('#dlg-feedback');
+      if (dlg) {
+        if (typeof dlg.close === 'function') dlg.close();
+        else dlg.hidden = true;
+      }
+      toast(`Cảm ơn bạn đã bình chọn cho ${favStation}!`, 'gold', 'heart');
+      renderCheckout();
+    }
   });
 }

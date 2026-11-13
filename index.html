@@ -756,6 +756,112 @@
     </div>
   </dialog>
 
+  <!-- Modal Phản hồi Feedback sau khi Check-out: "Bạn thích trạm nào nhất?" -->
+  <dialog class="dlg dlg-feedback" id="dlg-feedback" aria-labelledby="feedback-dlg-title">
+    <div class="dlg-box feedback-box">
+      <div class="feedback-header">
+        <div class="feedback-badge"><i class="ph-fill ph-seal-check"></i> Hoàn thành check-out</div>
+        <h3 class="dlg-title" id="feedback-dlg-title">Cảm ơn bạn đã tham gia Chuyện Nhà Táo!</h3>
+        <p class="feedback-sub">Bạn vừa nhận quà tốt nghiệp thành công. Hãy dành ít giây chia sẻ cảm nhận với chúng mình nhé!</p>
+      </div>
+
+      <form class="feedback-form" id="form-feedback" novalidate>
+        <!-- Câu hỏi 1: Bạn thích trạm nào nhất? -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-lbl" style="font-weight:700; font-size:15px; display:flex; align-items:center; gap:6px;">
+            <i class="ph-fill ph-heart" style="color:var(--accent);"></i>
+            <span>Bạn thích trạm nào nhất? <span class="req">*</span></span>
+          </label>
+          <div class="feedback-stations-list" id="feedback-stations-group">
+            <label class="fb-station-card">
+              <input type="radio" name="favStation" value="Trạm 1 (Chuyện nhà ngày 23 - Tôn Kính)">
+              <div class="fb-card-inner">
+                <span class="fb-station-num">Trạm 1</span>
+                <div class="fb-station-info">
+                  <strong>Chuyện nhà ngày 23</strong>
+                  <small>Tôn kính nếp nhà & cội nguồn ông bà</small>
+                </div>
+                <i class="ph-fill ph-check-circle fb-check-icon"></i>
+              </div>
+            </label>
+
+            <label class="fb-station-card">
+              <input type="radio" name="favStation" value="Trạm 2 (Bếp nhà còn ấm - Mái Ấm)">
+              <div class="fb-card-inner">
+                <span class="fb-station-num">Trạm 2</span>
+                <div class="fb-station-info">
+                  <strong>Bếp nhà còn ấm</strong>
+                  <small>Mái ấm hòa thuận & giữ lửa yêu thương</small>
+                </div>
+                <i class="ph-fill ph-check-circle fb-check-icon"></i>
+              </div>
+            </label>
+
+            <label class="fb-station-card">
+              <input type="radio" name="favStation" value="Trạm 3 (Một năm nhìn lại - Nhìn Lại)">
+              <div class="fb-card-inner">
+                <span class="fb-station-num">Trạm 3</span>
+                <div class="fb-station-info">
+                  <strong>Một năm nhìn lại</strong>
+                  <small>Tự soi mình, chiêm nghiệm để sống tử tế hơn</small>
+                </div>
+                <i class="ph-fill ph-check-circle fb-check-icon"></i>
+              </div>
+            </label>
+
+            <label class="fb-station-card">
+              <input type="radio" name="favStation" value="Trạm 4 (Gieo điều lành - Hướng Thiện)">
+              <div class="fb-card-inner">
+                <span class="fb-station-num">Trạm 4</span>
+                <div class="fb-station-info">
+                  <strong>Gieo điều lành</strong>
+                  <small>Khát vọng vươn lên & gieo điều lành đón Tết</small>
+                </div>
+                <i class="ph-fill ph-check-circle fb-check-icon"></i>
+              </div>
+            </label>
+          </div>
+          <p class="form-field-err" id="err-feedback-station" hidden>Vui lòng chọn trạm bạn yêu thích nhất nhé.</p>
+        </div>
+
+        <!-- Câu hỏi 2: Đánh giá độ hài lòng chung -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-lbl" style="font-weight:700; font-size:15px; display:flex; align-items:center; gap:6px;">
+            <i class="ph-fill ph-star" style="color:var(--gold);"></i>
+            <span>Mức độ hài lòng chung của bạn:</span>
+          </label>
+          <div class="feedback-stars-wrap">
+            <div class="fb-stars" id="fb-stars-picker">
+              <button type="button" class="star-btn on" data-val="1" aria-label="1 sao"><i class="ph-fill ph-star"></i></button>
+              <button type="button" class="star-btn on" data-val="2" aria-label="2 sao"><i class="ph-fill ph-star"></i></button>
+              <button type="button" class="star-btn on" data-val="3" aria-label="3 sao"><i class="ph-fill ph-star"></i></button>
+              <button type="button" class="star-btn on" data-val="4" aria-label="4 sao"><i class="ph-fill ph-star"></i></button>
+              <button type="button" class="star-btn on" data-val="5" aria-label="5 sao"><i class="ph-fill ph-star"></i></button>
+            </div>
+            <span class="fb-star-text" id="fb-star-desc">5/5 - Rất tuyệt vời!</span>
+            <input type="hidden" name="feedbackRating" id="fb-rating-input" value="5">
+          </div>
+        </div>
+
+        <!-- Câu hỏi 3: Cảm nhận thêm (tuỳ chọn) -->
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-lbl" for="fb-comment" style="font-weight:700; font-size:14px; display:flex; align-items:center; gap:6px;">
+            <i class="ph-fill ph-chat-circle-text" style="color:var(--text-muted);"></i>
+            <span>Chia sẻ thêm cảm nhận của bạn (tuỳ chọn):</span>
+          </label>
+          <textarea class="input" id="fb-comment" name="feedbackComment" rows="2" placeholder="Điều bạn ấn tượng nhất hoặc điều muốn nhắn gửi ban tổ chức..." style="resize:vertical; min-height:64px; padding:10px 12px; font-size:14px;"></textarea>
+        </div>
+
+        <div class="dlg-actions" style="margin-top: 18px; display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-ghost" type="button" id="btn-feedback-skip">Để sau</button>
+          <button class="btn btn-primary" type="submit" id="btn-feedback-submit" style="min-width: 140px;">
+            <i class="ph-fill ph-paper-plane-tilt"></i> Gửi phản hồi
+          </button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
   <!-- Popup nhận Huy Chương kiểu game khi nghe kể xong -->
   <div class="medal-modal" id="medal-modal" role="dialog" aria-modal="true" aria-labelledby="medal-modal-congrats" hidden>
     <div class="medal-modal-backdrop" id="medal-modal-backdrop" aria-hidden="true"></div>

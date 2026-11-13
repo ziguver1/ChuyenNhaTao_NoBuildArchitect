@@ -337,7 +337,11 @@ function passView(h) {
     checkoutPrize,
     given: by('given'),
     checkoutGiven: h.checkout_given ? Number(h.checkout_given) : null,
-    claimed: h.claimed ? Number(h.claimed) : null
+    claimed: h.claimed ? Number(h.claimed) : null,
+    favStation: h.fav_station || null,
+    rating: h.rating ? Number(h.rating) : null,
+    feedbackComment: h.feedback_comment || null,
+    feedbackAt: h.feedback_at ? Number(h.feedback_at) : null
   };
 }
 
