@@ -1027,23 +1027,36 @@ export function renderRegister() {
   if (has) {
     if (regCard) regCard.hidden = true;
     if (grid) grid.classList.add('has-passport');
+    const intro = $('#pp-intro');
+    if (intro) intro.hidden = true;
     if (bar) {
       bar.hidden = false;
       bar.innerHTML = `
-        <div class="pb-info">
-          <span class="pb-badge" aria-hidden="true"><i class="ph ph-identification-card"></i></span>
-          <div class="pb-details">
-            <div class="pb-name-row">
-              <span class="pb-name">${esc(pass.nickname)}</span>
-              <span class="pb-tag">${pass.stamps.length}/4 dấu</span>
+        <div class="pb-header-row">
+          <div class="pb-info">
+            <span class="pb-badge" aria-hidden="true"><i class="ph-fill ph-identification-card"></i></span>
+            <div class="pb-details">
+              <div class="pb-name-row">
+                <span class="pb-name">${esc(pass.nickname)}</span>
+                <span class="pb-tag">${pass.stamps.length}/4 dấu</span>
+              </div>
+              <span class="pb-meta"><span class="mono">${esc(pass.id)}</span></span>
             </div>
-            <span class="pb-meta"><span class="mono">${esc(pass.id)}</span></span>
           </div>
+          <button class="pb-btn-retop" type="button" id="btn-new-pass" title="Tạo thẻ mới hoặc đổi thông tin">
+            <i class="ph ph-arrows-clockwise" aria-hidden="true"></i>
+            <span>Tạo thẻ khác</span>
+          </button>
         </div>
         <div class="pb-actions">
-          <button class="btn btn-secondary btn-sm pb-cam-btn" type="button" data-scan-qr title="Bật camera quét mã QR trạm"><i class="ph ph-camera" aria-hidden="true"></i> Quét mã</button>
-          <button class="btn btn-primary btn-sm pb-qr-btn" type="button" data-show-qr title="Mở mã QR thẻ của bạn"><i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR</button>
-          <button class="btn btn-ghost btn-sm pb-new-btn" type="button" id="btn-new-pass"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i> Tạo thẻ khác</button>
+          <button class="btn btn-sm pb-cam-btn" type="button" data-scan-qr title="Bật camera quét mã QR trạm">
+            <i class="ph-bold ph-camera" aria-hidden="true"></i>
+            <span>Quét mã</span>
+          </button>
+          <button class="btn btn-sm pb-qr-btn" type="button" data-show-qr title="Mở mã QR thẻ của bạn">
+            <i class="ph-bold ph-qr-code" aria-hidden="true"></i>
+            <span>Mở mã QR</span>
+          </button>
         </div>`;
       const btnNew = $('#btn-new-pass', bar);
       if (btnNew) {
@@ -1072,6 +1085,8 @@ export function renderRegister() {
     if (bar) bar.hidden = true;
     if (regCard) regCard.hidden = false;
     if (grid) grid.classList.remove('has-passport');
+    const intro = $('#pp-intro');
+    if (intro) intro.hidden = false;
     const openBox = $('#register-open');
     if (openBox) openBox.hidden = false;
     const box = $('#register-has');

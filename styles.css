@@ -4352,14 +4352,15 @@ body.has-dialog-open {
 .passport-bar {
   position: relative;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 22px;
-  margin-bottom: clamp(20px, 3.5vw, 32px);
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px;
+  margin: 0 auto 12px;
+  max-width: 440px;
+  width: 100%;
   border-radius: 16px;
   background: radial-gradient(ellipse at 50% 50%, #8e2718 0%, #721b0e 60%, #5f1408 100%);
-  border: 1px solid rgba(245, 215, 127, 0.45);
+  border: 1.5px solid rgba(245, 215, 127, 0.45);
   box-shadow: 0 8px 24px -8px rgba(120, 30, 15, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
   color: #fffdf7;
   animation: barSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -4370,21 +4371,31 @@ body.has-dialog-open {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Hàng trên cùng: Thông tin thẻ bên trái, nút Tạo thẻ khác ở góc phải */
+.pb-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
 .pb-info {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   min-width: 0;
+  flex: 1;
 }
 
 .pb-badge {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: rgba(245, 215, 127, 0.16);
   border: 1px solid rgba(245, 215, 127, 0.4);
   color: #ffd772;
-  font-size: 20px;
+  font-size: 18px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -4393,74 +4404,159 @@ body.has-dialog-open {
 
 .pb-details {
   display: grid;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 
 .pb-name-row {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .pb-name {
-  font-size: 16.5px;
+  font-size: 15.5px;
   font-weight: 700;
   color: #fffdf7;
   font-family: 'Playfair Display', Georgia, serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
 }
 
 .pb-tag {
-  font-size: 11.5px;
-  padding: 1px 7px;
+  font-size: 10.5px;
+  padding: 1px 6px;
   border-radius: 999px;
   background: rgba(245, 215, 127, 0.22);
   color: #ffe694;
   font-weight: 600;
   border: 1px solid rgba(245, 215, 127, 0.35);
-}
-
-.pb-meta {
-  font-size: 13px;
-  color: rgba(255, 235, 215, 0.85);
-  font-family: ui-monospace, SFMono-Regular, monospace;
-}
-
-.pb-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  white-space: nowrap;
   flex-shrink: 0;
 }
 
-.pb-qr-btn {
-  background: #d6321b !important;
-  border: 1px solid #ffd772 !important;
+.pb-meta {
+  font-size: 12px;
+  color: rgba(255, 235, 215, 0.85);
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  letter-spacing: 0.04em;
+}
+
+/* Nút Tạo thẻ khác ở góc trên bên phải */
+.pb-btn-retop {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(245, 215, 127, 0.35);
+  color: #f7e0b5;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.pb-btn-retop:hover {
+  background: rgba(0, 0, 0, 0.52);
+  border-color: rgba(245, 215, 127, 0.7);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.pb-btn-retop:active {
+  transform: scale(0.96);
+}
+.pb-btn-retop i {
+  font-size: 13px;
+  color: #ffd772;
+}
+
+/* Hàng nút hành động: Quét mã & Mở mã QR nằm cạnh nhau, chia đều 50% */
+.pb-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+/* Nút Quét mã: Màu đồng thau hoàng kim cao cấp, tương phản cao, hòa quyện với phong cách Tết */
+.pb-cam-btn {
+  background: linear-gradient(135deg, #a65814 0%, #7d3807 100%) !important;
+  border: 1.5px solid #fce293 !important;
   color: #ffffff !important;
   font-weight: 700 !important;
-  box-shadow: 0 4px 14px rgba(214, 50, 27, 0.45);
-  transition: transform 0.15s ease, filter 0.15s ease;
+  font-size: 13.5px !important;
+  box-shadow: 0 4px 12px rgba(110, 50, 10, 0.4) !important;
+  height: 40px !important;
+  padding: 0 10px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: transform 0.15s ease, filter 0.15s ease !important;
+  cursor: pointer !important;
+}
+.pb-cam-btn i {
+  font-size: 18px !important;
+  color: #ffe49e !important;
+}
+.pb-cam-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+}
+.pb-cam-btn:active {
+  transform: scale(0.97);
+}
+
+/* Nút Mở mã QR: Màu đỏ chu sa sơn mài nổi bật */
+.pb-qr-btn {
+  background: linear-gradient(135deg, #d6321b 0%, #a8200e 100%) !important;
+  border: 1.5px solid #ffd772 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  box-shadow: 0 4px 14px rgba(214, 50, 27, 0.45) !important;
+  height: 40px !important;
+  padding: 0 10px !important;
+  border-radius: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: transform 0.15s ease, filter 0.15s ease !important;
+  cursor: pointer !important;
+}
+.pb-qr-btn i {
+  font-size: 18px !important;
+  color: #ffe49e !important;
 }
 .pb-qr-btn:hover {
   transform: translateY(-1px);
   filter: brightness(1.1);
 }
-
-.pb-new-btn {
-  color: rgba(255, 235, 215, 0.82) !important;
-  border: 1px solid rgba(255, 235, 215, 0.25) !important;
-  background: rgba(0, 0, 0, 0.18) !important;
-  font-size: 13px !important;
+.pb-qr-btn:active {
+  transform: scale(0.97);
 }
-.pb-new-btn:hover {
-  background: rgba(0, 0, 0, 0.3) !important;
-  color: #ffffff !important;
+
+/* Ẩn giới thiệu khi đã có thẻ để passport kéo lên gần với thanh lệnh bài */
+#passport-bar:not([hidden]) ~ #pp-intro,
+.passport-grid.has-passport #pp-intro {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
 }
 
 /* Khi đã có thẻ: căn giữa quyển hộ chiếu, ẩn cột form cũ */
 .passport-grid.has-passport {
   grid-template-columns: 1fr !important;
+  margin-top: 0 !important;
 }
 .passport-grid.has-passport > div:last-child {
   max-width: 440px;
@@ -4511,20 +4607,20 @@ body.has-dialog-open {
 }
 
 @media (max-width: 600px) {
-  .passport-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    padding: 14px 16px;
+  #tram-trai-nghiem.passport-scroll-theme {
+    padding-top: 48px;
   }
-  .pb-actions {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    width: 100%;
+  .passport-bar {
+    padding: 10px 14px;
+    margin-bottom: 8px;
     gap: 8px;
   }
-  .pb-actions .pb-qr-btn {
-    justify-content: center;
+  .pb-actions {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .pp-stage {
+    padding: 2px 0 10px;
   }
 }
 
@@ -6320,12 +6416,6 @@ body.sheet-locked {
 }
 #user-camera-reader canvas {
   display: none !important;
-}
-.pb-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
 }
 
 /* =========================================================================
