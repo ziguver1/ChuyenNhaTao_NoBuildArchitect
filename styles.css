@@ -6431,6 +6431,7 @@ body.sheet-locked {
 }
 
 .dlg-feedback .dlg-box.feedback-box {
+  position: relative;
   max-width: 520px;
   width: 95vw;
   padding: clamp(20px, 4vw, 30px);
@@ -6444,6 +6445,44 @@ body.sheet-locked {
   overscroll-behavior: contain !important;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+}
+
+.feedback-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+.feedback-close-btn:hover {
+  background: var(--line-strong);
+  color: var(--text);
+  transform: scale(1.08);
+}
+.feedback-close-btn:active {
+  transform: scale(0.92);
+}
+
+.pb-btn-retop.pb-btn-feedback {
+  background: rgba(245, 215, 127, 0.22);
+  border-color: rgba(245, 215, 127, 0.55);
+  color: #ffd772;
+}
+.pb-btn-retop.pb-btn-feedback:hover {
+  background: rgba(245, 215, 127, 0.38);
+  border-color: #ffd772;
+  color: #ffffff;
 }
 
 .dlg-feedback .feedback-stations-list,

@@ -838,9 +838,10 @@ export function updateFeedbackStars(val) {
   });
 }
 
-export function showFeedbackPopup() {
+export function showFeedbackPopup(force = false) {
   const pass = getPass();
-  if (!pass || pass.feedbackAnswered) return;
+  if (!pass) return;
+  if (pass.feedbackAnswered && !force) return;
 
   // 1. Đóng hộp thoại ask() nếu đang mở (ví dụ đang hiện mã QR cho nhân sự quét)
   const oldDlg = $('#dlg');
@@ -857,12 +858,19 @@ export function showFeedbackPopup() {
   const dlg = $('#dlg-feedback');
   if (!dlg) return;
 
-  // Reset form
+  // Điền dữ liệu nếu đã có hoặc reset form
   const form = $('#form-feedback');
   if (form) {
     form.reset();
-    $$('#feedback-stations-group input[name="favStation"]').forEach((r) => (r.checked = false));
-    updateFeedbackStars(5);
+    if (pass.feedback && pass.feedback.favStation) {
+      const r = $(`#feedback-stations-group input[name="favStation"][value="${pass.feedback.favStation}"]`);
+      if (r) r.checked = true;
+    } else {
+      $$('#feedback-stations-group input[name="favStation"]').forEach((r) => (r.checked = false));
+    }
+    updateFeedbackStars(pass.feedback?.rating || 5);
+    const commentEl = $('#fb-comment');
+    if (commentEl) commentEl.value = pass.feedback?.comment || '';
     const err = $('#err-feedback-station');
     if (err) err.hidden = true;
   }
@@ -879,8 +887,8 @@ export function showFeedbackPopup() {
     dlg.hidden = false;
   }
 
-  // Hiệu ứng confetti
-  if (typeof window.confetti === 'function') {
+  // Hiệu ứng confetti (bắn lần đầu hoặc khi vừa check-out)
+  if (!pass.feedbackAnswered && typeof window.confetti === 'function') {
     try {
       window.confetti({ particleCount: 50, spread: 70, origin: { y: 0.6 } });
     } catch (e) {}
@@ -934,9 +942,14 @@ export function renderCheckout() {
         ? `<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>
            ${
              pass.feedbackAnswered && pass.feedback
-               ? `<div style="padding:12px 16px;background:var(--surface-2);border-radius:12px;border:1px solid var(--line);margin:10px 0;text-align:center;">
+               ? `<div style="padding:14px 16px;background:var(--surface-2);border-radius:14px;border:1px solid var(--line);margin:12px 0;text-align:center;display:grid;gap:6px;">
                     <div style="font-size:13.5px;color:var(--text-muted);"><i class="ph-fill ph-heart" style="color:var(--accent);"></i> Trạm bạn thích nhất: <strong style="color:var(--text);">${esc(pass.feedback.favStation || '')}</strong></div>
-                    <div style="font-size:12px;color:var(--gold);margin-top:4px;">${'★'.repeat(pass.feedback.rating || 5)}${'☆'.repeat(5 - (pass.feedback.rating || 5))} · Đã gửi đánh giá</div>
+                    <div style="font-size:13px;color:var(--gold);">${'★'.repeat(pass.feedback.rating || 5)}${'☆'.repeat(5 - (pass.feedback.rating || 5))} · Đã gửi đánh giá</div>
+                    <div style="margin-top:6px;">
+                      <button class="btn btn-ghost btn-sm" type="button" id="btn-open-feedback-checkout" style="font-size:12.5px;padding:4px 14px;--h:36px;margin:0 auto;display:inline-flex;align-items:center;gap:6px;">
+                        <i class="ph ph-note-pencil"></i> Xem hoặc sửa đánh giá
+                      </button>
+                    </div>
                   </div>`
                : `<div class="checkout-feedback-prompt" style="padding:14px;background:var(--gold-soft);border-radius:14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed var(--gold);">
                     <div>
@@ -1002,9 +1015,10 @@ export function renderCheckout() {
       measure('claim');
       toast('Đã ghi nhận trao quà. Chúc bạn một năm mới thật ấm.', 'gold', 'gift');
       renderCheckout();
+      renderRegister();
       setTimeout(() => {
-        showFeedbackPopup();
-      }, 500);
+        showFeedbackPopup(true);
+      }, 400);
     });
   }
   $('#optin-yes')?.addEventListener('click', () => track('optin_yes'));
@@ -1034,19 +1048,37 @@ export function renderRegister() {
       bar.innerHTML = `
         <div class="pb-header-row">
           <div class="pb-info">
-            <span class="pb-badge" aria-hidden="true"><i class="ph-fill ph-identification-card"></i></span>
+            <span class="pb-badge" aria-hidden="true">${
+              pass.claimed
+                ? '<i class="ph-fill ph-seal-check" style="color:#10b981;"></i>'
+                : '<i class="ph-fill ph-identification-card"></i>'
+            }</span>
             <div class="pb-details">
               <div class="pb-name-row">
                 <span class="pb-name">${esc(pass.nickname)}</span>
-                <span class="pb-tag">${pass.stamps.length}/4 dấu</span>
+                <span class="pb-tag" ${
+                  pass.claimed
+                    ? 'style="background:rgba(16,185,129,0.2);color:#6ee7b7;border-color:rgba(16,185,129,0.35);"'
+                    : ''
+                }>${pass.claimed ? 'Đã check-out' : `${pass.stamps.length}/4 dấu`}</span>
               </div>
               <span class="pb-meta"><span class="mono">${esc(pass.id)}</span></span>
             </div>
           </div>
-          <button class="pb-btn-retop" type="button" id="btn-new-pass" title="Tạo thẻ mới hoặc đổi thông tin">
-            <i class="ph ph-arrows-clockwise" aria-hidden="true"></i>
-            <span>Tạo thẻ khác</span>
-          </button>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${
+              pass.claimed
+                ? `<button class="pb-btn-retop pb-btn-feedback" type="button" id="btn-bar-feedback" title="Gửi đánh giá trải nghiệm">
+                     <i class="ph-fill ph-chat-circle-heart"></i>
+                     <span>${pass.feedbackAnswered ? 'Đã đánh giá' : 'Đánh giá'}</span>
+                   </button>`
+                : ''
+            }
+            <button class="pb-btn-retop" type="button" id="btn-new-pass" title="Tạo thẻ mới hoặc đổi thông tin">
+              <i class="ph ph-arrows-clockwise" aria-hidden="true"></i>
+              <span>Tạo thẻ khác</span>
+            </button>
+          </div>
         </div>
         <div class="pb-actions">
           <button class="btn btn-sm pb-cam-btn" type="button" data-scan-qr title="Bật camera quét mã QR trạm">
@@ -1735,11 +1767,25 @@ export function initPassportUI() {
     });
   }
 
-  $('#btn-feedback-skip')?.addEventListener('click', () => {
+  const closeFeedbackDlg = () => {
     const dlg = $('#dlg-feedback');
     if (dlg) {
       if (typeof dlg.close === 'function') dlg.close();
       else dlg.hidden = true;
+    }
+  };
+
+  $('#btn-feedback-close')?.addEventListener('click', closeFeedbackDlg);
+  $('#btn-feedback-skip')?.addEventListener('click', closeFeedbackDlg);
+
+  // Bấm nút mở popup đánh giá (ở bàn check-out hoặc ở thanh lệnh bài)
+  document.addEventListener('click', (e) => {
+    if (
+      e.target.closest('#btn-open-feedback-checkout') ||
+      e.target.closest('#btn-bar-feedback') ||
+      e.target.closest('[data-open-feedback]')
+    ) {
+      showFeedbackPopup(true);
     }
   });
 
@@ -1780,6 +1826,7 @@ export function initPassportUI() {
       }
       toast(`Cảm ơn bạn đã bình chọn cho ${favStation}!`, 'gold', 'heart');
       renderCheckout();
+      renderRegister();
     }
   });
 }

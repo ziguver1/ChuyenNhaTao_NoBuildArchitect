@@ -752,7 +752,10 @@
 
   <!-- Modal Phản hồi Feedback sau khi Check-out: "Bạn thích trạm nào nhất?" -->
   <dialog class="dlg dlg-feedback" id="dlg-feedback" aria-labelledby="feedback-dlg-title">
-    <div class="dlg-box feedback-box">
+    <div class="dlg-box feedback-box" style="position:relative;">
+      <button class="feedback-close-btn" type="button" id="btn-feedback-close" aria-label="Đóng popup phản hồi" title="Đóng">
+        <i class="ph ph-x" aria-hidden="true"></i>
+      </button>
       <div class="feedback-header">
         <div class="feedback-badge"><i class="ph-fill ph-seal-check"></i> Hoàn thành check-out</div>
         <h3 class="dlg-title" id="feedback-dlg-title">Cảm ơn bạn đã tham gia Chuyện Nhà Táo!</h3>

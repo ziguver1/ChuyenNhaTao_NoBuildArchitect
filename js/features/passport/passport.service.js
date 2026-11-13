@@ -210,11 +210,12 @@ export function mergeServer(v) {
   if (JSON.stringify(pass.given) !== beforeGiven) uiCallbacks.ppRefresh([3, 4, 5, 6]);
   if ((pass.claimed && !wasClaimed) || (pass.checkoutPrize && !beforeCheckoutPrize)) {
     uiCallbacks.renderCheckout();
+    uiCallbacks.renderRegister?.();
     if (pass.claimed && !wasClaimed) {
       toast('Nhân sự đã xác nhận trao quà cuối. Chúc bạn năm mới thật ấm!', 'gold', 'gift');
       setTimeout(() => {
-        uiCallbacks.showFeedbackPopup?.();
-      }, 500);
+        uiCallbacks.showFeedbackPopup?.(true);
+      }, 350);
     }
   }
 }
@@ -226,11 +227,22 @@ export const waiting = () => {
 
 export function startPolling() {
   clearInterval(server.timer);
-  server.timer = setInterval(() => {
+  const getPollInterval = () => {
+    const pass = getPass();
+    return pass && pass.stamps.length >= 4 && !pass.claimed ? 1500 : 3000;
+  };
+  const tick = () => {
     const isForeground = document.visibilityState === 'visible';
-    const isActive = isForeground && (server.inView || Boolean($('#dlg')?.open) || Boolean($('#dlg-scanner')?.open) || Boolean($('#pass-modal')?.open));
+    const isActive =
+      isForeground &&
+      (server.inView ||
+        Boolean($('#dlg')?.open) ||
+        Boolean($('#dlg-scanner')?.open) ||
+        Boolean($('#pass-modal')?.open));
     if (isActive && waiting()) pullPass();
-  }, 3000);
+    server.timer = setTimeout(tick, getPollInterval());
+  };
+  server.timer = setTimeout(tick, getPollInterval());
   pullPass();
 }
 
