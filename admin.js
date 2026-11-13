@@ -1943,13 +1943,6 @@
         color: '#3b82f6'
       },
       {
-        val: R.filter((r) => r.checkin).length.toLocaleString('vi-VN'),
-        label: 'Check-in sự kiện',
-        sub: 'Đã quét cổng chính',
-        icon: 'ph-signpost',
-        color: '#10b981'
-      },
-      {
         val: sum((r) => r.flips).toLocaleString('vi-VN'),
         label: 'Tổng lượt lật trang',
         sub: 'Tương tác đọc sách',
