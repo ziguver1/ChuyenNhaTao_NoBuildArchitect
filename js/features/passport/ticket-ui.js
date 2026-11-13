@@ -1456,6 +1456,7 @@ export function initPassportUI() {
   // =========================================================================
   let userScanner = null;
   let userScanning = false;
+  let userProcessing = false;
 
   async function openCameraScanner() {
     const dlg = $('#dlg-scanner');
@@ -1482,6 +1483,8 @@ export function initPassportUI() {
       `;
     }
 
+    userProcessing = false;
+
     if (typeof window.Html5Qrcode === 'undefined') {
       toast('Chưa tải được camera. Bạn có thể nhập mã 6 số bên dưới.', 'err');
       if (loadingEl) {
@@ -1491,16 +1494,20 @@ export function initPassportUI() {
     }
 
     if (!userScanner) {
-      userScanner = new window.Html5Qrcode('user-camera-reader');
+      userScanner = new window.Html5Qrcode('user-camera-reader', {
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        }
+      });
     }
 
     try {
       await userScanner.start(
         { facingMode: 'environment' },
         {
-          fps: 10,
+          fps: 15,
           qrbox: (w, h) => {
-            const s = Math.floor(Math.min(w, h) * 0.72);
+            const s = Math.floor(Math.min(w, h) * 0.85);
             return { width: s, height: s };
           }
         },
@@ -1510,6 +1517,8 @@ export function initPassportUI() {
       userScanning = true;
       if (loadingEl) loadingEl.hidden = true;
     } catch (err) {
+      userScanner = null;
+      userScanning = false;
       if (loadingEl) {
         loadingEl.innerHTML = '<span style="color:#ef4444;padding:16px;text-align:center;">Không mở được camera. Hãy cho phép quyền truy cập camera trong trình duyệt hoặc nhập mã 6 ký tự bên dưới.</span>';
       }
@@ -1522,9 +1531,12 @@ export function initPassportUI() {
     if (userScanner && userScanning) {
       try {
         await userScanner.stop();
+        await userScanner.clear();
       } catch (e) {}
     }
+    userScanner = null;
     userScanning = false;
+    userProcessing = false;
     if (dlg) {
       if (typeof dlg.close === 'function') dlg.close();
       else dlg.hidden = true;
@@ -1532,6 +1544,8 @@ export function initPassportUI() {
   }
 
   function onUserScanSuccess(decodedText) {
+    if (userProcessing) return;
+    userProcessing = true;
     if (navigator.vibrate) navigator.vibrate(60);
     closeCameraScanner();
     handleScannedData(decodedText);
@@ -1551,6 +1565,9 @@ export function initPassportUI() {
           const vao = url.searchParams.get('vao');
           enterGate(vao);
           return;
+        } else if (url.searchParams.has('the')) {
+          toast('Đây là mã QR thẻ thông hành. Hãy đưa cho nhân sự quét nhé!', 'info', 'identification-card');
+          return;
         }
       } catch (e) {}
     }
@@ -1567,6 +1584,18 @@ export function initPassportUI() {
     const st = STATIONS.find((s) => s.code === code || (s.altCodes && s.altCodes.includes(code)));
     if (st) {
       addStamp(code);
+      return;
+    }
+
+    // Nếu là mã thẻ thông hành TAO- hoặc OFF-
+    if (/^(TAO|OFF)-[A-Z0-9]{6}$/.test(code) || code.includes('THE=TAO-')) {
+      toast('Đây là mã QR thẻ thông hành. Hãy đưa cho nhân sự quét nhé!', 'info', 'identification-card');
+      return;
+    }
+
+    // Nếu là mã nhận quà QUA-
+    if (/^QUA-[A-Z0-9]{4}$/.test(code)) {
+      toast('Đây là mã nhận quà của bạn, hãy đọc cho nhân sự tại bàn Check-out nhé!', 'info', 'gift');
       return;
     }
 

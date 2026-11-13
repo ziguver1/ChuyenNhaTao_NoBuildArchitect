@@ -39,6 +39,7 @@
   let session = getSession();
   let place = Number((() => { try { return localStorage.getItem('cnt_staff_place'); } catch (e) { return null; } })() || 1);
   let scanner = null, scanning = false, current = null;
+  let isProcessing = false, starting = false, stopping = false;
 
   function notice(html, tone) {
     const n = $('#notice');
@@ -114,16 +115,24 @@
 
   // ---------------------------------------------------------------- camera
   async function startScan() {
-    if (typeof Html5Qrcode === 'undefined') { notice('Chưa tải được thư viện quét QR. Kiểm tra mạng, hoặc nhập mã thẻ bằng tay.'); return; }
+    if (starting || scanning) return;
+    starting = true;
+    if (typeof Html5Qrcode === 'undefined') {
+      notice('Chưa tải được thư viện quét QR. Kiểm tra mạng, hoặc nhập mã thẻ bằng tay.');
+      starting = false;
+      return;
+    }
     $('#result').hidden = true;
-    if (!scanner) {
+    try {
+      if (scanner) {
+        try { await scanner.stop(); await scanner.clear(); } catch (e) {}
+        scanner = null;
+      }
       scanner = new Html5Qrcode('reader', {
         experimentalFeatures: {
           useBarCodeDetectorIfSupported: true
         }
       });
-    }
-    try {
       await scanner.start(
         { facingMode: 'environment' },
         {
@@ -137,24 +146,55 @@
         () => {}
       );
       scanning = true;
+      isProcessing = false;
       $('#btn-cam').innerHTML = '<i class="ph ph-stop-circle" aria-hidden="true"></i> Tắt camera';
     } catch (err) {
+      console.warn('startScan warning:', err);
+      scanner = null;
+      scanning = false;
       notice('Không mở được camera. Cho phép trình duyệt dùng camera (trang phải mở bằng https), hoặc nhập mã thẻ bằng tay.');
+    } finally {
+      starting = false;
     }
   }
+
   async function stopScan() {
-    if (scanner && scanning) { try { await scanner.stop(); } catch (e) { /* bỏ qua */ } }
+    if (stopping) return;
+    stopping = true;
+    if (scanner && scanning) {
+      try {
+        await scanner.stop();
+        await scanner.clear();
+      } catch (e) {
+        /* bỏ qua */
+      }
+    }
+    scanner = null;
     scanning = false;
+    stopping = false;
     $('#btn-cam').innerHTML = '<i class="ph ph-camera" aria-hidden="true"></i> Mở camera';
   }
+
   $('#btn-cam').addEventListener('click', () => (scanning ? stopScan() : startScan()));
-  function onScan(text) {
+
+  async function onScan(text) {
+    if (isProcessing) return;
     const pid = extractPid(text);
-    if (!pid) { notice('QR này không phải hộ chiếu Chuyện Nhà Táo.'); return; }
+    if (!pid) {
+      notice('QR này không phải hộ chiếu Chuyện Nhà Táo.');
+      return;
+    }
+    isProcessing = true;
     if (navigator.vibrate) navigator.vibrate(60);
-    stopScan();
-    lookup(pid);
+    try {
+      if (scanner && typeof scanner.pause === 'function') {
+        try { scanner.pause(true); } catch (e) {}
+      }
+    } catch (e) {}
+    await stopScan();
+    await lookup(pid);
   }
+
   $('#manual').addEventListener('submit', (e) => {
     e.preventDefault();
     const pid = extractPid($('#manual-id').value);
