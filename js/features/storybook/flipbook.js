@@ -411,36 +411,50 @@ export function initFlipbook() {
   });
 
   $('#flip-prev')?.addEventListener('click', () => {
-    if (isFlipping) return;
     if (book.flip) {
       if (book.page <= 0) return;
+      if (isFlipping) {
+        try { book.flip.turnToPrevPage(); } catch (e) { goPage(Math.max(0, book.page - 1)); }
+        return;
+      }
       isFlipping = true;
       try {
         book.flip.flipPrev();
       } catch (err) {
-        goPage(Math.max(0, book.page - 1));
+        try { book.flip.turnToPrevPage(); } catch (e) { goPage(Math.max(0, book.page - 1)); }
       }
       setTimeout(() => {
         isFlipping = false;
-      }, 650);
+        const after = book.flip ? book.flip.getCurrentPageIndex() : book.page;
+        if (after === book.page && book.page > 0) {
+          try { book.flip.turnToPrevPage(); } catch (e) {}
+        }
+      }, 480);
     } else {
       goPage(Math.max(0, book.page - 1));
     }
   });
 
   $('#flip-next')?.addEventListener('click', () => {
-    if (isFlipping) return;
     if (book.flip) {
       if (book.page >= P.count - 1) return;
+      if (isFlipping) {
+        try { book.flip.turnToNextPage(); } catch (e) { goPage(Math.min(P.count - 1, book.page + 1)); }
+        return;
+      }
       isFlipping = true;
       try {
         book.flip.flipNext();
       } catch (err) {
-        goPage(Math.min(P.count - 1, book.page + 1));
+        try { book.flip.turnToNextPage(); } catch (e) { goPage(Math.min(P.count - 1, book.page + 1)); }
       }
       setTimeout(() => {
         isFlipping = false;
-      }, 650);
+        const after = book.flip ? book.flip.getCurrentPageIndex() : book.page;
+        if (after === book.page && book.page < P.count - 1) {
+          try { book.flip.turnToNextPage(); } catch (e) {}
+        }
+      }, 480);
     } else {
       goPage(Math.min(P.count - 1, book.page + 1));
     }
@@ -503,9 +517,22 @@ export function initFlipbook() {
   if (ctrl) {
     ctrl.flipPrev = function (t = 'top') {
       const r = this.render.getRect();
+      const topY = (r.top || 0) + 16;
+      const botY = (r.top || 0) + (r.height || 450) - 16;
       this.flip({
-        x: (r.left || 0) + 12,
-        y: t === 'top' ? 1 : r.height - 2
+        x: (r.left || 0) + 16,
+        y: t === 'top' ? topY : botY
+      });
+    };
+    ctrl.flipNext = function (t = 'top') {
+      const r = this.render.getRect();
+      const isLandscape = this.render.getOrientation() === 'landscape';
+      const w = isLandscape ? 2 * r.pageWidth : r.pageWidth;
+      const topY = (r.top || 0) + 16;
+      const botY = (r.top || 0) + (r.height || 450) - 16;
+      this.flip({
+        x: (r.left || 0) + w - 16,
+        y: t === 'top' ? topY : botY
       });
     };
   }

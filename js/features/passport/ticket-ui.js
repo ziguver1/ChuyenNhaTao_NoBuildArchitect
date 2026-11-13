@@ -389,12 +389,23 @@ export function ppQR() {
 }
 
 export function ppGo(p) {
+  p = Math.max(0, Math.min(PP.count - 1, +p));
   if (pp.flip) {
     if (reduceMotion) {
       pp.flip.turnToPage(p);
       ppStatus(p);
     } else {
-      pp.flip.flip(p);
+      try {
+        pp.flip.flip(p);
+      } catch (err) {
+        pp.flip.turnToPage(p);
+      }
+      setTimeout(() => {
+        if (pp.flip && pp.flip.getCurrentPageIndex() !== p) {
+          try { pp.flip.turnToPage(p); } catch (e) {}
+        }
+        ppStatus(pp.flip ? pp.flip.getCurrentPageIndex() : p);
+      }, 480);
     }
   } else if (pp.pageEls[p]) {
     pp.pageEls[p].scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
@@ -481,6 +492,9 @@ export function renderTicket(animate) {
 
   const PF = window.St && window.St.PageFlip;
   const start = animate ? PP.cover : Math.min(store.get('pp_page', PP.data), PP.count - 1);
+  let isPpFlipping = false;
+  let flipSafetyTimer = 0;
+
   if (PF) {
     pp.flip = new PF(bookEl, {
       width: 320,
@@ -494,12 +508,12 @@ export function renderTicket(animate) {
       usePortrait: true,
       autoSize: true,
       drawShadow: true,
-      maxShadowOpacity: 0.3,
-      flippingTime: reduceMotion ? 1 : 800,
+      maxShadowOpacity: 0.18,
+      flippingTime: reduceMotion ? 1 : 420,
       mobileScrollSupport: true,
       disableFlipByClick: true,
       showPageCorners: !reduceMotion,
-      swipeDistance: 30,
+      swipeDistance: 25,
       startPage: start
     });
     pp.flip.loadFromHTML(pp.pageEls);
@@ -508,17 +522,36 @@ export function renderTicket(animate) {
     if (ctrl) {
       ctrl.flipPrev = function (t = 'top') {
         const r = this.render.getRect();
+        const topY = (r.top || 0) + 16;
+        const botY = (r.top || 0) + (r.height || 450) - 16;
         this.flip({
-          x: (r.left || 0) + 12,
-          y: t === 'top' ? 1 : r.height - 2
+          x: (r.left || 0) + 16,
+          y: t === 'top' ? topY : botY
+        });
+      };
+      ctrl.flipNext = function (t = 'top') {
+        const r = this.render.getRect();
+        const isLandscape = this.render.getOrientation() === 'landscape';
+        const w = isLandscape ? 2 * r.pageWidth : r.pageWidth;
+        const topY = (r.top || 0) + 16;
+        const botY = (r.top || 0) + (r.height || 450) - 16;
+        this.flip({
+          x: (r.left || 0) + w - 16,
+          y: t === 'top' ? topY : botY
         });
       };
     }
 
     pp.flip.on('flip', (e) => {
+      clearTimeout(flipSafetyTimer);
       isPpFlipping = false;
       sound.flip();
       ppStatus(e.data);
+    });
+
+    pp.flip.on('changeOrientation', () => {
+      const cur = pp.flip ? pp.flip.getCurrentPageIndex() : store.get('pp_page', 0);
+      ppStatus(cur);
     });
   } else {
     $('#pp-stage')?.classList.add('is-fallback');
@@ -527,63 +560,112 @@ export function renderTicket(animate) {
   ppQR();
   ppStatus(start);
 
-  let isPpFlipping = false;
-  $('#pp-prev')?.addEventListener('click', () => {
-    if (isPpFlipping) return;
-    const cur = pp.flip ? pp.flip.getCurrentPageIndex() : store.get('pp_page', 0);
-    if (cur <= 0) return;
-    isPpFlipping = true;
-    if (pp.flip) {
-      if (reduceMotion) {
-        pp.flip.turnToPage(cur - 1);
-        ppStatus(cur - 1);
-      } else {
-        try {
-          pp.flip.flipPrev();
-        } catch (err) {
-          pp.flip.flip(cur - 1);
-        }
-      }
-    } else {
+  function safePpPrev() {
+    if (!pp.flip) {
+      const cur = store.get('pp_page', 0);
       ppGo(Math.max(0, cur - 1));
+      return;
     }
-    setTimeout(() => {
-      isPpFlipping = false;
-    }, reduceMotion ? 50 : 850);
-  });
+    const cur = pp.flip.getCurrentPageIndex();
+    if (cur <= 0) return;
 
-  $('#pp-next')?.addEventListener('click', () => {
-    if (isPpFlipping) return;
-    const cur = pp.flip ? pp.flip.getCurrentPageIndex() : store.get('pp_page', 0);
-    if (cur >= PP.count - 1) return;
-    isPpFlipping = true;
-    if (pp.flip) {
-      if (reduceMotion) {
-        pp.flip.turnToPage(cur + 1);
-        ppStatus(cur + 1);
-      } else {
-        try {
-          pp.flip.flipNext();
-        } catch (err) {
-          pp.flip.flip(cur + 1);
-        }
-      }
-    } else {
-      ppGo(Math.min(PP.count - 1, cur + 1));
+    if (reduceMotion) {
+      pp.flip.turnToPrevPage();
+      ppStatus(pp.flip.getCurrentPageIndex());
+      return;
     }
-    setTimeout(() => {
+
+    if (isPpFlipping) {
+      try {
+        pp.flip.turnToPrevPage();
+        ppStatus(pp.flip.getCurrentPageIndex());
+      } catch (err) {
+        ppGo(Math.max(0, cur - 1));
+      }
+      return;
+    }
+
+    isPpFlipping = true;
+    try {
+      pp.flip.flipPrev();
+    } catch (err) {
+      try {
+        pp.flip.turnToPrevPage();
+      } catch (e) {
+        ppGo(Math.max(0, cur - 1));
+      }
+    }
+
+    clearTimeout(flipSafetyTimer);
+    flipSafetyTimer = setTimeout(() => {
       isPpFlipping = false;
-    }, reduceMotion ? 50 : 850);
-  });
+      const after = pp.flip ? pp.flip.getCurrentPageIndex() : cur;
+      if (after === cur && cur > 0) {
+        try { pp.flip.turnToPrevPage(); } catch (e) {}
+      }
+      ppStatus(pp.flip ? pp.flip.getCurrentPageIndex() : cur);
+    }, 450);
+  }
+
+  function safePpNext() {
+    if (!pp.flip) {
+      const cur = store.get('pp_page', 0);
+      ppGo(Math.min(PP.count - 1, cur + 1));
+      return;
+    }
+    const cur = pp.flip.getCurrentPageIndex();
+    if (cur >= PP.count - 1) return;
+
+    if (reduceMotion) {
+      pp.flip.turnToNextPage();
+      ppStatus(pp.flip.getCurrentPageIndex());
+      return;
+    }
+
+    if (isPpFlipping) {
+      try {
+        pp.flip.turnToNextPage();
+        ppStatus(pp.flip.getCurrentPageIndex());
+      } catch (err) {
+        ppGo(Math.min(PP.count - 1, cur + 1));
+      }
+      return;
+    }
+
+    isPpFlipping = true;
+    try {
+      pp.flip.flipNext();
+    } catch (err) {
+      try {
+        pp.flip.turnToNextPage();
+      } catch (e) {
+        ppGo(Math.min(PP.count - 1, cur + 1));
+      }
+    }
+
+    clearTimeout(flipSafetyTimer);
+    flipSafetyTimer = setTimeout(() => {
+      isPpFlipping = false;
+      const after = pp.flip ? pp.flip.getCurrentPageIndex() : cur;
+      if (after === cur && cur < PP.count - 1) {
+        try { pp.flip.turnToNextPage(); } catch (e) {}
+      }
+      ppStatus(pp.flip ? pp.flip.getCurrentPageIndex() : cur);
+    }, 450);
+  }
+
+  $('#pp-prev')?.addEventListener('click', safePpPrev);
+  $('#pp-next')?.addEventListener('click', safePpNext);
 
   $('#pp-stage')?.addEventListener('keydown', (e) => {
+    if (e.target.closest('input, textarea')) return;
     if (e.key === 'ArrowRight') {
       e.preventDefault();
-      $('#pp-next')?.click();
+      safePpNext();
     }
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
-      $('#pp-prev')?.click();
+      safePpPrev();
     }
   });
 
@@ -591,7 +673,7 @@ export function renderTicket(animate) {
     if (hasGsap && !reduceMotion && window.gsap) {
       gsap.from('#pp-stage', { y: 30, opacity: 0, duration: 0.7, ease: 'power3.out' });
     }
-    setTimeout(() => ppGo(PP.data), reduceMotion ? 0 : 900);
+    setTimeout(() => ppGo(PP.data), reduceMotion ? 0 : 500);
   }
   renderCheckout();
 }

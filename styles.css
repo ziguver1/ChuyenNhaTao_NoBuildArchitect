@@ -1333,6 +1333,10 @@ body::after {
   font-size: 20px;
   cursor: pointer;
   flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
   transition: transform .15s ease, background-color .2s, border-color .2s, opacity .2s, box-shadow .2s;
 }
 .flip-controls .icon-btn i {
@@ -2284,7 +2288,7 @@ body::after {
 .pp-stage { position: relative; padding: 6px 0 22px; outline: none; }
 .pp-stage:focus-visible { outline: 3px solid var(--accent-ink); outline-offset: 4px; border-radius: 12px; }
 .pp-stage::after { content: ""; position: absolute; left: 14%; right: 14%; bottom: 4px; height: 24px; z-index: -1; background: radial-gradient(50% 50% at 50% 50%, rgba(80, 18, 25, .28), transparent 70%); filter: blur(4px); }
-.pp-book { margin: 0 auto; }
+.pp-book { margin: 0 auto; transform: translateZ(0); }
 .pp-controls { margin-top: 0; }
 .pp-code { margin-top: 14px; padding-top: 16px; }
 
@@ -2299,6 +2303,9 @@ body::after {
     repeating-linear-gradient(-60deg, transparent 0 10px, rgba(199, 50, 26, .035) 10px 11px),
     linear-gradient(180deg, #fffaf7, #f7ece6);
   box-shadow: inset 0 0 0 1px rgba(180, 50, 30, .14);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
 }
 .pp-pg.--left { border-radius: 8px 0 0 8px; box-shadow: inset -14px 0 18px -14px rgba(60, 20, 15, .32), inset 0 0 0 1px rgba(180, 50, 30, .14); }
 .pp-pg.--right { border-radius: 0 8px 8px 0; box-shadow: inset 14px 0 18px -14px rgba(60, 20, 15, .32), inset 0 0 0 1px rgba(180, 50, 30, .14); }
