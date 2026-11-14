@@ -135,23 +135,38 @@
               </button>
             </div>
 
-            <!-- THẺ 2: Thành công tạo Thẻ thông hành cho Người Việt Nam -->
-            <div class="checkin-thanks-card" id="checkin-pass-success" hidden style="text-align: center; padding: 32px 20px;">
-              <div style="font-size: 48px; margin-bottom: 10px;">🧧</div>
-              <h3 style="font-size: 22px; margin-bottom: 6px; color: var(--accent);">Tạo thẻ thông hành thành công!</h3>
-              <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Chào mừng bạn <strong><span id="pass-success-name"></span></strong> đến với Chuyện Nhà Táo</p>
+            <!-- THẺ 2: Trạng thái đã Check-in & Thẻ thông hành trong phiên (Giữ session + Check-out quay thưởng) -->
+            <div class="checkin-thanks-card" id="checkin-pass-success" hidden style="text-align: center; padding: 28px 18px;">
+              <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12.5px; font-weight: 700; margin-bottom: 10px;">
+                <i class="ph-fill ph-check-circle"></i>
+                <span>Đã Check-in · Đang giữ phiên hoạt động</span>
+              </div>
+              <h3 style="font-size: 22px; margin-bottom: 6px; color: var(--accent);">Thẻ Thông Hành Của Bạn</h3>
+              <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 18px;">Xin chào <strong><span id="pass-success-name"></span></strong> · Chuyện Nhà Táo</p>
 
-              <div style="background: rgba(184, 36, 28, 0.05); border: 1.5px solid var(--accent); border-radius: 14px; padding: 20px; max-width: 380px; margin: 0 auto 20px;">
+              <div style="background: rgba(184, 36, 28, 0.05); border: 1.5px solid var(--accent); border-radius: 14px; padding: 18px; max-width: 380px; margin: 0 auto 18px;">
                 <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); display: block; margin-bottom: 4px;">Mã thẻ thông hành</span>
                 <span class="mono" id="pass-success-id" style="font-size: 24px; font-weight: 800; color: var(--accent); letter-spacing: 2px;">TAO-XXXXXX</span>
-                <div id="pass-success-qr" style="display: flex; justify-content: center; align-items: center; margin: 16px auto; padding: 8px; background: #fff; border-radius: 10px; width: 176px; height: 176px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);"></div>
-                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Hãy chụp màn hình hoặc lưu mã thẻ này để nhân sự hỗ trợ tại các khu vực trải nghiệm nhé.</p>
+                <div id="pass-success-qr" style="display: flex; justify-content: center; align-items: center; margin: 14px auto; padding: 8px; background: #fff; border-radius: 10px; width: 176px; height: 176px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);"></div>
+                <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px;">
+                  <button class="btn btn-ghost btn-sm" type="button" data-show-qr style="font-size: 12.5px;">
+                    <i class="ph ph-qr-code" aria-hidden="true"></i> Phóng to mã QR
+                  </button>
+                  <button class="btn btn-ghost btn-sm" type="button" data-scan-qr style="font-size: 12.5px;">
+                    <i class="ph ph-camera" aria-hidden="true"></i> Quét mã QR
+                  </button>
+                </div>
               </div>
 
-              <button class="btn btn-outline" type="button" id="btn-pass-another" style="margin: 0 auto; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="ph-bold ph-user-plus" aria-hidden="true"></i>
-                <span>Tạo thẻ cho người khác</span>
-              </button>
+              <!-- Khu vực Check-out & Vòng Quay May Mắn (Không cần qua 4 trạm, chỉ cần Check-out là có 1 lượt quay) -->
+              <div id="pass-checkout-slot" style="max-width: 440px; margin: 0 auto 20px; text-align: center;"></div>
+
+              <div style="border-top: 1px solid var(--line); padding-top: 16px; margin-top: 12px;">
+                <button class="btn btn-quiet btn-sm" type="button" id="btn-pass-another" style="margin: 0 auto; display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted);">
+                  <i class="ph ph-user-plus" aria-hidden="true"></i>
+                  <span>Tạo thẻ mới cho người khác</span>
+                </button>
+              </div>
             </div>
 
             <!-- FORM CHÍNH: Khảo sát check-in 4 câu -->

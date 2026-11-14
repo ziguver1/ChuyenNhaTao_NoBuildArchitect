@@ -292,12 +292,11 @@
           <small>${p.stamps[s] ? 'Đã đóng' : 'Chưa'}</small></div>`).join('')}</div>
         ${msg ? `<div class="verdict ${msg.tone}"><i class="ph${msg.tone === 'ok' ? '-fill ph-check-circle' : ' ph-info'}" aria-hidden="true"></i><span>${esc(msg.text)}${msg.sub ? `<small>${esc(msg.sub)}</small>` : ''}</span></div>` : ''}
         ${place && !p.stamps[place] ? `<button class="btn btn-primary btn-xl" type="button" data-act="stamp">Đóng dấu ${STATIONS[place - 1]}</button>` : ''}
-        ${!place ? (n < 4 ? `<div class="verdict warn"><i class="ph ph-info" aria-hidden="true"></i><span>Mới có ${n}/4 dấu, chưa trao quà cuối. Khách cần hoàn thành đủ 4 trạm.</span></div>`
-          : p.claimed ? `<div class="verdict warn"><i class="ph ph-info" aria-hidden="true"></i><span>Đã trao quà cuối lúc ${new Date(p.claimed).toLocaleTimeString('vi-VN')}. Không trao lại.</span></div>`
+        ${!place ? (p.claimed ? `<div class="verdict warn"><i class="ph ph-info" aria-hidden="true"></i><span>Đã trao quà cuối lúc ${new Date(p.claimed).toLocaleTimeString('vi-VN')}. Không trao lại.</span></div>`
           : `<div style="text-align:center;padding:12px 14px;background:var(--surface);border-radius:14px;border:1px dashed var(--line-strong);margin:4px 0;">
                <p style="margin:0 0 6px;color:var(--text-muted);font-size:13px;">Mã nhận quà của khách:</p>
                <strong style="font-family:ui-monospace,Consolas,monospace;font-size:22px;letter-spacing:.08em;color:var(--accent);">${esc(p.gift || '')}</strong>
-               ${checkoutPrize ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);"><span style="font-size:13px;color:var(--text-muted);">Quà vòng quay tốt nghiệp:</span> <strong style="color:var(--accent);font-size:17px;display:block;">${PRIZE[checkoutPrize] || checkoutPrize}</strong></div>` : '<p style="margin:6px 0 0;font-size:13px;color:var(--text-muted);">Khách chưa quay vòng quay (máy chủ sẽ tự bốc khi bấm trao quà)</p>'}
+               ${checkoutPrize ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line);"><span style="font-size:13px;color:var(--text-muted);">Quà vòng quay Check-out:</span> <strong style="color:var(--accent);font-size:17px;display:block;">${PRIZE[checkoutPrize] || checkoutPrize}</strong></div>` : '<p style="margin:6px 0 0;font-size:13px;color:var(--text-muted);">Khách chưa quay vòng quay (máy chủ sẽ tự bốc khi bấm trao quà)</p>'}
              </div>
              <button class="btn btn-primary btn-xl" type="button" data-act="checkout"><i class="ph-fill ph-gift" aria-hidden="true"></i> Xác nhận trao quà cuối & Check-out</button>`) : ''}
         <button class="btn btn-quiet" type="button" data-next><i class="ph ph-scan" aria-hidden="true"></i> Quét người tiếp theo</button>`;

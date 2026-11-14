@@ -187,6 +187,7 @@ export function mergeServer(v) {
   pass.serverPrizes = v.prizes || {};
   if (v.checkoutPrize) {
     pass.checkoutPrize = v.checkoutPrize;
+    pass.checkedOut = true;
     pass.serverPrizes.checkout = v.checkoutPrize;
     if (v.claimed && !pass.checkoutSpin) {
       pass.checkoutSpin = { prize: v.checkoutPrize, at: v.claimed || Date.now() };
@@ -194,7 +195,10 @@ export function mergeServer(v) {
   }
   pass.given = v.given || {};
   if (v.checkoutGiven) pass.checkoutGiven = v.checkoutGiven;
-  if (v.claimed) pass.claimed = true;
+  if (v.claimed) {
+    pass.claimed = true;
+    pass.checkedOut = true;
+  }
   const fresh = Object.keys(v.stamps || {})
     .map(Number)
     .filter((st) => !pass.stamps.includes(st))
@@ -224,19 +228,19 @@ export function mergeServer(v) {
 
 export const waiting = () => {
   const pass = getPass();
-  return pass && (pass.stamps.length < 4 || !pass.claimed);
+  return Boolean(pass && !pass.claimed);
 };
 
 export function startPolling() {
   clearInterval(server.timer);
   const getPollInterval = () => {
     const pass = getPass();
-    return pass && pass.stamps.length >= 4 && !pass.claimed ? 1500 : 3000;
+    return pass && !pass.claimed ? 2000 : 3500;
   };
   const tick = () => {
     const isForeground = document.visibilityState === 'visible';
     const pass = getPass();
-    const isCheckoutPending = Boolean(pass && pass.stamps && pass.stamps.length >= 4 && !pass.claimed);
+    const isCheckoutPending = Boolean(pass && !pass.claimed);
     const isActive =
       isForeground &&
       (server.inView ||
@@ -407,6 +411,8 @@ export async function restorePass(raw, silent) {
         : history.find((x) => x && x.email && x.email.toLowerCase() === v.toLowerCase());
     if (found) {
       pass = found;
+      pass.sessionActive = true;
+      try { sessionStorage.setItem('cnt_nhasach_session', 'pass'); } catch (e) {}
       setPass(pass);
       store.set('new_pass', false);
       uiCallbacks.renderRegister();
@@ -420,7 +426,7 @@ export async function restorePass(raw, silent) {
       );
       setTimeout(
         () =>
-          ($('#passport-bar') || $('#ticket-slot'))?.scrollIntoView({
+          ($('#checkin-pass-success') || $('#passport-bar') || $('#ticket-slot'))?.scrollIntoView({
             behavior: reduceMotion ? 'auto' : 'smooth',
             block: 'start'
           }),
@@ -468,6 +474,8 @@ export async function restorePass(raw, silent) {
       id: serverData.pid,
       nickname: serverData.name || v,
       email: pass && pass.id === serverData.pid ? pass.email : null,
+      sessionActive: true,
+      checkedOut: Boolean(chkPrize || serverData.claimed),
       consent: true,
       stamps: Object.keys(serverStamps)
         .map(Number)
@@ -492,6 +500,7 @@ export async function restorePass(raw, silent) {
         chkPrize ? { checkout: { prize: chkPrize, at: serverData.claimed || Date.now() } } : {}
       )
     };
+    try { sessionStorage.setItem('cnt_nhasach_session', 'pass'); } catch (e) {}
     setPass(pass);
     store.set('new_pass', false);
     savePassToHistory(pass);
@@ -503,7 +512,7 @@ export async function restorePass(raw, silent) {
     toast(`Đã đồng bộ thành công thẻ ${pass.id} (${pass.nickname})!`, 'ok', 'seal-check');
     setTimeout(
       () =>
-        ($('#passport-bar') || $('#ticket-slot'))?.scrollIntoView({
+        ($('#checkin-pass-success') || $('#passport-bar') || $('#ticket-slot'))?.scrollIntoView({
           behavior: reduceMotion ? 'auto' : 'smooth',
           block: 'start'
         }),
@@ -519,6 +528,8 @@ export async function restorePass(raw, silent) {
 
   if (localFound) {
     pass = localFound;
+    pass.sessionActive = true;
+    try { sessionStorage.setItem('cnt_nhasach_session', 'pass'); } catch (e) {}
     setPass(pass);
     store.set('new_pass', false);
     uiCallbacks.renderRegister();
@@ -532,7 +543,7 @@ export async function restorePass(raw, silent) {
     );
     setTimeout(
       () =>
-        ($('#passport-bar') || $('#ticket-slot'))?.scrollIntoView({
+        ($('#checkin-pass-success') || $('#passport-bar') || $('#ticket-slot'))?.scrollIntoView({
           behavior: reduceMotion ? 'auto' : 'smooth',
           block: 'start'
         }),

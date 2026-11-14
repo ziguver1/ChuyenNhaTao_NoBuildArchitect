@@ -29,7 +29,8 @@ import {
   initPassportUI,
   renderTicket,
   renderRegister,
-  addStamp
+  addStamp,
+  triggerCheckoutNow
 } from './features/passport/ticket-ui.js';
 import {
   startPolling,
@@ -73,6 +74,8 @@ function initApp() {
   // 3. Khởi tạo Thẻ thông hành O2O / Khảo sát Check-in
   initPassportUI();
   renderRegister();
+  startPolling();
+  initPollingObserver();
 
   // 4. Khởi tạo Chuyện Nhà Đêm 23 (UGC) (nếu có trên trang)
   if ($('#la-so')) {
@@ -86,7 +89,7 @@ function initApp() {
   if ($('#seam-book-passport')) initBookPassportTransition();
   initScrollAnimations();
 
-  // 6. Xử lý Query Params trên URL (?vao=, ?tram=, ?the=, ?test=, ?demo=)
+  // 6. Xử lý Query Params trên URL (?vao=, ?tram=, ?the=, ?checkout=, ?test=, ?demo=)
   const qs = new URLSearchParams(location.search);
   if (qs.has('test') || qs.has('demo')) {
     unlockTest();
@@ -96,12 +99,13 @@ function initApp() {
   }
 
   const gate = qs.get('vao'),
-    tram = qs.get('tram'),
+    tram = qs.get('tram') || qs.get('checkout'),
     the = qs.get('the');
 
   if (gate || tram || the) {
     qs.delete('vao');
     qs.delete('tram');
+    qs.delete('checkout');
     qs.delete('the');
     history.replaceState(
       null,
@@ -119,16 +123,15 @@ function initApp() {
     const pass = getPass();
     if (pass) {
       setTimeout(() => {
-        $('#ticket-slot')?.scrollIntoView({
+        $('#checkin-pass-success')?.scrollIntoView({
           behavior: reduceMotion ? 'auto' : 'smooth',
           block: 'start'
         });
-        setTimeout(() => addStamp(tram), 700);
-      }, 400);
+        setTimeout(() => triggerCheckoutNow(), 400);
+      }, 300);
     } else {
-      store.set('pending_stamp', String(tram).toUpperCase());
       toast(
-        'Bạn chưa có thẻ thông hành. Nhập tên để tạo thẻ, dấu của trạm này sẽ được đóng ngay sau đó.',
+        'Bạn chưa có thẻ thông hành. Vui lòng hoàn tất Check-in tạo thẻ trước khi Check-out nhé!',
         'info',
         'qr-code'
       );

@@ -57,8 +57,6 @@ module.exports = async (req, res) => {
         if (o[`given${st}`]) note = 'already'; else cmds.push(['HSET', key, `given${st}`, now]);
       }
     } else if (b.action === 'checkout') {
-      const n = [1, 2, 3, 4].filter((s) => o[`st${s}`]).length;
-      if (n < 4) return res.status(400).json({ error: 'stamps', stamps: n });
       if (o.claimed) note = 'already';
       else {
         // Đảm bảo bốc 1 phần quà vòng quay checkout duy nhất nếu chưa có
@@ -69,10 +67,12 @@ module.exports = async (req, res) => {
             ['HINCRBY', 'prize:counts', prize, '1']
           );
           if (activeId) cmds.push(['HINCRBY', 'prize:round_counts', `${activeId}:${prize}`, '1']);
-          if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+          if (o.origin) cmds.push(['HSET', `nhasach:item:${pid}`, 'checkout_prize', prize]);
+          else if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
         }
         cmds.push(['HSET', key, 'claimed', now, 'checkout_given', now]);
-        if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'claimed', '1']);
+        if (o.origin) cmds.push(['HSET', `nhasach:item:${pid}`, 'claimed', '1', 'checkout_given', now]);
+        else if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'claimed', '1']);
       }
     } else if (b.action !== 'lookup') {
       return res.status(400).json({ error: 'action' });

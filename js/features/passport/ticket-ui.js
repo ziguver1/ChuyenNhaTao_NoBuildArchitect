@@ -877,25 +877,95 @@ export function showFeedbackPopup(force = false) {
   }
 }
 
+const NHASACH_SESSION_KEY = 'cnt_nhasach_session';
+
+function setNhasachSession(mode) {
+  try {
+    if (mode) sessionStorage.setItem(NHASACH_SESSION_KEY, mode);
+    else sessionStorage.removeItem(NHASACH_SESSION_KEY);
+  } catch (e) {}
+}
+
+function getNhasachSession() {
+  try {
+    return sessionStorage.getItem(NHASACH_SESSION_KEY) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+export function triggerCheckoutNow() {
+  const pass = getPass();
+  if (!pass) {
+    toast('Bạn cần tạo thẻ thông hành trước khi Check-out nhé!', 'info', 'identification-card');
+    return;
+  }
+  if (!pass.checkedOut) {
+    pass.checkedOut = true;
+    pass.checkedOutAt = Date.now();
+    setPass(pass);
+    savePassToHistory(pass);
+    track('checkout_triggered', { pid: pass.id });
+  }
+  renderCheckout();
+  renderRegister();
+  if (!spinOf('checkout')) {
+    openWheel('checkout');
+  } else {
+    showFeedbackPopup(false);
+  }
+}
+
 export function renderCheckout() {
   const pass = getPass();
-  const box = $('#checkout');
+  const box = $('#pass-checkout-slot') || $('#checkout');
   if (!box) return;
   if (typeof window.renderLetter === 'function' && $('#letter-lock')) window.renderLetter();
-  if (!pass || pass.stamps.length < 4) {
+  if (!pass) {
     box.hidden = true;
+    box.innerHTML = '';
     return;
   }
   box.hidden = false;
   const hasSpun = Boolean(spinOf('checkout'));
+  const isCheckedOut = Boolean(pass.checkedOut || hasSpun || pass.claimed || pass.checkoutPrize);
+
+  if (!isCheckedOut) {
+    box.innerHTML = `
+      <div class="checkout-wheel-box" style="padding:18px 20px;background:var(--gold-soft);border-radius:16px;text-align:center;display:grid;gap:10px;border:1.5px dashed rgba(184,36,28,0.35);">
+        <div class="wheel-ticket-banner" style="margin:0 auto;">
+          <i class="ph-fill ph-ticket"></i>
+          <span>Quà Check-out: <strong>+1 LƯỢT QUAY MAY MẮN</strong></span>
+          <span class="plus-badge">+1</span>
+        </div>
+        <strong style="font-size:16.5px;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;gap:6px;">
+          <i class="ph-fill ph-sparkle" style="color:var(--accent);"></i> Check-out & Quay thưởng nhận quà
+        </strong>
+        <p style="margin:0;font-size:14px;color:var(--text-muted);line-height:1.5;">
+          Trạng thái Check-in đang được giữ trong phiên của bạn. Khi chuẩn bị ra về, bấm <strong>Check-out</strong> bên dưới để mở <strong>Vòng quay may mắn (1 lượt)</strong> nhận quà ngay!
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+          <button class="btn btn-tet btn-block btn-spin-active" type="button" id="btn-trigger-checkout" style="max-width:310px;margin:0 auto;">
+            <i class="ph-fill ph-spiral" aria-hidden="true"></i> Check-out & Quay thưởng ngay (1 lượt)
+          </button>
+        </div>
+      </div>`;
+
+    $('#btn-trigger-checkout')?.addEventListener('click', () => {
+      triggerCheckoutNow();
+    });
+    return;
+  }
 
   box.innerHTML = `
-    <div><h3>Chúc mừng, bạn đã đi đủ bốn trạm!</h3>
-    <p style="color:var(--text-muted);margin-top:6px">${
-      pass.claimed
-        ? 'Quà tốt nghiệp đã được trao. Cảm ơn bạn đã đồng hành cùng Chuyện Nhà Táo!'
-        : 'Bạn có 1 lượt quay may mắn duy nhất để nhận quà tốt nghiệp. Đưa mã nhận quà cho nhân sự tại bàn check-out.'
-    }</p></div>
+    <div style="margin-bottom:10px;">
+      <h3 style="margin:0;font-size:19px;color:var(--accent);">🎉 Bạn đã Check-out thành công!</h3>
+      <p style="color:var(--text-muted);margin:4px 0 0;font-size:14px;">${
+        pass.claimed
+          ? 'Quà may mắn đã được trao. Cảm ơn bạn đã đồng hành cùng Chuyện Nhà Táo!'
+          : 'Bạn có 1 lượt quay may mắn duy nhất để nhận quà Check-out. Đưa mã nhận quà cho nhân sự tại bàn Check-out.'
+      }</p>
+    </div>
 
     ${
       !hasSpun
@@ -908,7 +978,7 @@ export function renderCheckout() {
              <strong style="font-size:16px;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;gap:6px;">
                <i class="ph-fill ph-sparkle" style="color:var(--accent);"></i> Vòng quay may mắn Check-out
              </strong>
-             <p style="margin:0;font-size:14px;color:var(--text-muted);">Bạn vừa nhận được <strong>1 lượt quay tốt nghiệp</strong>. Bấm nút dưới để quay lấy quà!</p>
+             <p style="margin:0;font-size:14px;color:var(--text-muted);">Bạn vừa nhận được <strong>1 lượt quay Check-out</strong>. Bấm nút dưới để quay lấy quà!</p>
              <button class="btn btn-tet btn-block btn-spin-active" type="button" id="btn-checkout-spin" style="max-width:280px;margin:4px auto 0;">
                <i class="ph-fill ph-spiral" aria-hidden="true"></i> Bấm để quay ngay (1 lượt)
              </button>
@@ -916,72 +986,56 @@ export function renderCheckout() {
         : wonList()
     }
 
-    <p class="gift-code ${pass.claimed ? 'is-claimed' : ''}" aria-label="Mã nhận quà ${pass.giftCode
+    <p class="gift-code ${pass.claimed ? 'is-claimed' : ''}" style="margin:12px auto;" aria-label="Mã nhận quà ${(pass.giftCode || '')
     .split('')
-    .join(' ')}">${pass.giftCode}</p>
+    .join(' ')}">${esc(pass.giftCode || '')}</p>
     ${
       pass.claimed
-        ? `<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>
-           ${
-             pass.feedbackAnswered && pass.feedback
-               ? `<div style="padding:14px 16px;background:var(--surface-2);border-radius:14px;border:1px solid var(--line);margin:12px 0;text-align:center;display:grid;gap:6px;">
-                    <div style="font-size:13.5px;color:var(--text-muted);"><i class="ph-fill ph-heart" style="color:var(--accent);"></i> Trạm bạn thích nhất: <strong style="color:var(--text);">${esc(pass.feedback.favStation || '')}</strong></div>
-                    <div style="font-size:13px;color:var(--gold);">${'★'.repeat(pass.feedback.rating || 5)}${'☆'.repeat(5 - (pass.feedback.rating || 5))} · Đã gửi đánh giá</div>
-                    <div style="margin-top:6px;">
-                      <button class="btn btn-ghost btn-sm" type="button" id="btn-open-feedback-checkout" style="font-size:12.5px;padding:4px 14px;--h:36px;margin:0 auto;display:inline-flex;align-items:center;gap:6px;">
-                        <i class="ph ph-note-pencil"></i> Xem hoặc sửa đánh giá
-                      </button>
-                    </div>
-                  </div>`
-               : `<div class="checkout-feedback-prompt" style="padding:14px;background:var(--gold-soft);border-radius:14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed var(--gold);">
-                    <div>
-                      <strong style="color:var(--accent);font-size:14.5px;display:flex;align-items:center;gap:6px;"><i class="ph-fill ph-chat-circle-heart"></i> Bạn thích trạm nào nhất?</strong>
-                      <small style="color:var(--text-muted);display:block;margin-top:2px;">Hãy gửi đánh giá nhanh cho ban tổ chức nhé!</small>
-                    </div>
-                    <button class="btn btn-primary btn-sm" type="button" id="btn-open-feedback-checkout" style="white-space:nowrap;flex:none;">
-                      Đánh giá ngay
-                    </button>
-                  </div>`
-           }`
-        : server.on
-        ? `
-        <div style="display:grid;gap:10px;margin:14px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;">
-          <p class="help" style="margin:0;font-size:14px;color:var(--text);font-weight:600;">
-            <i class="ph-fill ph-storefront" style="color:var(--accent);"></i> Trao quà tại Bàn Check-out:
-          </p>
-          <p style="margin:0;font-size:13px;color:var(--text-muted);">
-            Đưa mã QR cho nhân sự tại bàn Check-out quét xác nhận để nhận quà:
-          </p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
-            <button class="btn btn-primary" type="button" data-show-qr style="flex:1;min-width:200px;">
-              <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR (Đưa nhân sự quét)
-            </button>
-            <button class="btn btn-ghost btn-sm" type="button" data-scan-qr style="font-size:12.5px;">
-              <i class="ph ph-camera" aria-hidden="true"></i> Bật camera tự quét
-            </button>
-          </div>
-        </div>`
-        : `
-        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0;">
-          <button class="btn btn-ghost" type="button" id="btn-claim"><i class="ph ph-hand-heart" aria-hidden="true"></i> Nhân sự xác nhận đã trao quà</button>
-          <button class="btn btn-secondary btn-sm" type="button" data-scan-qr><i class="ph ph-camera" aria-hidden="true"></i> Bật camera quét</button>
-        </div>`
+        ? `<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>`
+        : `<div style="display:grid;gap:10px;margin:12px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;">
+             <p class="help" style="margin:0;font-size:13.5px;color:var(--text-muted);">
+               Đưa mã QR hoặc đọc mã nhận quà <strong>${esc(pass.giftCode || '')}</strong> cho nhân sự tại bàn Check-out để nhận quà.
+             </p>
+             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+               <button class="btn btn-primary btn-sm" type="button" data-show-qr>
+                 <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR lớn
+               </button>
+               <button class="btn btn-ghost btn-sm" type="button" id="btn-claim">
+                 <i class="ph ph-hand-heart" aria-hidden="true"></i> Xác nhận đã nhận quà
+               </button>
+             </div>
+           </div>`
     }
-    <div class="optin">
-      <strong>Viết Chuyện Nhà Đêm 23 gửi Táo</strong>
-      <p style="color:var(--text-muted);font-size:15px">Chuyện Nhà Đêm 23 đã mở. Ghi bốn lời gửi ông Táo và dán ảnh khoảnh khắc ở các trạm.</p>
-      <div class="optin-actions">
-        <a class="btn btn-primary btn-sm" href="#la-so" id="optin-yes">Viết Chuyện Nhà Đêm 23</a>
-        <button class="btn btn-quiet" type="button" id="optin-no">Để sau</button>
-      </div>
-    </div>`;
+    ${
+      pass.feedbackAnswered && pass.feedback
+        ? `<div style="padding:14px 16px;background:var(--surface-2);border-radius:14px;border:1px solid var(--line);margin:12px 0 0;text-align:center;display:grid;gap:6px;">
+             <div style="font-size:13.5px;color:var(--text-muted);"><i class="ph-fill ph-heart" style="color:var(--accent);"></i> Trạm bạn thích nhất: <strong style="color:var(--text);">${esc(pass.feedback.favStation || '')}</strong></div>
+             <div style="font-size:13px;color:var(--gold);">${'★'.repeat(pass.feedback.rating || 5)}${'☆'.repeat(5 - (pass.feedback.rating || 5))} · Đã gửi đánh giá</div>
+             <div style="margin-top:6px;">
+               <button class="btn btn-ghost btn-sm" type="button" id="btn-open-feedback-checkout" style="font-size:12.5px;padding:4px 14px;--h:36px;margin:0 auto;display:inline-flex;align-items:center;gap:6px;">
+                 <i class="ph ph-note-pencil"></i> Xem hoặc sửa đánh giá
+               </button>
+             </div>
+           </div>`
+        : hasSpun || pass.claimed
+        ? `<div class="checkout-feedback-prompt" style="padding:14px;background:var(--gold-soft);border-radius:14px;margin:12px 0 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed var(--gold);text-align:left;">
+             <div>
+               <strong style="color:var(--accent);font-size:14.5px;display:flex;align-items:center;gap:6px;"><i class="ph-fill ph-chat-circle-heart"></i> Bạn thích trạm nào nhất?</strong>
+               <small style="color:var(--text-muted);display:block;margin-top:2px;">Hãy gửi đánh giá nhanh cho ban tổ chức nhé!</small>
+             </div>
+             <button class="btn btn-primary btn-sm" type="button" id="btn-open-feedback-checkout" style="white-space:nowrap;flex:none;">
+               Đánh giá ngay
+             </button>
+           </div>`
+        : ''
+    }`;
 
   $('#btn-checkout-spin')?.addEventListener('click', () => {
     openWheel('checkout');
   });
 
   $('#btn-open-feedback-checkout')?.addEventListener('click', () => {
-    showFeedbackPopup();
+    showFeedbackPopup(true);
   });
 
   const cb = $('#btn-claim');
@@ -1003,14 +1057,47 @@ export function renderCheckout() {
       }, 400);
     });
   }
-  $('#optin-yes')?.addEventListener('click', () => track('optin_yes'));
-  $('#optin-no')?.addEventListener('click', () => {
-    track('optin_no');
-    toast('Không sao. Chuyện Nhà Đêm 23 luôn chờ bạn ở cuối trang.', 'info');
-  });
-  if (hasGsap && !reduceMotion && window.gsap) {
-    gsap.from(box, { y: 20, opacity: 0, duration: 0.5, ease: 'power3.out' });
+}
+
+function renderPassSuccessCard(pass) {
+  const openBox = $('#register-open');
+  const thanksBox = $('#checkin-guest-thanks');
+  const passBox = $('#checkin-pass-success');
+  const passName = $('#pass-success-name');
+  const passId = $('#pass-success-id');
+  const passQr = $('#pass-success-qr');
+  if (passName) passName.textContent = pass.nickname || '';
+  if (passId) passId.textContent = pass.id || '';
+  if (passQr) {
+    if (typeof window.QRCode !== 'undefined') {
+      passQr.innerHTML = '';
+      new window.QRCode(passQr, {
+        text: `${location.origin}/?the=${pass.id}`,
+        width: 160,
+        height: 160,
+        colorDark: '#1b120c',
+        colorLight: '#ffffff',
+        correctLevel: window.QRCode.CorrectLevel.M
+      });
+    } else {
+      passQr.textContent = pass.id;
+    }
   }
+  if (openBox) openBox.hidden = true;
+  if (thanksBox) thanksBox.hidden = true;
+  if (passBox) passBox.hidden = false;
+  renderCheckout();
+}
+
+function renderGuestThanksCard(guest) {
+  const openBox = $('#register-open');
+  const thanksBox = $('#checkin-guest-thanks');
+  const passBox = $('#checkin-pass-success');
+  const thanksName = $('#guest-thanks-name');
+  if (thanksName) thanksName.textContent = guest.name || '';
+  if (openBox) openBox.hidden = true;
+  if (passBox) passBox.hidden = true;
+  if (thanksBox) thanksBox.hidden = false;
 }
 
 export function renderRegister() {
@@ -1020,14 +1107,29 @@ export function renderRegister() {
   if (bar) bar.hidden = true;
   const intro = $('#pp-intro');
   if (intro) intro.hidden = true;
+  const box = $('#register-has');
+  if (box) box.hidden = true;
+
+  const sessionMode = getNhasachSession();
+  const pass = getPass();
+  const guest = store.get('visitor_checkin');
+
+  if (pass && (sessionMode === 'pass' || pass.sessionActive)) {
+    setNhasachSession('pass');
+    renderPassSuccessCard(pass);
+    return;
+  }
+  if (guest && sessionMode === 'guest') {
+    renderGuestThanksCard(guest);
+    return;
+  }
+
   const openBox = $('#register-open');
   if (openBox) openBox.hidden = false;
   const thanksBox = $('#checkin-guest-thanks');
   if (thanksBox) thanksBox.hidden = true;
   const passSuccessBox = $('#checkin-pass-success');
   if (passSuccessBox) passSuccessBox.hidden = true;
-  const box = $('#register-has');
-  if (box) box.hidden = true;
 }
 
 export function initPassportUI() {
@@ -1042,7 +1144,13 @@ export function initPassportUI() {
   });
   setWheelCallbacks({
     onRefreshVisa: (id) => ppRefresh([PP.visa(id)]),
-    onRenderCheckout: renderCheckout
+    onRenderCheckout: renderCheckout,
+    onSpinComplete: () => {
+      renderCheckout();
+      setTimeout(() => {
+        showFeedbackPopup(false);
+      }, 450);
+    }
   });
   setPassGetter(getPass);
 
@@ -1337,6 +1445,7 @@ export function initPassportUI() {
 
       const now = Date.now();
       store.set('visitor_checkin', { id: chkId, name: nickname, age, origin, at: now });
+      setNhasachSession('guest');
       saveLocalNhasachRecord({
         pid: chkId,
         name: nickname,
@@ -1355,15 +1464,8 @@ export function initPassportUI() {
         btn.innerHTML = '<span class="btn-label" id="btn-register-label">Hoàn thành Check-in</span>';
       }
 
-      // Ẩn form register-open, hiện thẻ cảm ơn checkin-guest-thanks
-      const openBox = $('#register-open');
-      const thanksBox = $('#checkin-guest-thanks');
-      const thanksName = $('#guest-thanks-name');
-      if (thanksName) thanksName.textContent = nickname;
-      if (openBox) openBox.hidden = true;
-      if (thanksBox) thanksBox.hidden = false;
-
-      thanksBox?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      renderRegister();
+      $('#checkin-guest-thanks')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
       return;
     }
 
@@ -1425,6 +1527,8 @@ export function initPassportUI() {
         origin: 'vietnamese',
         source,
         scope: 'nhasach',
+        sessionActive: true,
+        checkedOut: false,
         consent,
         stamps: [],
         giftCode: 'QUA-' + randCode(4),
@@ -1432,6 +1536,7 @@ export function initPassportUI() {
         synced: !offline
       };
       setPass(pass);
+      setNhasachSession('pass');
       savePassToHistory(pass);
       saveLocalNhasachRecord({
         pid: pass.id,
@@ -1457,57 +1562,36 @@ export function initPassportUI() {
         btn.disabled = false;
         btn.innerHTML = '<span class="btn-label" id="btn-register-label">Tạo thẻ thông hành</span>';
       }
-      toast('Tạo thẻ thông hành thành công!', 'ok', 'identification-card');
+      toast('Tạo thẻ thông hành thành công! Đã lưu trạng thái Check-in trong phiên này.', 'ok', 'identification-card');
       $('#form-register')?.reset();
       if (txtOther) txtOther.disabled = true;
       onOriginChange();
 
-      // Hiện thẻ xác nhận tạo thẻ thông hành thành công
-      const openBox = $('#register-open');
-      const passBox = $('#checkin-pass-success');
-      const passName = $('#pass-success-name');
-      const passId = $('#pass-success-id');
-      const passQr = $('#pass-success-qr');
-      if (passName) passName.textContent = nickname;
-      if (passId) passId.textContent = pass.id;
-      if (passQr && typeof QRCode !== 'undefined') {
-        passQr.innerHTML = '';
-        new QRCode(passQr, {
-          text: `https://chuyennhatao.vercel.app/?the=${pass.id}`,
-          width: 160,
-          height: 160,
-          colorDark: '#1b120c',
-          colorLight: '#ffffff',
-          correctLevel: QRCode.CorrectLevel.M
-        });
-      }
-      if (openBox) openBox.hidden = true;
-      if (passBox) passBox.hidden = false;
-      passBox?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      // Hiện thẻ xác nhận tạo thẻ thông hành thành công & giữ trạng thái trong session
+      renderRegister();
+      $('#checkin-pass-success')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
     }, 700);
   });
 
   // Nút Check-in cho khách khác (reset lại form cho người tiếp theo)
   $('#btn-checkin-another')?.addEventListener('click', () => {
+    setNhasachSession('');
+    store.del('visitor_checkin');
     $('#form-register')?.reset();
     if (txtOther) txtOther.disabled = true;
     onOriginChange();
-    const openBox = $('#register-open');
-    const thanksBox = $('#checkin-guest-thanks');
-    if (thanksBox) thanksBox.hidden = true;
-    if (openBox) openBox.hidden = false;
+    renderRegister();
     $('#f-checkin-name')?.focus();
   });
 
   // Nút Tạo thẻ cho người khác (reset lại form cho người tiếp theo)
   $('#btn-pass-another')?.addEventListener('click', () => {
+    setNhasachSession('');
+    setPass(null);
     $('#form-register')?.reset();
     if (txtOther) txtOther.disabled = true;
     onOriginChange();
-    const openBox = $('#register-open');
-    const passBox = $('#checkin-pass-success');
-    if (passBox) passBox.hidden = true;
-    if (openBox) openBox.hidden = false;
+    renderRegister();
     $('#f-checkin-name')?.focus();
   });
 
@@ -1518,34 +1602,17 @@ export function initPassportUI() {
     if (!e.target.closest('[data-show-qr]')) return;
     const pass = getPass();
     if (!pass) return;
-    const canStamp = pass.stamps.length < 4;
     ask({
-      title: 'Mã QR hộ chiếu',
+      title: 'Mã QR thẻ thông hành',
       html: `<div class="qr-big" id="qr-big" role="img" aria-label="Mã QR của thẻ ${esc(
         pass.id
       )}"></div>
         <p class="qr-big-id">${esc(pass.id)} · ${esc(pass.nickname)}</p>
-        <p class="help" style="text-align:center">Đưa màn hình cho nhân sự quét. Quét chậm thì tăng độ sáng màn hình.</p>
-        <div style="display:flex;justify-content:center;margin:6px 0 10px;">
-          <button class="btn btn-outline btn-sm" type="button" data-scan-qr><i class="ph ph-camera" aria-hidden="true"></i> Hoặc bật camera tự quét mã trạm</button>
-        </div>
-        ${
-          canStamp
-            ? `
-        <div class="qr-fallback-section">
-          <p class="qr-fallback-title"><i class="ph ph-warning-circle" aria-hidden="true"></i> Không quét được? Nhập mã 6 số hoặc mã trạm:</p>
-          <div class="qr-fallback-form" id="qr-form-otp" style="display:flex;gap:8px;align-items:center;width:100%">
-            <input class="input" id="qr-f-otp" maxlength="6" autocomplete="off" autocapitalize="characters" placeholder="6 chữ số / mã trạm" aria-label="Mã đóng dấu" style="flex:1;min-width:0;height:42px;margin:0">
-            <button class="btn btn-primary" type="button" id="qr-btn-submit" style="flex:none;white-space:nowrap;padding:0 16px;height:42px;margin:0">Đóng dấu</button>
-          </div>
-          <p class="help" style="margin:4px 0 0;font-size:12px;text-align:left">${
-            server.on
-              ? 'Nhập mã 6 số do nhân sự đọc, hoặc mã trạm chạy thử (HUONG1, MAIAM2...).'
-              : 'Bản thử nghiệm: mã các trạm là HUONG1, MAIAM2, NEPNH3, TOTLA4.'
-          }</p>
-        </div>`
-            : ''
-        }`,
+        <p class="help" style="text-align:center">Đưa màn hình cho nhân sự tại bàn Check-out quét để nhận quà và mở Vòng quay may mắn.</p>
+        <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:6px 0 10px;">
+          <button class="btn btn-tet btn-sm" type="button" id="qr-btn-checkout-now"><i class="ph-fill ph-spiral" aria-hidden="true"></i> Check-out & Quay thưởng ngay</button>
+          <button class="btn btn-outline btn-sm" type="button" data-scan-qr><i class="ph ph-camera" aria-hidden="true"></i> Quét QR Check-out</button>
+        </div>`,
       buttons: [{ label: 'Đóng', value: 'ok', cls: 'btn-ghost' }]
     });
 
@@ -1565,20 +1632,12 @@ export function initPassportUI() {
     track('show_qr');
     pullPass();
 
-    const doSubmitOtp = async () => {
-      const inputVal = $('#qr-f-otp') ? $('#qr-f-otp').value : '';
-      const ok = await stampByCode(inputVal);
-      if (ok) {
-        const dlg = $('#dlg');
-        if (dlg && dlg.open) dlg.close('ok');
+    $('#qr-btn-checkout-now')?.addEventListener('click', () => {
+      const dlg = $('#dlg');
+      if (dlg && dlg.open) {
+        try { dlg.close('ok'); } catch (err) {}
       }
-    };
-    $('#qr-btn-submit')?.addEventListener('click', doSubmitOtp);
-    $('#qr-f-otp')?.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Enter') {
-        ev.preventDefault();
-        doSubmitOtp();
-      }
+      triggerCheckoutNow();
     });
   });
 
@@ -1707,9 +1766,7 @@ export function initPassportUI() {
         if (url.searchParams.has('tram')) {
           code = url.searchParams.get('tram');
         } else if (url.searchParams.has('vao')) {
-          const vao = url.searchParams.get('vao');
-          enterGate(vao);
-          return;
+          code = url.searchParams.get('vao');
         } else if (url.searchParams.has('the')) {
           toast('Đây là mã QR thẻ thông hành. Hãy đưa cho nhân sự quét nhé!', 'info', 'identification-card');
           return;
@@ -1717,18 +1774,18 @@ export function initPassportUI() {
       } catch (e) {}
     }
 
-    code = code.toUpperCase().trim();
+    code = String(code || '').toUpperCase().trim();
 
-    // Cổng check-in
-    if (code === 'CONG23' || code.includes('VAO=CONG23')) {
-      enterGate('CONG23');
-      return;
-    }
-
-    // Các trạm trải nghiệm
+    // Khi khách quét mã Check-out hoặc mã sự kiện bất kỳ trong phiên Check-in -> Kích hoạt Check-out & Mở vòng quay may mắn ngay!
     const st = STATIONS.find((s) => s.code === code || (s.altCodes && s.altCodes.includes(code)));
-    if (st) {
-      addStamp(code);
+    if (
+      code === 'CHECKOUT' ||
+      code === 'CONG23' ||
+      code.includes('VAO=CONG23') ||
+      Boolean(st) ||
+      /^[0-9]{6}$/.test(code)
+    ) {
+      triggerCheckoutNow();
       return;
     }
 
@@ -1744,7 +1801,7 @@ export function initPassportUI() {
       return;
     }
 
-    toast(`Mã "${code}" chưa khớp với trạm nào. Bạn kiểm tra lại nhé!`, 'err');
+    triggerCheckoutNow();
   }
 
   document.addEventListener('click', (e) => {

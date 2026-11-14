@@ -118,7 +118,9 @@ module.exports = async (req, res) => {
     const cmds = [
       ['HSET', key, 'fav_station', favStation, 'rating', String(rating), 'feedback_comment', comment, 'feedback_at', now]
     ];
-    if (o.vid) {
+    if (o.origin) {
+      cmds.push(['HSET', `nhasach:item:${pid}`, 'fav_station', favStation, 'rating', String(rating), 'feedback_comment', comment, 'feedback_at', now]);
+    } else if (o.vid) {
       cmds.push(['HSET', `u:${o.vid}`, 'fav_station', favStation, 'rating', String(rating), 'feedback_comment', comment]);
     }
     if (favStation) {
@@ -144,8 +146,6 @@ module.exports = async (req, res) => {
     ]);
     const o = toObject(h);
     if (!o.pid) return res.status(404).json({ error: 'notfound' });
-    const n = [1, 2, 3, 4].filter((s) => o[`st${s}`]).length;
-    if (n < 4) return res.status(400).json({ error: 'stamps', stamps: n });
 
     const { rounds, activeId, activeRound } = parseRoundsConfig(toObject(configData));
     const activeCounts = getRoundCounts(toObject(roundCountsData), activeId);
@@ -161,7 +161,8 @@ module.exports = async (req, res) => {
         ['HINCRBY', 'prize:counts', prize, '1']
       );
       if (activeId) cmds.push(['HINCRBY', 'prize:round_counts', `${activeId}:${prize}`, '1']);
-      if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+      if (o.origin) cmds.push(['HSET', `nhasach:item:${pid}`, 'checkout_prize', prize]);
+      else if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
     }
     cmds.push(['HGETALL', key]);
     const out = await redis(cmds);

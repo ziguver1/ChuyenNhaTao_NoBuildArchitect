@@ -435,7 +435,7 @@ export function firecrackers() {
 }
 
 let isWheelSpinning = false;
-let wheelListeners = { onRefreshVisa: (id) => {}, onRenderCheckout: () => {} };
+let wheelListeners = { onRefreshVisa: (id) => {}, onRenderCheckout: () => {}, onSpinComplete: () => {} };
 
 export function setWheelCallbacks(callbacks) {
   wheelListeners = Object.assign(wheelListeners, callbacks);
@@ -444,10 +444,6 @@ export function setWheelCallbacks(callbacks) {
 export function openWheel(target = 'checkout') {
   const pass = getPass();
   if (!pass) return Promise.resolve();
-  if (pass.stamps.length < 4) {
-    toast('Bạn cần hoàn thành đủ 4 trạm trước khi quay vòng quay may mắn Check-out nhé!', 'info', 'lock-key');
-    return Promise.resolve();
-  }
   if (spinOf('checkout')) {
     toast('Bạn đã quay vòng quay may mắn Check-out rồi!', 'info', 'check-circle');
     return Promise.resolve();
@@ -473,7 +469,7 @@ export function openWheel(target = 'checkout') {
           <span class="plus-badge">+1</span>
         </div>
       </div>
-      <p class="tet-sub">✦ Vòng quay may mắn tốt nghiệp ✦<br>Chúc mừng bạn đã hoàn thành bốn trạm! Dùng <strong>1 lượt quay</strong> để nhận quà tốt nghiệp.</p>
+      <p class="tet-sub">✦ Vòng quay may mắn Check-out ✦<br>Chúc mừng bạn đã Check-out! Dùng <strong>1 lượt quay</strong> để nhận quà may mắn từ Chuyện Nhà Táo.</p>
       <div class="wheel-wrap">
         <span class="wheel-pin" aria-hidden="true"><svg viewBox="0 0 40 52"><path d="M20 50 L6 20 A14 14 0 1 1 34 20 Z" fill="#b8241c" stroke="#f3d27a" stroke-width="2.5"/>${blossom(
           20,
@@ -495,6 +491,9 @@ export function openWheel(target = 'checkout') {
   p.then(() => {
     isWheelSpinning = false;
     tetFx.unmount();
+    if (spinOf('checkout')) {
+      wheelListeners.onSpinComplete?.();
+    }
   }).catch(() => {
     isWheelSpinning = false;
     tetFx.unmount();
@@ -601,7 +600,7 @@ export function spinWheel(target = 'checkout') {
           } Bạn trúng <strong>${
             pz.label
           }</strong>. Đưa mã nhận quà cho nhân sự tại bàn Check-out để nhận quà.`
-        : `${iconHtml} ${pz.label}. Chúc bạn năm mới an khang thịnh vượng, cảm ơn bạn đã hoàn thành bốn trạm!`;
+        : `${iconHtml} ${pz.label}. Chúc bạn năm mới an khang thịnh vượng, cảm ơn bạn đã ghé thăm Chuyện Nhà Táo!`;
       res.className = 'wheel-result ' + (win ? 'is-win' : 'is-miss');
     }
     if (btn) btn.hidden = true;
