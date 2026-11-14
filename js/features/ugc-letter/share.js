@@ -6,7 +6,7 @@ import { toast } from '../../core/toast.js';
 import { track } from '../../analytics/tracker.js';
 import { ugc } from './letter.state.js';
 import { captionsFor, cardBlob, downloadCardImage } from './canvas-exporter.js';
-import { getPass } from '../passport/passport.state.js?v=4.2';
+import { getPass } from '../passport/passport.state.js?v=4.3';
 
 export const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
