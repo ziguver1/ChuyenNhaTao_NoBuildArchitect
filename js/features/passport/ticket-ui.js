@@ -26,7 +26,7 @@ import {
   momentCount,
   saveMoments,
   savePassToHistory
-} from './passport.state.js?v=4.3';
+} from './passport.state.js?v=4.4';
 import {
   setPassportServiceCallbacks,
   pushPass,
@@ -41,8 +41,8 @@ import {
   withSuffix,
   openRestore,
   sendFeedback
-} from './passport.service.js?v=4.3';
-import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.3';
+} from './passport.service.js?v=4.4';
+import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.4';
 
 export const pp = { flip: null, pageEls: [], timers: [] };
 
@@ -672,7 +672,7 @@ function getNhasachSession() {
 export function triggerCheckoutNow() {
   const pass = getPass();
   if (!pass) {
-    toast('Bạn cần tạo thẻ thông hành trước khi Check-out nhé!', 'info', 'identification-card');
+    toast('Bạn cần hoàn thành Check-in trước khi Check-out nhé!', 'info', 'identification-card');
     return;
   }
   if (!pass.checkedOut) {
@@ -693,10 +693,11 @@ export function triggerCheckoutNow() {
 
 export function renderCheckout() {
   const pass = getPass();
-  const box = $('#pass-checkout-slot') || $('#checkout');
+  const has = Boolean(pass) && !store.get('new_pass', false);
+  const box = $('#checkout');
   if (!box) return;
   if (typeof window.renderLetter === 'function' && $('#letter-lock')) window.renderLetter();
-  if (!pass) {
+  if (!has) {
     box.hidden = true;
     box.innerHTML = '';
     return;
@@ -705,40 +706,42 @@ export function renderCheckout() {
   const hasSpun = Boolean(spinOf('checkout'));
   const isCheckedOut = Boolean(pass.checkedOut || hasSpun || pass.claimed || pass.checkoutPrize);
 
-  if (!isCheckedOut) {
-    box.innerHTML = `
-      <div class="checkout-wheel-box" style="padding:18px 20px;background:var(--gold-soft);border-radius:16px;text-align:center;display:grid;gap:10px;border:1.5px dashed rgba(184,36,28,0.35);">
-        <div class="wheel-ticket-banner" style="margin:0 auto;">
-          <i class="ph-fill ph-ticket"></i>
-          <span>Quà Check-out: <strong>+1 LƯỢT QUAY MAY MẮN</strong></span>
-          <span class="plus-badge">+1</span>
-        </div>
-        <strong style="font-size:16.5px;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;gap:6px;">
-          <i class="ph-fill ph-sparkle" style="color:var(--accent);"></i> Check-out & Quay thưởng nhận quà
-        </strong>
-        <p style="margin:0;font-size:14px;color:var(--text-muted);line-height:1.5;">
-          Trạng thái Check-in đang được giữ trong phiên của bạn. Khi chuẩn bị ra về, bấm <strong>Check-out</strong> bên dưới để mở <strong>Vòng quay may mắn (1 lượt)</strong> nhận quà ngay!
-        </p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
-          <button class="btn btn-tet btn-block btn-spin-active" type="button" id="btn-trigger-checkout" style="max-width:310px;margin:0 auto;">
-            <i class="ph-fill ph-spiral" aria-hidden="true"></i> Check-out & Quay thưởng ngay (1 lượt)
-          </button>
-        </div>
-      </div>`;
-
-    $('#btn-trigger-checkout')?.addEventListener('click', () => {
-      triggerCheckoutNow();
-    });
-    return;
-  }
-
   box.innerHTML = `
-    <div style="margin-bottom:10px;">
-      <h3 style="margin:0;font-size:19px;color:var(--accent);">🎉 Bạn đã Check-out thành công!</h3>
-      <p style="color:var(--text-muted);margin:4px 0 0;font-size:14px;">${
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px dashed rgba(180,120,30,0.35);">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <span style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff3d6;display:grid;place-items:center;font-size:20px;flex:none;">
+          <i class="ph-fill ph-${isCheckedOut ? 'seal-check' : 'identification-card'}" aria-hidden="true"></i>
+        </span>
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong style="font-size:17px;color:var(--text);">${esc(pass.nickname)}</strong>
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;${
+              pass.claimed
+                ? 'background:#dcfce7;color:#166534;'
+                : isCheckedOut
+                ? 'background:#fef3c7;color:#92400e;'
+                : 'background:#dcfce7;color:#166534;'
+            }">
+              <i class="ph-fill ph-check-circle"></i>
+              ${pass.claimed ? 'Đã nhận quà Check-out' : isCheckedOut ? 'Đã Check-out' : 'Đã Check-in'}
+            </span>
+          </div>
+          <span class="mono" style="font-size:13px;color:var(--accent-ink);font-weight:700;letter-spacing:.06em;">${esc(pass.id)}</span>
+        </div>
+      </div>
+      <button class="btn btn-quiet btn-sm" type="button" id="btn-new-pass" style="font-size:12.5px;padding:4px 10px;--h:34px;">
+        <i class="ph ph-arrows-clockwise" aria-hidden="true"></i> Tạo thẻ khác
+      </button>
+    </div>
+
+    <div>
+      <h3>${isCheckedOut ? 'Chúc mừng, bạn đã hoàn tất Check-out!' : 'Bạn đã Check-in thành công!'}</h3>
+      <p style="color:var(--text-muted);margin-top:6px">${
         pass.claimed
           ? 'Quà may mắn đã được trao. Cảm ơn bạn đã đồng hành cùng Chuyện Nhà Táo!'
-          : 'Bạn có 1 lượt quay may mắn duy nhất để nhận quà Check-out. Đưa mã nhận quà cho nhân sự tại bàn Check-out.'
+          : hasSpun
+          ? 'Bạn đã quay vòng quay may mắn Check-out. Đưa mã nhận quà hoặc mã QR bên dưới cho nhân sự tại bàn Check-out.'
+          : 'Trạng thái Check-in đang được lưu trên máy của bạn. Khi Check-out ra về, bạn có 1 lượt quay may mắn duy nhất để nhận quà!'
       }</p>
     </div>
 
@@ -753,64 +756,90 @@ export function renderCheckout() {
              <strong style="font-size:16px;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;gap:6px;">
                <i class="ph-fill ph-sparkle" style="color:var(--accent);"></i> Vòng quay may mắn Check-out
              </strong>
-             <p style="margin:0;font-size:14px;color:var(--text-muted);">Bạn vừa nhận được <strong>1 lượt quay Check-out</strong>. Bấm nút dưới để quay lấy quà!</p>
+             <p style="margin:0;font-size:14px;color:var(--text-muted);">Bạn có <strong>1 lượt quay may mắn</strong> khi Check-out. Bấm nút dưới để Check-out & quay lấy quà!</p>
              <button class="btn btn-tet btn-block btn-spin-active" type="button" id="btn-checkout-spin" style="max-width:280px;margin:4px auto 0;">
-               <i class="ph-fill ph-spiral" aria-hidden="true"></i> Bấm để quay ngay (1 lượt)
+               <i class="ph-fill ph-spiral" aria-hidden="true"></i> Check-out & Quay ngay (1 lượt)
              </button>
            </div>`
         : wonList()
     }
 
-    <p class="gift-code ${pass.claimed ? 'is-claimed' : ''}" style="margin:12px auto;" aria-label="Mã nhận quà ${(pass.giftCode || '')
+    <p class="gift-code ${pass.claimed ? 'is-claimed' : ''}" aria-label="Mã nhận quà ${(pass.giftCode || '')
     .split('')
     .join(' ')}">${esc(pass.giftCode || '')}</p>
     ${
       pass.claimed
-        ? `<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>`
-        : `<div style="display:grid;gap:10px;margin:12px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center;">
-             <p class="help" style="margin:0;font-size:13.5px;color:var(--text-muted);">
-               Đưa mã QR hoặc đọc mã nhận quà <strong>${esc(pass.giftCode || '')}</strong> cho nhân sự tại bàn Check-out để nhận quà.
-             </p>
-             <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
-               <button class="btn btn-primary btn-sm" type="button" data-show-qr>
-                 <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR lớn
-               </button>
-               <button class="btn btn-ghost btn-sm" type="button" id="btn-claim">
-                 <i class="ph ph-hand-heart" aria-hidden="true"></i> Xác nhận đã nhận quà
-               </button>
-             </div>
-           </div>`
-    }
-    ${
-      pass.feedbackAnswered && pass.feedback
-        ? `<div style="padding:14px 16px;background:var(--surface-2);border-radius:14px;border:1px solid var(--line);margin:12px 0 0;text-align:center;display:grid;gap:6px;">
-             <div style="font-size:13.5px;color:var(--text-muted);"><i class="ph-fill ph-heart" style="color:var(--accent);"></i> Trạm bạn thích nhất: <strong style="color:var(--text);">${esc(pass.feedback.favStation || '')}</strong></div>
-             <div style="font-size:13px;color:var(--gold);">${'★'.repeat(pass.feedback.rating || 5)}${'☆'.repeat(5 - (pass.feedback.rating || 5))} · Đã gửi đánh giá</div>
-             <div style="margin-top:6px;">
-               <button class="btn btn-ghost btn-sm" type="button" id="btn-open-feedback-checkout" style="font-size:12.5px;padding:4px 14px;--h:36px;margin:0 auto;display:inline-flex;align-items:center;gap:6px;">
-                 <i class="ph ph-note-pencil"></i> Xem hoặc sửa đánh giá
-               </button>
-             </div>
-           </div>`
-        : hasSpun || pass.claimed
-        ? `<div class="checkout-feedback-prompt" style="padding:14px;background:var(--gold-soft);border-radius:14px;margin:12px 0 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed var(--gold);text-align:left;">
-             <div>
-               <strong style="color:var(--accent);font-size:14.5px;display:flex;align-items:center;gap:6px;"><i class="ph-fill ph-chat-circle-heart"></i> Bạn thích trạm nào nhất?</strong>
-               <small style="color:var(--text-muted);display:block;margin-top:2px;">Hãy gửi đánh giá nhanh cho ban tổ chức nhé!</small>
-             </div>
-             <button class="btn btn-primary btn-sm" type="button" id="btn-open-feedback-checkout" style="white-space:nowrap;flex:none;">
-               Đánh giá ngay
-             </button>
-           </div>`
-        : ''
+        ? `<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>
+           ${
+             pass.feedbackAnswered && pass.feedback
+               ? `<div style="padding:14px 16px;background:var(--surface-2);border-radius:14px;border:1px solid var(--line);margin:12px 0;text-align:center;display:grid;gap:6px;">
+                    <div style="font-size:13.5px;color:var(--text-muted);"><i class="ph-fill ph-heart" style="color:var(--accent);"></i> Trạm bạn thích nhất: <strong style="color:var(--text);">${esc(pass.feedback.favStation || '')}</strong></div>
+                    <div style="font-size:13px;color:var(--gold);">${'★'.repeat(pass.feedback.rating || 5)}${'☆'.repeat(5 - (pass.feedback.rating || 5))} · Đã gửi đánh giá</div>
+                    <div style="margin-top:6px;">
+                      <button class="btn btn-ghost btn-sm" type="button" id="btn-open-feedback-checkout" style="font-size:12.5px;padding:4px 14px;--h:36px;margin:0 auto;display:inline-flex;align-items:center;gap:6px;">
+                        <i class="ph ph-note-pencil"></i> Xem hoặc sửa đánh giá
+                      </button>
+                    </div>
+                  </div>`
+               : `<div class="checkout-feedback-prompt" style="padding:14px;background:var(--gold-soft);border-radius:14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed var(--gold);">
+                    <div>
+                      <strong style="color:var(--accent);font-size:14.5px;display:flex;align-items:center;gap:6px;"><i class="ph-fill ph-chat-circle-heart"></i> Bạn thích trạm nào nhất?</strong>
+                      <small style="color:var(--text-muted);display:block;margin-top:2px;">Hãy gửi đánh giá nhanh cho ban tổ chức nhé!</small>
+                    </div>
+                    <button class="btn btn-primary btn-sm" type="button" id="btn-open-feedback-checkout" style="white-space:nowrap;flex:none;">
+                      Đánh giá ngay
+                    </button>
+                  </div>`
+           }`
+        : `
+        <div style="display:grid;gap:10px;margin:14px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;">
+          <p class="help" style="margin:0;font-size:14px;color:var(--text);font-weight:600;">
+            <i class="ph-fill ph-storefront" style="color:var(--accent);"></i> Trao quà tại Bàn Check-out:
+          </p>
+          <p style="margin:0;font-size:13px;color:var(--text-muted);">
+            Đưa mã QR cho nhân sự tại bàn Check-out quét xác nhận để nhận quà:
+          </p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
+            <button class="btn btn-primary" type="button" data-show-qr style="flex:1;min-width:200px;">
+              <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR (Đưa nhân sự quét)
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" data-scan-qr style="font-size:12.5px;">
+              <i class="ph ph-camera" aria-hidden="true"></i> Bật camera tự quét
+            </button>
+            <button class="btn btn-ghost btn-sm" type="button" id="btn-claim" style="font-size:12.5px;">
+              <i class="ph ph-hand-heart" aria-hidden="true"></i> Nhân sự xác nhận đã trao quà
+            </button>
+          </div>
+        </div>`
     }`;
 
   $('#btn-checkout-spin')?.addEventListener('click', () => {
-    openWheel('checkout');
+    triggerCheckoutNow();
   });
 
   $('#btn-open-feedback-checkout')?.addEventListener('click', () => {
     showFeedbackPopup(true);
+  });
+
+  $('#btn-new-pass')?.addEventListener('click', async () => {
+    const v = await ask({
+      tone: 'danger',
+      title: 'Tạo thẻ Check-in mới trên máy này?',
+      html: `<p>Thẻ <strong>${esc(pass.id)}</strong> (${esc(pass.nickname)}) sẽ không còn hiển thị trên máy này. Nên chụp lại mã thẻ trước nếu bạn chưa nhận quà Check-out.</p>`,
+      buttons: [
+        { label: 'Giữ thẻ hiện tại', value: 'cancel', cls: 'btn-primary' },
+        { label: 'Tạo thẻ mới', value: 'ok', cls: 'btn-danger' }
+      ]
+    });
+    if (v !== 'ok') return;
+    setNhasachSession('');
+    store.del('visitor_checkin');
+    setPass(null);
+    store.set('new_pass', false);
+    track('new_pass_requested');
+    renderRegister();
+    renderCheckout();
+    $('#f-checkin-name')?.focus();
   });
 
   const cb = $('#btn-claim');
@@ -821,6 +850,7 @@ export function renderCheckout() {
         return;
       }
       pass.claimed = true;
+      pass.checkedOut = true;
       setPass(pass);
       track('reward_claimed');
       measure('claim');
@@ -834,78 +864,45 @@ export function renderCheckout() {
   }
 }
 
-function renderPassSuccessCard(pass) {
-  const openBox = $('#register-open');
-  const thanksBox = $('#checkin-guest-thanks');
-  const passBox = $('#checkin-pass-success');
-  const passName = $('#pass-success-name');
-  const passId = $('#pass-success-id');
-  const passQr = $('#pass-success-qr');
-  if (passName) passName.textContent = pass.nickname || '';
-  if (passId) passId.textContent = pass.id || '';
-  if (passQr) {
-    if (typeof window.QRCode !== 'undefined') {
-      passQr.innerHTML = '';
-      new window.QRCode(passQr, {
-        text: `${location.origin}/?the=${pass.id}`,
-        width: 160,
-        height: 160,
-        colorDark: '#1b120c',
-        colorLight: '#ffffff',
-        correctLevel: window.QRCode.CorrectLevel.M
-      });
-    } else {
-      passQr.textContent = pass.id;
-    }
-  }
-  if (openBox) openBox.hidden = true;
-  if (thanksBox) thanksBox.hidden = true;
-  if (passBox) passBox.hidden = false;
-  renderCheckout();
-}
-
-function renderGuestThanksCard(guest) {
-  const openBox = $('#register-open');
-  const thanksBox = $('#checkin-guest-thanks');
-  const passBox = $('#checkin-pass-success');
-  const thanksName = $('#guest-thanks-name');
-  if (thanksName) thanksName.textContent = guest.name || '';
-  if (openBox) openBox.hidden = true;
-  if (passBox) passBox.hidden = true;
-  if (thanksBox) thanksBox.hidden = false;
-}
-
 export function renderRegister() {
+  // Nếu máy khách còn lưu visitor_checkin cũ mà chưa có pass, tự động chuyển thành pass để khách có trạng thái Check-in & Vòng quay Check-out
+  let pass = getPass();
+  const oldGuest = store.get('visitor_checkin');
+  if (!pass && oldGuest && oldGuest.name) {
+    pass = {
+      id: (oldGuest.id && /^TAO-/.test(oldGuest.id)) ? oldGuest.id : 'TAO-' + randCode(6),
+      nickname: oldGuest.name,
+      phone: '',
+      email: '',
+      age: oldGuest.age || '',
+      origin: oldGuest.origin || 'international',
+      source: '',
+      scope: 'nhasach',
+      sessionActive: true,
+      checkedOut: false,
+      consent: true,
+      stamps: [],
+      giftCode: 'QUA-' + randCode(4),
+      claimed: false,
+      synced: true
+    };
+    setPass(pass);
+    store.del('visitor_checkin');
+  }
+
+  const has = Boolean(pass) && !store.get('new_pass', false);
   const regCard = $('#register');
-  if (regCard) regCard.hidden = false;
-  const bar = $('#passport-bar');
-  if (bar) bar.hidden = true;
-  const intro = $('#pp-intro');
-  if (intro) intro.hidden = true;
-  const box = $('#register-has');
-  if (box) box.hidden = true;
-
-  const sessionMode = getNhasachSession();
-  const pass = getPass();
-  const guest = store.get('visitor_checkin');
-
-  if (pass && (sessionMode === 'pass' || pass.sessionActive)) {
-    setNhasachSession('pass');
-    renderPassSuccessCard(pass);
-    return;
-  }
-  if (guest && (sessionMode === 'guest' || guest.sessionActive)) {
-    setNhasachSession('guest');
-    renderGuestThanksCard(guest);
-    return;
-  }
-
   const openBox = $('#register-open');
+
+  if (has) {
+    if (regCard) regCard.hidden = true;
+    renderCheckout();
+    return;
+  }
+
+  if (regCard) regCard.hidden = false;
   if (openBox) openBox.hidden = false;
-  const thanksBox = $('#checkin-guest-thanks');
-  if (thanksBox) thanksBox.hidden = true;
-  const passSuccessBox = $('#checkin-pass-success');
-  if (passSuccessBox) passSuccessBox.hidden = true;
+  renderCheckout();
 }
 
 export function initPassportUI() {
@@ -1243,56 +1240,17 @@ export function initPassportUI() {
     const age = ageEl ? ageEl.value : '';
     const origin = originEl ? originEl.value : 'vietnamese';
 
-    // FLOW A: Khách quốc tế (International) hoặc Khác (Other) -> Hoàn tất check-in, lưu vào tab Nhà Sách check-in
-    if (!isVn) {
-      const btn = $('#btn-register');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Đang xử lý check-in…</span>';
-      }
-
-      let chkId = 'CHK-' + randCode(6);
-      try {
-        const res = await submitVisitorCheckin({ name: nickname, age, origin, scope: 'nhasach' });
-        if (res && res.checkinId) chkId = res.checkinId;
-      } catch (err) {}
-
-      const now = Date.now();
-      store.set('visitor_checkin', { id: chkId, name: nickname, age, origin, at: now, sessionActive: true });
-      setNhasachSession('guest');
-      saveLocalNhasachRecord({
-        pid: chkId,
-        name: nickname,
-        age,
-        origin,
-        email: '',
-        source: '',
-        seen: now,
-        created: now
-      });
-      track('visitor_checkin', { origin, age });
-      toast(`Cảm ơn bạn ${nickname} đã hoàn tất check-in!`, 'ok', 'seal-check');
-
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<span class="btn-label" id="btn-register-label">Hoàn thành Check-in</span>';
-      }
-
-      renderRegister();
-      $('#checkin-guest-thanks')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-      return;
-    }
-
-    // FLOW B: Người Việt Nam (Vietnamese) -> Tạo thẻ thông hành, lưu vào tab Nhà Sách check-in
     const phone = '';
-    const email = fEmail ? fEmail.value.trim() : '';
-    const sources = Array.from(document.querySelectorAll('input[name="source"]:checked')).map(el => {
-      if (el.value === 'Mục khác') {
-        const custom = txtOther ? txtOther.value.trim() : '';
-        return custom ? `Khác: ${custom}` : 'Mục khác';
-      }
-      return el.value;
-    });
+    const email = isVn && fEmail ? fEmail.value.trim() : '';
+    const sources = isVn
+      ? Array.from(document.querySelectorAll('input[name="source"]:checked')).map(el => {
+          if (el.value === 'Mục khác') {
+            const custom = txtOther ? txtOther.value.trim() : '';
+            return custom ? `Khác: ${custom}` : 'Mục khác';
+          }
+          return el.value;
+        })
+      : [];
     const source = sources.join(', ');
     const offline = !navigator.onLine;
 
@@ -1300,7 +1258,7 @@ export function initPassportUI() {
       const suffix = withSuffix(nickname);
       const choice = await ask({
         title: `Tên “${esc(nickname)}” đã có người dùng`,
-        html: `<p>Nếu <strong>bạn đã từng tạo thẻ</strong>, hãy lấy lại thẻ cũ để giữ các dấu trạm đã đóng.</p>
+        html: `<p>Nếu <strong>bạn đã từng Check-in</strong>, hãy lấy lại thẻ cũ của bạn.</p>
           <p>Nếu <strong>bạn là người mới</strong>, dùng tên có thêm số để nhân sự không nhầm hai người:</p>
           <p class="dlg-chip">${esc(suffix)}</p>`,
         buttons: [
@@ -1325,7 +1283,7 @@ export function initPassportUI() {
     const btn = $('#btn-register');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Đang tạo thẻ…</span>';
+      btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Đang xử lý Check-in…</span>';
     }
 
     const consent = fConsent ? fConsent.checked : true;
@@ -1338,7 +1296,7 @@ export function initPassportUI() {
         phone,
         email,
         age,
-        origin: 'vietnamese',
+        origin,
         source,
         scope: 'nhasach',
         sessionActive: true,
@@ -1349,6 +1307,7 @@ export function initPassportUI() {
         claimed: false,
         synced: !offline
       };
+      store.del('visitor_checkin');
       setPass(pass);
       setNhasachSession('pass');
       savePassToHistory(pass);
@@ -1358,7 +1317,7 @@ export function initPassportUI() {
         phone,
         email,
         age,
-        origin: 'vietnamese',
+        origin,
         source,
         gift: pass.giftCode,
         seen: now,
@@ -1369,44 +1328,22 @@ export function initPassportUI() {
         store.set('registry', [...new Set([...store.get('registry', []), plain(nickname)])]);
       store.set('new_pass', false);
       if (!offline) pushPass().catch(() => {});
-      track('form_submit');
+      track('form_submit', { origin, age });
       track(consent ? 'consent_accepted' : 'consent_declined');
-      track('virtual_id_created', { offline });
+      track('virtual_id_created', { offline, origin });
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<span class="btn-label" id="btn-register-label">Tạo thẻ thông hành</span>';
+        btn.innerHTML = `<span class="btn-label" id="btn-register-label">${isVn ? 'Tạo thẻ thông hành' : 'Hoàn thành Check-in'}</span>`;
       }
-      toast('Tạo thẻ thông hành thành công! Đã lưu trạng thái Check-in trong phiên này.', 'ok', 'identification-card');
+      toast(`Check-in thành công! Thẻ của ${nickname} đã được lưu trên thiết bị này.`, 'ok', 'identification-card');
       $('#form-register')?.reset();
       if (txtOther) txtOther.disabled = true;
       onOriginChange();
 
-      // Hiện thẻ xác nhận tạo thẻ thông hành thành công & giữ trạng thái trong session
+      // Hiện khu vực Check-out & Vòng quay may mắn (giữ trạng thái trên máy khách)
       renderRegister();
-      $('#checkin-pass-success')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-    }, 700);
-  });
-
-  // Nút Check-in cho khách khác (reset lại form cho người tiếp theo)
-  $('#btn-checkin-another')?.addEventListener('click', () => {
-    setNhasachSession('');
-    store.del('visitor_checkin');
-    $('#form-register')?.reset();
-    if (txtOther) txtOther.disabled = true;
-    onOriginChange();
-    renderRegister();
-    $('#f-checkin-name')?.focus();
-  });
-
-  // Nút Tạo thẻ cho người khác (reset lại form cho người tiếp theo)
-  $('#btn-pass-another')?.addEventListener('click', () => {
-    setNhasachSession('');
-    setPass(null);
-    $('#form-register')?.reset();
-    if (txtOther) txtOther.disabled = true;
-    onOriginChange();
-    renderRegister();
-    $('#f-checkin-name')?.focus();
+      $('#checkout')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    }, 500);
   });
 
   $('#btn-restore')?.addEventListener('click', () => openRestore());

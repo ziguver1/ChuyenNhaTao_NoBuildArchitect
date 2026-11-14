@@ -119,56 +119,6 @@
         <div style="max-width: 680px; margin: 0 auto;">
           <!-- S04 · Khảo sát Check-in & Đăng ký Thẻ -->
           <div class="card form-card reveal" id="register">
-            
-            <!-- THẺ 1: Cảm ơn check-in cho Khách quốc tế / Khác -->
-            <div class="checkin-thanks-card" id="checkin-guest-thanks" hidden style="text-align: center; padding: 36px 20px;">
-              <div style="font-size: 52px; margin-bottom: 12px;">🎉</div>
-              <h3 style="font-size: 24px; margin-bottom: 6px; color: var(--accent);">Hoàn tất Check-in!</h3>
-              <h4 style="font-size: 16px; font-weight: 500; color: var(--text-muted); margin-bottom: 18px;">Check-in Completed Successfully!</h4>
-              <div style="max-width: 440px; margin: 0 auto 24px; font-size: 15.5px; line-height: 1.6;">
-                <p>Cảm ơn bạn <strong><span id="guest-thanks-name"></span></strong> đã ghé thăm sự kiện <strong>Chuyện Nhà Táo</strong>!</p>
-                <p style="color: var(--text-muted); font-size: 13.5px; margin-top: 8px;">Thank you for checking in. We wish you an inspiring journey exploring Vietnamese cultural heritage!</p>
-              </div>
-              <button class="btn btn-outline" type="button" id="btn-checkin-another" style="margin: 0 auto; display: inline-flex; align-items: center; gap: 8px;">
-                <i class="ph-bold ph-user-plus" aria-hidden="true"></i>
-                <span>Check-in cho khách khác / Check-in another visitor</span>
-              </button>
-            </div>
-
-            <!-- THẺ 2: Trạng thái đã Check-in & Thẻ thông hành trong phiên (Giữ session + Check-out quay thưởng) -->
-            <div class="checkin-thanks-card" id="checkin-pass-success" hidden style="text-align: center; padding: 28px 18px;">
-              <div style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: #dcfce7; color: #166534; font-size: 12.5px; font-weight: 700; margin-bottom: 10px;">
-                <i class="ph-fill ph-check-circle"></i>
-                <span>Đã Check-in · Đang giữ phiên hoạt động</span>
-              </div>
-              <h3 style="font-size: 22px; margin-bottom: 6px; color: var(--accent);">Thẻ Thông Hành Của Bạn</h3>
-              <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 18px;">Xin chào <strong><span id="pass-success-name"></span></strong> · Chuyện Nhà Táo</p>
-
-              <div style="background: rgba(184, 36, 28, 0.05); border: 1.5px solid var(--accent); border-radius: 14px; padding: 18px; max-width: 380px; margin: 0 auto 18px;">
-                <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); display: block; margin-bottom: 4px;">Mã thẻ thông hành</span>
-                <span class="mono" id="pass-success-id" style="font-size: 24px; font-weight: 800; color: var(--accent); letter-spacing: 2px;">TAO-XXXXXX</span>
-                <div id="pass-success-qr" style="display: flex; justify-content: center; align-items: center; margin: 14px auto; padding: 8px; background: #fff; border-radius: 10px; width: 176px; height: 176px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);"></div>
-                <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px;">
-                  <button class="btn btn-ghost btn-sm" type="button" data-show-qr style="font-size: 12.5px;">
-                    <i class="ph ph-qr-code" aria-hidden="true"></i> Phóng to mã QR
-                  </button>
-                  <button class="btn btn-ghost btn-sm" type="button" data-scan-qr style="font-size: 12.5px;">
-                    <i class="ph ph-camera" aria-hidden="true"></i> Quét mã QR
-                  </button>
-                </div>
-              </div>
-
-              <!-- Khu vực Check-out & Vòng Quay May Mắn (Không cần qua 4 trạm, chỉ cần Check-out là có 1 lượt quay) -->
-              <div id="pass-checkout-slot" style="max-width: 440px; margin: 0 auto 20px; text-align: center;"></div>
-
-              <div style="border-top: 1px solid var(--line); padding-top: 16px; margin-top: 12px;">
-                <button class="btn btn-quiet btn-sm" type="button" id="btn-pass-another" style="margin: 0 auto; display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted);">
-                  <i class="ph ph-user-plus" aria-hidden="true"></i>
-                  <span>Tạo thẻ mới cho người khác</span>
-                </button>
-              </div>
-            </div>
-
             <!-- FORM CHÍNH: Khảo sát check-in 4 câu -->
             <div id="register-open">
               <h3>Khảo sát Check-in</h3>
@@ -335,9 +285,17 @@
                 <button class="btn btn-primary btn-block" type="submit" id="btn-register" style="margin-top: 18px;">
                   <span class="btn-label" id="btn-register-label">Hoàn thành Check-in</span>
                 </button>
+
+                <div class="form-foot">
+                  <span>Đã từng Check-in?</span>
+                  <button class="linklike" type="button" id="btn-restore">Lấy lại thẻ của tôi</button>
+                </div>
               </form>
             </div>
           </div>
+
+          <!-- S06 · Khu vực giữ trạng thái Check-in & Check-out Vòng quay may mắn (cơ chế nhánh main) -->
+          <div class="checkout" id="checkout" hidden aria-live="polite"></div>
         </div>
       </div>
     </section>
@@ -544,6 +502,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
   <script src="ca-chep.js" defer></script>
-  <script type="module" src="js/main.js?v=4.3"></script>
+  <script type="module" src="js/main.js?v=4.4"></script>
 </body>
 </html>

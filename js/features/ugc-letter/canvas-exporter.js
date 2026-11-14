@@ -7,7 +7,7 @@ import { track } from '../../analytics/tracker.js';
 import { plain, esc } from '../../core/dom.js';
 import { VALUES, FRAME_CONFIG, STICKER_CATALOG } from './values.data.js';
 import { ugc, saveUgcSettings, lineOf } from './letter.state.js';
-import { getPass, moments, MOMENT_SLOTS, momentCount } from '../passport/passport.state.js?v=4.3';
+import { getPass, moments, MOMENT_SLOTS, momentCount } from '../passport/passport.state.js?v=4.4';
 
 let drawing = 0;
 let isCanvasDragInit = false;

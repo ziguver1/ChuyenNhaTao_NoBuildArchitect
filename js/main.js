@@ -24,20 +24,20 @@ import {
   moveIndicator
 } from './features/storybook/flipbook.js';
 import { stopVoice, stopTale } from './features/storybook/narrator.js';
-import { getPass, server } from './features/passport/passport.state.js?v=4.3';
+import { getPass, server } from './features/passport/passport.state.js?v=4.4';
 import {
   initPassportUI,
   renderTicket,
   renderRegister,
   addStamp,
   triggerCheckoutNow
-} from './features/passport/ticket-ui.js?v=4.3';
+} from './features/passport/ticket-ui.js?v=4.4';
 import {
   startPolling,
   initPollingObserver,
   enterGate,
   restorePass
-} from './features/passport/passport.service.js?v=4.3';
+} from './features/passport/passport.service.js?v=4.4';
 import { initGuideNote } from './features/passport/guide-note.js';
 import {
   initUgcUI,
@@ -123,7 +123,7 @@ function initApp() {
     const pass = getPass();
     if (pass) {
       setTimeout(() => {
-        $('#checkin-pass-success')?.scrollIntoView({
+        $('#checkout')?.scrollIntoView({
           behavior: reduceMotion ? 'auto' : 'smooth',
           block: 'start'
         });

@@ -10,7 +10,7 @@ import { track } from '../../analytics/tracker.js';
 import { measure } from '../../analytics/meter.js';
 import { hasGsap, reduceMotion } from '../../core/motion.js';
 import { STATIONS, PP } from './stations.data.js';
-import { getPass, setPass, savePassToHistory } from './passport.state.js?v=4.3';
+import { getPass, setPass, savePassToHistory } from './passport.state.js?v=4.4';
 
 export const PRIZES = {
   keychain: {
@@ -551,6 +551,7 @@ export function spinWheel(target = 'checkout') {
   const at = segStart(k) + WHEEL[k].share * 3.6 * (0.15 + Math.random() * 0.7);
   const prize = WHEEL[k].prize;
 
+  pass.checkedOut = true;
   pass.checkoutSpin = { prize, at: Date.now() };
   pass.checkoutPrize = prize;
   if (!pass.spins) pass.spins = {};
