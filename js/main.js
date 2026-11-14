@@ -144,38 +144,18 @@ function initApp() {
     }
   }
 
-  // Tự động khôi phục vị trí trải nghiệm nếu vừa bị reload do out tab trên điện thoại
-  const currentPass = getPass();
-  const lastSection = store.get('last_active_section');
-  if (currentPass && currentPass.stamps && currentPass.stamps.length >= 4) {
-    setTimeout(() => {
-      $('#checkout')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-    }, 450);
-  } else if (lastSection && $('#' + lastSection)) {
-    setTimeout(() => {
-      $('#' + lastSection)?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-    }, 450);
-  }
-
-  const saveCurrentSection = () => {
-    const sections = ['checkout', 'passport-card', 'tram-4', 'tram-3', 'tram-2', 'tram-1', 'flipbook'];
-    for (const id of sections) {
-      const el = document.getElementById(id);
-      if (el && !el.hidden) {
-        const rect = el.getBoundingClientRect();
-        if (rect.top < window.innerHeight * 0.7 && rect.bottom > 80) {
-          store.set('last_active_section', id);
-          break;
-        }
-      }
-    }
-  };
+  // Xoá vết vị trí cũ nếu từng lưu để không bao giờ tự ý cuộn trang khi reload
+  try {
+    store.del('last_active_section');
+  } catch (e) {}
 
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) saveCurrentSection();
+    if (document.hidden) {
+      stopVoice();
+      stopTale();
+    }
   });
   window.addEventListener('pagehide', () => {
-    saveCurrentSection();
     stopVoice();
     stopTale();
   });

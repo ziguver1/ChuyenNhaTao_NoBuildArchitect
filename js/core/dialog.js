@@ -49,7 +49,22 @@ export function unlockBodyScroll() {
     document.body.style.removeProperty('width');
     document.body.style.removeProperty('overflow');
     document.body.style.removeProperty('padding-right');
-    window.scrollTo(0, bodyScrollY);
+
+    // Tắt tạm thời scroll-behavior: smooth trên <html> để phục hồi vị trí cuộn NGAY LẬP TỨC,
+    // tuyệt đối không bị trình duyệt kích hoạt hoạt ảnh lướt từ Home (y=0) xuống!
+    const htmlEl = document.documentElement;
+    const prevScrollBehavior = htmlEl.style.scrollBehavior;
+    htmlEl.style.scrollBehavior = 'auto';
+
+    window.scrollTo({
+      top: bodyScrollY,
+      left: 0,
+      behavior: 'instant'
+    });
+
+    requestAnimationFrame(() => {
+      htmlEl.style.scrollBehavior = prevScrollBehavior;
+    });
   }
 }
 
@@ -64,7 +79,20 @@ export function forceUnlockBodyScroll() {
   document.body.style.removeProperty('width');
   document.body.style.removeProperty('overflow');
   document.body.style.removeProperty('padding-right');
-  window.scrollTo(0, bodyScrollY);
+
+  const htmlEl = document.documentElement;
+  const prevScrollBehavior = htmlEl.style.scrollBehavior;
+  htmlEl.style.scrollBehavior = 'auto';
+
+  window.scrollTo({
+    top: bodyScrollY,
+    left: 0,
+    behavior: 'instant'
+  });
+
+  requestAnimationFrame(() => {
+    htmlEl.style.scrollBehavior = prevScrollBehavior;
+  });
 }
 
 export function ask({ title, html, tone = '', buttons, dismissible = true }) {

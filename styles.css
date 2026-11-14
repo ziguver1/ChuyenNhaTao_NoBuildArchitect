@@ -2513,6 +2513,9 @@ body::after {
 /* =========================================================================
    HỘP THOẠI DÙNG CHUNG (cảnh báo xoá, trùng tên, lấy lại thẻ)
    ========================================================================= */
+html.has-dialog-open {
+  scroll-behavior: auto !important;
+}
 html.has-dialog-open,
 body.has-dialog-open {
   overflow: hidden !important;
