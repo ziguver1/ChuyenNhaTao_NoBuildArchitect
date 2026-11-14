@@ -125,19 +125,6 @@ export function initScrollAnimations() {
           }
         }
       );
-
-      window.addEventListener(
-        'scroll',
-        () => {
-          if (window.scrollY <= 15) {
-            if (parseFloat(getComputedStyle(heroPlate).opacity) < 0.98) {
-              gsap.set(heroPlate, { y: 0, opacity: 1 });
-              if (heroWords.length) gsap.set(heroWords, { opacity: 1, yPercent: 0 });
-            }
-          }
-        },
-        { passive: true }
-      );
     }
 
     if ($('.site-footer')) {

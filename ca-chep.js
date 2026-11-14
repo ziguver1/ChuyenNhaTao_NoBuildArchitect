@@ -30,7 +30,7 @@
     stage.classList.add('is-fallback');
     return;
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSmall ? 1.5 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, isSmall ? 1 : 2));
   renderer.setSize(stage.clientWidth, stage.clientHeight);
   stage.appendChild(renderer.domElement);
 
@@ -52,7 +52,7 @@
   var fullGeom = THREE.BufferGeometryUtils.mergeBufferGeometries(geoms);
 
   var instGeom = new THREE.InstancedBufferGeometry().copy(fullGeom);
-  var num = isSmall ? 300 : 500;
+  var num = isSmall ? 120 : 500;
   instGeom.instanceCount = num;
   let instPos = []; // 3
   let instSpeed = []; // 1
@@ -406,15 +406,33 @@
     return;
   }
 
-  let visible = true;
-  new IntersectionObserver((entries) => {
-    visible = entries[0].isIntersecting;
-    if (visible) { clock.getDelta(); renderer.setAnimationLoop(frame); }
-    else renderer.setAnimationLoop(null);
-  }).observe(stage);
+  let visible = false;
+  let running = false;
+  function startLoop() {
+    if (running || reduceMotion) return;
+    running = true;
+    clock.getDelta();
+    renderer.setAnimationLoop(frame);
+  }
+  function stopLoop() {
+    if (!running) return;
+    running = false;
+    renderer.setAnimationLoop(null);
+  }
+
+  if (typeof IntersectionObserver !== 'undefined') {
+    new IntersectionObserver((entries) => {
+      visible = Boolean(entries && entries[0] && entries[0].isIntersecting);
+      if (visible && !document.hidden) startLoop();
+      else stopLoop();
+    }, { rootMargin: '60px' }).observe(stage);
+  } else {
+    visible = true;
+    startLoop();
+  }
+
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) renderer.setAnimationLoop(null);
-    else if (visible) { clock.getDelta(); renderer.setAnimationLoop(frame); }
+    if (document.hidden) stopLoop();
+    else if (visible) startLoop();
   });
-  renderer.setAnimationLoop(frame);
 })();

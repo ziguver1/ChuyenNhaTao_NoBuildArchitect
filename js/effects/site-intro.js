@@ -19,10 +19,12 @@ export function initSiteIntro() {
 
   let dismissed = false;
   let introMasterTl = null;
+  let safetyTimer = null;
 
   function dismissIntro() {
     if (dismissed) return;
     dismissed = true;
+    if (safetyTimer) clearTimeout(safetyTimer);
     if (introMasterTl) introMasterTl.kill();
     words.forEach((el) => el.classList.remove('sync-dancing'));
     overlay.classList.add('intro-dismissed');
@@ -31,6 +33,9 @@ export function initSiteIntro() {
       if (window.ScrollTrigger) window.ScrollTrigger.refresh();
     }, 900);
   }
+
+  // Safety timer: Tự động tắt intro sau tối đa 4.2s để không bao giờ bị treo màn hình trên điện thoại
+  safetyTimer = setTimeout(dismissIntro, 4200);
 
   if (skipBtn) {
     skipBtn.addEventListener('click', (e) => {
