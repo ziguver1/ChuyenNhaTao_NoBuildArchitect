@@ -154,7 +154,7 @@
     </section>
 
     <!-- =================================================================
-         S04–S06 · CỔNG CHECK-IN: khảo sát, thẻ thông hành 4 trạm, check-out quà
+         S04 · CỔNG CHECK-IN & KHẢO SÁT
          ================================================================= -->
     <section class="section passport-scroll-theme" id="tram-trai-nghiem" data-section="checkin" aria-labelledby="passport-title">
       <div id="checkin" style="position:relative; top:-80px; display:block;"></div>
@@ -165,34 +165,16 @@
         <div class="psb-layer psb-bottom"></div>
       </div>
       <div class="container">
-        <!-- Thanh tiện ích lệnh bài: hiện khi người dùng đã có thẻ, thay thế form cồng kềnh -->
-        <div class="passport-bar" id="passport-bar" hidden aria-live="polite"></div>
+        <div class="section-head reveal" style="text-align: center; margin-bottom: 28px;">
+          <h2 id="passport-title">Check-in Sự Kiện</h2>
+          <p>Chào mừng bạn đến với Chuyện Nhà Táo! Vui lòng hoàn thành khảo sát check-in bên dưới.</p>
+        </div>
 
-        <!-- Phần giới thiệu hiện khoảng 8 giây rồi thu vào bóng thoại hướng dẫn ở góc dưới trái (#guide) -->
-        <div class="pp-intro" id="pp-intro"><div class="pp-intro-in">
-          <div class="section-head reveal">
-            <h2 id="passport-title">Check-in Sự Kiện</h2>
-            <p>Chào mừng bạn đến với Chuyện Nhà Táo! Vui lòng hoàn thành thông tin check-in bên dưới để bắt đầu trải nghiệm.</p>
-          </div>
-
-          <ol class="flow reveal" aria-label="Cách tham gia">
-            <li class="flow-item"><span class="ico"><i class="ph ph-identification-card" aria-hidden="true"></i></span><span><strong>Check-in</strong><span>Điền khảo sát nhanh tại cổng hoặc trước ở nhà</span></span></li>
-            <li class="flow-line" aria-hidden="true"></li>
-            <li class="flow-item"><span class="ico"><i class="ph ph-qr-code" aria-hidden="true"></i></span><span><strong>Quét mã tại trạm</strong><span>Khách Việt Nam nhận thẻ thông hành tích 4 dấu trạm</span></span></li>
-            <li class="flow-line" aria-hidden="true"></li>
-            <li class="flow-item"><span class="ico"><i class="ph ph-gift" aria-hidden="true"></i></span><span><strong>Vòng quay & Nhận quà</strong><span>Đủ 4/4 dấu tại bàn check-out nhận quà tốt nghiệp</span></span></li>
-          </ol>
-
-          <span class="pp-intro-timer" aria-hidden="true"><i></i></span>
-        </div></div>
-
-        <div class="passport-grid">
+        <div style="max-width: 680px; margin: 0 auto;">
           <!-- S04 · Khảo sát Check-in & Đăng ký Thẻ -->
           <div class="card form-card reveal" id="register">
-            <!-- Đã có thẻ trên máy này -->
-            <div class="reg-has" id="register-has" hidden></div>
-
-            <!-- Thẻ cảm ơn check-in cho Khách quốc tế / Khác -->
+            
+            <!-- THẺ 1: Cảm ơn check-in cho Khách quốc tế / Khác -->
             <div class="checkin-thanks-card" id="checkin-guest-thanks" hidden style="text-align: center; padding: 36px 20px;">
               <div style="font-size: 52px; margin-bottom: 12px;">🎉</div>
               <h3 style="font-size: 24px; margin-bottom: 6px; color: var(--accent);">Hoàn tất Check-in!</h3>
@@ -207,7 +189,26 @@
               </button>
             </div>
 
-            <!-- Chưa có thẻ / Form khảo sát check-in -->
+            <!-- THẺ 2: Thành công tạo Thẻ thông hành cho Người Việt Nam -->
+            <div class="checkin-thanks-card" id="checkin-pass-success" hidden style="text-align: center; padding: 32px 20px;">
+              <div style="font-size: 48px; margin-bottom: 10px;">🧧</div>
+              <h3 style="font-size: 22px; margin-bottom: 6px; color: var(--accent);">Tạo thẻ thông hành thành công!</h3>
+              <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Chào mừng bạn <strong><span id="pass-success-name"></span></strong> đến với Chuyện Nhà Táo</p>
+
+              <div style="background: rgba(184, 36, 28, 0.05); border: 1.5px solid var(--accent); border-radius: 14px; padding: 20px; max-width: 380px; margin: 0 auto 20px;">
+                <span style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); display: block; margin-bottom: 4px;">Mã thẻ thông hành</span>
+                <span class="mono" id="pass-success-id" style="font-size: 24px; font-weight: 800; color: var(--accent); letter-spacing: 2px;">TAO-XXXXXX</span>
+                <div id="pass-success-qr" style="display: flex; justify-content: center; align-items: center; margin: 16px auto; padding: 8px; background: #fff; border-radius: 10px; width: 176px; height: 176px; box-shadow: 0 4px 12px rgba(0,0,0,0.06);"></div>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Hãy chụp màn hình hoặc lưu mã thẻ này để nhân sự hỗ trợ tại các khu vực trải nghiệm nhé.</p>
+              </div>
+
+              <button class="btn btn-outline" type="button" id="btn-pass-another" style="margin: 0 auto; display: inline-flex; align-items: center; gap: 8px;">
+                <i class="ph-bold ph-user-plus" aria-hidden="true"></i>
+                <span>Tạo thẻ cho người khác</span>
+              </button>
+            </div>
+
+            <!-- FORM CHÍNH: Khảo sát check-in 4 câu -->
             <div id="register-open">
               <h3>Khảo sát Check-in</h3>
               <p class="lead">Chào mừng bạn đến với Chuyện Nhà Táo! Vui lòng hoàn thành các thông tin bên dưới:</p>
@@ -263,7 +264,7 @@
                       <input type="radio" name="origin" value="vietnamese" required>
                       <span class="pill-body">
                         <strong>🇻🇳 Người Việt Nam (Vietnamese)</strong>
-                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Đi tiếp tới bước 4 để tạo Thẻ thông hành 4 trạm & quay thưởng</small>
+                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Đi tiếp tới bước 4 để tạo Thẻ thông hành</small>
                       </span>
                     </label>
                     <label class="option-pill origin-pill">
@@ -288,10 +289,10 @@
                 <div class="step-vn-pass" id="step-vn-pass" hidden style="margin-top: 18px; padding: 18px; border-radius: 14px; background: rgba(184, 36, 28, 0.04); border: 1.5px dashed var(--accent);">
                   <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--accent); font-weight: 700;">
                     <i class="ph-bold ph-identification-card" style="font-size: 20px;"></i>
-                    <span style="font-size: 16px;">Tạo thẻ thông hành Vân Du Ký</span>
+                    <span style="font-size: 16px;">Tạo thẻ thông hành</span>
                   </div>
                   <p class="help" style="margin-top: 0; margin-bottom: 14px;">
-                    Điền thêm thông tin bên dưới để nhận Thẻ thông hành, quét mã tích dấu 4 trạm và tham gia Vòng Quay May Mắn nhận quà tốt nghiệp:
+                    Điền thêm thông tin bên dưới để nhận Thẻ thông hành sự kiện:
                   </p>
 
                   <div class="field">
@@ -336,28 +337,19 @@
 
                   <label class="check" for="f-consent" style="margin-top: 14px;">
                     <input id="f-consent" name="consent" type="checkbox" checked>
-                    <span style="font-size: 13px;">Tôi đồng ý cung cấp thông tin để Chuyện Nhà Táo lưu trữ phục vụ việc trao quà và hỗ trợ sự kiện.</span>
+                    <span style="font-size: 13px;">Tôi đồng ý cung cấp thông tin để Chuyện Nhà Táo lưu trữ phục vụ hỗ trợ sự kiện.</span>
                   </label>
                 </div>
 
                 <button class="btn btn-primary btn-block" type="submit" id="btn-register" style="margin-top: 18px;">
                   <span class="btn-label" id="btn-register-label">Hoàn thành Check-in</span>
                 </button>
-
-                <div class="form-foot" id="form-foot-restore">
-                  <span>Đã có thẻ thông hành trước đó?</span>
-                  <button class="linklike" type="button" id="btn-restore">Nhập lại mã thẻ</button>
-                </div>
               </form>
             </div>
           </div>
-
-          <!-- S05 · Passport 4 trạm + S06 Check-out -->
-          <div>
-            <div id="ticket-slot"></div>
-            <div class="checkout" id="checkout" hidden aria-live="polite"></div>
-          </div>
         </div>
+      </div>
+    </section>
       </div>
     </section>
 
@@ -550,24 +542,7 @@
   </dialog>
 
 
-  <!-- Ghi chú hướng dẫn kiểu bóng thoại truyện tranh (phần thẻ thông hành): bật lên ~8 giây rồi thu thành bóng thoại góc dưới trái -->
-  <aside class="guide" id="guide" hidden>
-    <div class="guide-note" id="guide-note" role="dialog" aria-labelledby="guide-title" tabindex="-1">
-      <button class="guide-x" type="button" aria-label="Thu gọn hướng dẫn"><i class="ph ph-minus" aria-hidden="true"></i></button>
-      <h3 class="guide-title" id="guide-title">Đi bốn trạm thế nào?</h3>
-      <ol class="guide-steps">
-        <li><b>Tạo thẻ thông hành</b> ở ô "Tạo thẻ", ở nhà hay tại cổng đều được.</li>
-        <li>Đến mỗi trạm, bấm <b>Mở mã QR</b> rồi đưa nhân sự quét để tích dấu. Không quét được thì nhập <b>mã 6 số</b> nhân sự đọc.</li>
-        <li>Tích đủ <b>4 dấu</b>, đến bàn check-out để tham gia <b>1 vòng quay may mắn duy nhất</b> và nhận quà tốt nghiệp.</li>
-        <li>Sau đó mở khoá viết <b>Chuyện Nhà Đêm 23</b> gửi Táo.</li>
-      </ol>
-      <span class="guide-timer" aria-hidden="true"><i></i></span>
-    </div>
-    <button class="guide-bubble" id="guide-bubble" type="button" aria-label="Mở hướng dẫn đi bốn trạm" aria-expanded="false" aria-controls="guide-note">
-      <svg viewBox="0 0 64 60" aria-hidden="true"><path d="M32 4C16 4 4 14 4 27c0 7 4 13 10 17l-4 12 13-8c3 1 6 1 9 1 16 0 28-10 28-22S48 4 32 4Z" fill="#fffdf6" stroke="#2a1710" stroke-width="3.5" stroke-linejoin="round"/><text x="32" y="36" text-anchor="middle" font-family="Patrick Hand, Comic Sans MS, cursive" font-size="26" fill="#b8241c">?</text></svg>
-    </button>
-    <p class="guide-cloud" id="guide-cloud" aria-live="polite"><span>Hướng dẫn nằm ở đây nè!</span></p>
-  </aside>
+
 
   <div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
 

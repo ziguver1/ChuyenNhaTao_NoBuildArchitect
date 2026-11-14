@@ -429,29 +429,10 @@ export function destroyPassport() {
 }
 
 export function renderTicket(animate) {
-  const pass = getPass();
   const slot = $('#ticket-slot');
-  if (!slot) return;
-
-  if (!pass) {
-    destroyPassport();
-    slot.innerHTML = `<div class="ticket ticket-empty">
-      <i class="ph ph-identification-card" aria-hidden="true"></i>
-      <strong>Hộ chiếu của bạn sẽ hiện ở đây</strong>
-      <span>Gồm mã QR riêng và bốn trang visa để đóng dấu ở bốn trạm.</span>
-      <div style="display:grid;gap:8px;width:100%;max-width:260px;margin-top:8px" aria-hidden="true">
-        <div class="skeleton" style="height:12px"></div><div class="skeleton" style="height:12px;width:70%"></div>
-      </div></div>`;
-    const chk = $('#checkout');
-    if (chk) chk.hidden = true;
-    return;
-  }
-
-  if (!pass.issuedAt) {
-    pass.issuedAt = Date.now();
-    setPass(pass);
-  }
-  destroyPassport();
+  if (slot) slot.innerHTML = '';
+  return;
+}
 
   slot.innerHTML = `
     <div class="pp-stage" id="pp-stage" tabindex="0" aria-roledescription="hộ chiếu lật trang" aria-label="Hộ chiếu thông hành. Dùng phím mũi tên để lật trang.">
@@ -1033,100 +1014,21 @@ export function renderCheckout() {
 }
 
 export function renderRegister() {
-  const pass = getPass();
-  const has = Boolean(pass) && !store.get('new_pass', false);
-  const bar = $('#passport-bar');
   const regCard = $('#register');
-  const grid = $('.passport-grid');
-
-  if (has) {
-    if (regCard) regCard.hidden = true;
-    if (grid) grid.classList.add('has-passport');
-    const intro = $('#pp-intro');
-    if (intro) intro.hidden = true;
-    if (bar) {
-      bar.hidden = false;
-      bar.innerHTML = `
-        <div class="pb-header-row">
-          <div class="pb-info">
-            <span class="pb-badge" aria-hidden="true">${
-              pass.claimed
-                ? '<i class="ph-fill ph-seal-check" style="color:#10b981;"></i>'
-                : '<i class="ph-fill ph-identification-card"></i>'
-            }</span>
-            <div class="pb-details">
-              <div class="pb-name-row">
-                <span class="pb-name">${esc(pass.nickname)}</span>
-                <span class="pb-tag" ${
-                  pass.claimed
-                    ? 'style="background:rgba(16,185,129,0.2);color:#6ee7b7;border-color:rgba(16,185,129,0.35);"'
-                    : ''
-                }>${pass.claimed ? 'Đã check-out' : `${pass.stamps.length}/4 dấu`}</span>
-              </div>
-              <span class="pb-meta"><span class="mono">${esc(pass.id)}</span></span>
-            </div>
-          </div>
-          <div style="display:flex;gap:6px;align-items:center;">
-            ${
-              pass.claimed
-                ? `<button class="pb-btn-retop pb-btn-feedback" type="button" id="btn-bar-feedback" title="Gửi đánh giá trải nghiệm">
-                     <i class="ph-fill ph-chat-circle-heart"></i>
-                     <span>${pass.feedbackAnswered ? 'Đã đánh giá' : 'Đánh giá'}</span>
-                   </button>`
-                : ''
-            }
-            <button class="pb-btn-retop" type="button" id="btn-new-pass" title="Tạo thẻ mới hoặc đổi thông tin">
-              <i class="ph ph-arrows-clockwise" aria-hidden="true"></i>
-              <span>Tạo thẻ khác</span>
-            </button>
-          </div>
-        </div>
-        <div class="pb-actions">
-          <button class="btn btn-sm pb-cam-btn" type="button" data-scan-qr title="Bật camera quét mã QR trạm">
-            <i class="ph-bold ph-camera" aria-hidden="true"></i>
-            <span>Quét mã</span>
-          </button>
-          <button class="btn btn-sm pb-qr-btn" type="button" data-show-qr title="Mở mã QR thẻ của bạn">
-            <i class="ph-bold ph-qr-code" aria-hidden="true"></i>
-            <span>Mở mã QR</span>
-          </button>
-        </div>`;
-      const btnNew = $('#btn-new-pass', bar);
-      if (btnNew) {
-        btnNew.addEventListener('click', async () => {
-          const v = await ask({
-            tone: 'danger',
-            title: 'Tạo thẻ khác trên máy này?',
-            html: `<p>Thẻ <strong>${esc(pass.id)}</strong> cùng ${
-              pass.stamps.length
-            }/4 dấu sẽ không còn trên máy này. Nên chụp lại mã thẻ trước để nhân sự hỗ trợ lấy lại khi cần.</p>`,
-            buttons: [
-              { label: 'Giữ thẻ hiện tại', value: 'cancel', cls: 'btn-primary' },
-              { label: 'Tạo thẻ khác', value: 'ok', cls: 'btn-danger' }
-            ]
-          });
-          if (v !== 'ok') return;
-          store.set('new_pass', true);
-          track('new_pass_requested');
-          renderRegister();
-          renderTicket(false);
-          $('#f-nickname')?.focus();
-        });
-      }
-    }
-  } else {
-    if (bar) bar.hidden = true;
-    if (regCard) regCard.hidden = false;
-    if (grid) grid.classList.remove('has-passport');
-    const intro = $('#pp-intro');
-    if (intro) intro.hidden = false;
-    const openBox = $('#register-open');
-    if (openBox) openBox.hidden = false;
-    const box = $('#register-has');
-    if (box) box.hidden = true;
-    const thanksBox = $('#checkin-guest-thanks');
-    if (thanksBox) thanksBox.hidden = true;
-  }
+  if (regCard) regCard.hidden = false;
+  const bar = $('#passport-bar');
+  if (bar) bar.hidden = true;
+  const intro = $('#pp-intro');
+  if (intro) intro.hidden = true;
+  const openBox = $('#register-open');
+  if (openBox) openBox.hidden = false;
+  const thanksBox = $('#checkin-guest-thanks');
+  if (thanksBox) thanksBox.hidden = true;
+  const passSuccessBox = $('#checkin-pass-success');
+  if (passSuccessBox) passSuccessBox.hidden = true;
+  const box = $('#register-has');
+  if (box) box.hidden = true;
+}
 }
 
 export function initPassportUI() {
@@ -1434,9 +1336,7 @@ export function initPassportUI() {
         store.set('registry', [...new Set([...store.get('registry', []), plain(nickname)])]);
       measure('register');
       store.set('new_pass', false);
-      renderRegister();
       if (!offline) pushPass().catch(() => {});
-      startPolling();
       track('form_submit');
       track(consent ? 'consent_accepted' : 'consent_declined');
       track('virtual_id_created', { offline });
@@ -1444,31 +1344,32 @@ export function initPassportUI() {
         btn.disabled = false;
         btn.innerHTML = '<span class="btn-label" id="btn-register-label">Tạo thẻ thông hành</span>';
       }
-      if (offline)
-        toast(
-          `Đang mất mạng nên thẻ được tạo trên máy với mã ${pass.id}. Có mạng lại, thẻ tự đồng bộ sang mã chính thức.`,
-          'info',
-          'wifi-slash'
-        );
-      else
-        toast(
-          'Thẻ thông hành đã sẵn sàng. Đưa mã QR cho nhân sự ở mỗi trạm nhé.',
-          'ok',
-          'identification-card'
-        );
+      toast('Tạo thẻ thông hành thành công!', 'ok', 'identification-card');
       $('#form-register')?.reset();
       onOriginChange();
-      renderTicket(true);
-      if (window.innerWidth < 1000)
-        ($('#passport-bar') || $('#ticket-slot'))?.scrollIntoView({
-          behavior: reduceMotion ? 'auto' : 'smooth',
-          block: 'start'
+
+      // Hiện thẻ xác nhận tạo thẻ thông hành thành công
+      const openBox = $('#register-open');
+      const passBox = $('#checkin-pass-success');
+      const passName = $('#pass-success-name');
+      const passId = $('#pass-success-id');
+      const passQr = $('#pass-success-qr');
+      if (passName) passName.textContent = nickname;
+      if (passId) passId.textContent = pass.id;
+      if (passQr && typeof QRCode !== 'undefined') {
+        passQr.innerHTML = '';
+        new QRCode(passQr, {
+          text: `https://chuyennhatao.vercel.app/?the=${pass.id}`,
+          width: 160,
+          height: 160,
+          colorDark: '#1b120c',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
         });
-      const pending = store.get('pending_stamp', null);
-      if (pending) {
-        store.set('pending_stamp', null);
-        setTimeout(() => addStamp(pending), 1800);
       }
+      if (openBox) openBox.hidden = true;
+      if (passBox) passBox.hidden = false;
+      passBox?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
     }, 700);
   });
 
@@ -1479,6 +1380,17 @@ export function initPassportUI() {
     const openBox = $('#register-open');
     const thanksBox = $('#checkin-guest-thanks');
     if (thanksBox) thanksBox.hidden = true;
+    if (openBox) openBox.hidden = false;
+    $('#f-nickname')?.focus();
+  });
+
+  // Nút Tạo thẻ cho người khác (reset lại form cho người tiếp theo)
+  $('#btn-pass-another')?.addEventListener('click', () => {
+    $('#form-register')?.reset();
+    onOriginChange();
+    const openBox = $('#register-open');
+    const passBox = $('#checkin-pass-success');
+    if (passBox) passBox.hidden = true;
     if (openBox) openBox.hidden = false;
     $('#f-nickname')?.focus();
   });

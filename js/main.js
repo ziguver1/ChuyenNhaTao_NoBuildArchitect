@@ -70,15 +70,9 @@ function initApp() {
     initBookCommunity();
   }
 
-  // 3. Khởi tạo Thẻ thông hành O2O
+  // 3. Khởi tạo Thẻ thông hành O2O / Khảo sát Check-in
   initPassportUI();
-  initGuideNote();
-  initPollingObserver();
-  renderTicket();
   renderRegister();
-  if (getPass()) {
-    startPolling();
-  }
 
   // 4. Khởi tạo Chuyện Nhà Đêm 23 (UGC) (nếu có trên trang)
   if ($('#la-so')) {

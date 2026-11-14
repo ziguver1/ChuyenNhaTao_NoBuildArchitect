@@ -1614,6 +1614,11 @@ body::after {
   animation: fadeInThanks 0.4s ease forwards;
 }
 
+#pass-success-qr img, #pass-success-qr canvas {
+  margin: 0 auto;
+  border-radius: 6px;
+}
+
 @keyframes fadeInThanks {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
