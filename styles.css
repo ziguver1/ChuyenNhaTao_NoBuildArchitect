@@ -3850,7 +3850,7 @@ body.has-dialog-open {
   background-color: #f7ead0;
   color: #2a1710;
   overflow: hidden;
-  padding-top: clamp(54px, 7.5vw, 92px);
+  padding-top: clamp(104px, 10vw, 136px);
   padding-bottom: clamp(140px, 18vw, 220px);
   box-shadow: inset 0 20px 40px -20px rgba(120, 60, 20, 0.12);
 }
@@ -4371,7 +4371,7 @@ body.has-dialog-open {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Hàng trên cùng: Thông tin thẻ bên trái, nút Tạo thẻ khác ở góc phải */
+/* Hàng trên cùng: Thông tin thẻ bên trái, các nút thao tác ở góc phải */
 .pb-header-row {
   display: flex;
   justify-content: space-between;
@@ -4389,13 +4389,13 @@ body.has-dialog-open {
 }
 
 .pb-badge {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: rgba(245, 215, 127, 0.16);
   border: 1px solid rgba(245, 215, 127, 0.4);
   color: #ffd772;
-  font-size: 18px;
+  font-size: 19px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -4403,16 +4403,19 @@ body.has-dialog-open {
 }
 
 .pb-details {
-  display: grid;
-  gap: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
+  overflow: hidden;
 }
 
 .pb-name-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .pb-name {
@@ -4423,7 +4426,16 @@ body.has-dialog-open {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 160px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.pb-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .pb-tag {
@@ -4436,13 +4448,23 @@ body.has-dialog-open {
   border: 1px solid rgba(245, 215, 127, 0.35);
   white-space: nowrap;
   flex-shrink: 0;
+  line-height: 1.3;
 }
 
 .pb-meta {
-  font-size: 12px;
+  font-size: 11.5px;
   color: rgba(255, 235, 215, 0.85);
   font-family: ui-monospace, SFMono-Regular, monospace;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pb-header-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 /* Nút Tạo thẻ khác ở góc trên bên phải */
@@ -4608,12 +4630,44 @@ body.has-dialog-open {
 
 @media (max-width: 600px) {
   #tram-trai-nghiem.passport-scroll-theme {
-    padding-top: 48px;
+    padding-top: clamp(84px, 11vw, 98px);
   }
   .passport-bar {
-    padding: 10px 14px;
+    padding: 10px 12px;
     margin-bottom: 8px;
     gap: 8px;
+  }
+  .pb-badge {
+    width: 32px;
+    height: 32px;
+    font-size: 17px;
+  }
+  .pb-info {
+    gap: 8px;
+  }
+  .pb-name {
+    font-size: 14px;
+  }
+  .pb-header-btns {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    justify-content: center;
+  }
+  .pb-btn-retop {
+    padding: 3px 8px;
+    font-size: 11px;
+    gap: 4px;
+  }
+  .pb-btn-retop i {
+    font-size: 12px;
+  }
+  .pb-meta {
+    font-size: 11px;
+  }
+  .pb-tag {
+    font-size: 10px;
+    padding: 1px 5px;
   }
   .pb-actions {
     grid-template-columns: 1fr 1fr !important;

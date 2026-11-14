@@ -1055,17 +1055,19 @@ export function renderRegister() {
             }</span>
             <div class="pb-details">
               <div class="pb-name-row">
-                <span class="pb-name">${esc(pass.nickname)}</span>
+                <span class="pb-name" title="${esc(pass.nickname)}">${esc(pass.nickname)}</span>
+              </div>
+              <div class="pb-meta-row">
+                <span class="pb-meta"><span class="mono">${esc(pass.id)}</span></span>
                 <span class="pb-tag" ${
                   pass.claimed
                     ? 'style="background:rgba(16,185,129,0.2);color:#6ee7b7;border-color:rgba(16,185,129,0.35);"'
                     : ''
                 }>${pass.claimed ? 'Đã check-out' : `${pass.stamps.length}/4 dấu`}</span>
               </div>
-              <span class="pb-meta"><span class="mono">${esc(pass.id)}</span></span>
             </div>
           </div>
-          <div style="display:flex;gap:6px;align-items:center;">
+          <div class="pb-header-btns">
             ${
               pass.claimed
                 ? `<button class="pb-btn-retop pb-btn-feedback" type="button" id="btn-bar-feedback" title="Gửi đánh giá trải nghiệm">
