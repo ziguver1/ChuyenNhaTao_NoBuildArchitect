@@ -59,6 +59,7 @@ export async function pushPass(tries = 0) {
         phone: pass.phone || '',
         email: pass.email || '',
         age: pass.age || '',
+        origin: pass.origin || 'vietnamese',
         source: pass.source || '',
         vid: meter.vid,
         gift: pass.giftCode
@@ -593,3 +594,24 @@ export async function openRestore(preset) {
   const v = input ? input.value.trim() : '';
   await restorePass(v);
 }
+
+export async function submitVisitorCheckin({ name, age, origin }) {
+  try {
+    const r = await fetch('/api/pass', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'visitor_checkin',
+        name,
+        age,
+        origin,
+        vid: meter?.vid || ''
+      })
+    });
+    if (!isJson(r)) return { ok: false };
+    return await r.json();
+  } catch (e) {
+    return { ok: false };
+  }
+}
+

@@ -1583,6 +1583,42 @@ body::after {
   flex-shrink: 0;
 }
 
+.origin-pill {
+  padding: 12px 14px;
+  align-items: flex-start;
+  gap: 12px;
+}
+.origin-pill input[type="radio"] {
+  margin-top: 3px;
+}
+.origin-pill .pill-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.origin-pill .pill-body strong {
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+.origin-pill .pill-body small {
+  font-size: 12px;
+  color: var(--text-muted, #7c6252);
+  line-height: 1.4;
+}
+
+.checkin-thanks-card {
+  background: var(--surface, #fffdf8);
+  border-radius: var(--radius-card, 16px);
+  border: 1.5px solid rgba(138, 90, 57, 0.2);
+  box-shadow: 0 10px 30px rgba(100, 40, 20, 0.08);
+  animation: fadeInThanks 0.4s ease forwards;
+}
+
+@keyframes fadeInThanks {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Checkbox options theo dạng List */
 .form-options-list {
   display: flex;

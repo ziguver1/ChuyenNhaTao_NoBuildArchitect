@@ -31,6 +31,7 @@ import {
   setPassportServiceCallbacks,
   pushPass,
   pullPass,
+  submitVisitorCheckin,
   stampByCode,
   mergeServer,
   startPolling,
@@ -1123,6 +1124,8 @@ export function renderRegister() {
     if (openBox) openBox.hidden = false;
     const box = $('#register-has');
     if (box) box.hidden = true;
+    const thanksBox = $('#checkin-guest-thanks');
+    if (thanksBox) thanksBox.hidden = true;
   }
 }
 
@@ -1146,7 +1149,36 @@ export function initPassportUI() {
     fEmail = $('#f-email'),
     fConsent = $('#f-consent'),
     chkOther = $('#chk-source-other'),
-    txtOther = $('#f-source-other-text');
+    txtOther = $('#f-source-other-text'),
+    stepVnPass = $('#step-vn-pass'),
+    btnRegisterLabel = $('#btn-register-label');
+
+  // Xử lý chuyển đổi loại khách: Vietnamese -> Hiện Câu 4 (Email + Nguồn); Khách quốc tế / Khác -> Ẩn Câu 4
+  function onOriginChange() {
+    const selected = document.querySelector('input[name="origin"]:checked');
+    const isVn = selected && selected.value === 'vietnamese';
+    if (stepVnPass) {
+      stepVnPass.hidden = !isVn;
+    }
+    if (btnRegisterLabel) {
+      btnRegisterLabel.textContent = isVn ? 'Tạo thẻ thông hành' : 'Hoàn thành Check-in';
+    }
+    const errBox = $('#f-origin-err');
+    if (errBox) errBox.innerHTML = '';
+    if (!isVn) {
+      const errEmail = $('#f-email-err');
+      if (errEmail) errEmail.innerHTML = '';
+      const errSource = $('#f-source-err');
+      if (errSource) errSource.innerHTML = '';
+    }
+  }
+
+  document.querySelectorAll('input[name="origin"]').forEach((r) => {
+    r.addEventListener('change', () => {
+      onOriginChange();
+      validateOrigin();
+    });
+  });
 
   // Tự động điền tên nếu người dùng đã nhập trước đó ở phần Lưu bút đọc sách
   const prefilledName = store.get('user_nickname');
@@ -1190,11 +1222,27 @@ export function initPassportUI() {
     if (!fName) return false;
     const v = fName.value.trim();
     const msg = !v
-      ? 'Bạn nhập một cái tên để in lên thẻ nhé.'
+      ? 'Vui lòng nhập tên của bạn (Please enter your name).'
       : v.length < 2
-      ? 'Tên cần ít nhất 2 ký tự.'
+      ? 'Tên cần ít nhất 2 ký tự (Name must be at least 2 characters).'
       : '';
     setFieldError(fName, $('#f-nickname-err'), msg);
+    return !msg;
+  }
+
+  function validateAge() {
+    const selected = document.querySelector('input[name="age"]:checked');
+    const msg = !selected ? 'Vui lòng chọn nhóm tuổi của bạn (Please select your age group).' : '';
+    const errBox = $('#f-age-err');
+    if (errBox) errBox.innerHTML = msg ? `<i class="ph ph-warning-circle" aria-hidden="true"></i>${msg}` : '';
+    return !msg;
+  }
+
+  function validateOrigin() {
+    const selected = document.querySelector('input[name="origin"]:checked');
+    const msg = !selected ? 'Vui lòng chọn nơi bạn đến (Please select where you are from).' : '';
+    const errBox = $('#f-origin-err');
+    if (errBox) errBox.innerHTML = msg ? `<i class="ph ph-warning-circle" aria-hidden="true"></i>${msg}` : '';
     return !msg;
   }
 
@@ -1208,14 +1256,6 @@ export function initPassportUI() {
       msg = 'Email chưa đúng định dạng, ví dụ: ban@email.com';
     }
     setFieldError(fEmail, $('#f-email-err'), msg);
-    return !msg;
-  }
-
-  function validateAge() {
-    const selected = document.querySelector('input[name="age"]:checked');
-    const msg = !selected ? 'Vui lòng chọn nhóm tuổi của bạn.' : '';
-    const errBox = $('#f-age-err');
-    if (errBox) errBox.innerHTML = msg ? `<i class="ph ph-warning-circle" aria-hidden="true"></i>${msg}` : '';
     return !msg;
   }
 
@@ -1253,17 +1293,30 @@ export function initPassportUI() {
 
   $('#form-register')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const originEl = document.querySelector('input[name="origin"]:checked');
+    const isVn = originEl && originEl.value === 'vietnamese';
+
     const okName = validateName(),
-      okEmail = validateEmail(),
       okAge = validateAge(),
+      okOrigin = validateOrigin();
+    let okEmail = true,
+      okSource = true;
+
+    if (isVn) {
+      okEmail = validateEmail();
       okSource = validateSource();
+    }
+
     const summary = $('#error-summary');
-    if (!okName || !okEmail || !okAge || !okSource) {
+    if (!okName || !okAge || !okOrigin || (isVn && (!okEmail || !okSource))) {
       const items = [];
-      if (!okName) items.push('<a href="#f-nickname">Nhập tên hoặc nickname</a>');
-      if (!okEmail) items.push('<a href="#f-email">Nhập đúng địa chỉ email</a>');
-      if (!okAge) items.push('<a href="#lbl-age">Chọn nhóm tuổi</a>');
-      if (!okSource) items.push('<a href="#lbl-source">Chọn kênh biết đến sự kiện</a>');
+      if (!okName) items.push('<a href="#f-nickname">Nhập tên của bạn (Enter your name)</a>');
+      if (!okAge) items.push('<a href="#lbl-age">Chọn nhóm tuổi (Select your age group)</a>');
+      if (!okOrigin) items.push('<a href="#lbl-origin">Chọn nơi bạn đến (Where are you from)</a>');
+      if (isVn) {
+        if (!okEmail) items.push('<a href="#f-email">Nhập đúng địa chỉ email</a>');
+        if (!okSource) items.push('<a href="#lbl-source">Chọn kênh biết đến sự kiện</a>');
+      }
       const sumList = $('#error-summary-list');
       if (sumList) sumList.innerHTML = items.join('');
       if (summary) {
@@ -1273,11 +1326,48 @@ export function initPassportUI() {
       return;
     }
     if (summary) summary.hidden = true;
+
     let nickname = fName.value.trim();
-    const phone = '';
-    const email = fEmail ? fEmail.value.trim() : '';
     const ageEl = document.querySelector('input[name="age"]:checked');
     const age = ageEl ? ageEl.value : '';
+    const origin = originEl ? originEl.value : 'vietnamese';
+
+    // FLOW A: Khách quốc tế (International) hoặc Khác (Other) -> Hoàn tất check-in, không tạo thẻ
+    if (!isVn) {
+      const btn = $('#btn-register');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Đang xử lý check-in…</span>';
+      }
+
+      try {
+        await submitVisitorCheckin({ name: nickname, age, origin });
+      } catch (err) {}
+
+      store.set('visitor_checkin', { name: nickname, age, origin, at: Date.now() });
+      track('visitor_checkin', { origin, age });
+      toast(`Cảm ơn bạn ${nickname} đã hoàn tất check-in!`, 'ok', 'seal-check');
+
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="btn-label" id="btn-register-label">Hoàn thành Check-in</span>';
+      }
+
+      // Ẩn form register-open, hiện thẻ cảm ơn checkin-guest-thanks
+      const openBox = $('#register-open');
+      const thanksBox = $('#checkin-guest-thanks');
+      const thanksName = $('#guest-thanks-name');
+      if (thanksName) thanksName.textContent = nickname;
+      if (openBox) openBox.hidden = true;
+      if (thanksBox) thanksBox.hidden = false;
+
+      thanksBox?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      return;
+    }
+
+    // FLOW B: Người Việt Nam (Vietnamese) -> Đi tiếp tới tạo thẻ thông hành
+    const phone = '';
+    const email = fEmail ? fEmail.value.trim() : '';
     const sources = Array.from(document.querySelectorAll('input[name="source"]:checked')).map(el => {
       if (el.value === 'Mục khác') {
         const custom = txtOther ? txtOther.value.trim() : '';
@@ -1329,6 +1419,7 @@ export function initPassportUI() {
         phone,
         email,
         age,
+        origin: 'vietnamese',
         source,
         consent,
         stamps: [],
@@ -1351,7 +1442,7 @@ export function initPassportUI() {
       track('virtual_id_created', { offline });
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '<span class="btn-label">Tạo thẻ thông hành</span>';
+        btn.innerHTML = '<span class="btn-label" id="btn-register-label">Tạo thẻ thông hành</span>';
       }
       if (offline)
         toast(
@@ -1366,6 +1457,7 @@ export function initPassportUI() {
           'identification-card'
         );
       $('#form-register')?.reset();
+      onOriginChange();
       renderTicket(true);
       if (window.innerWidth < 1000)
         ($('#passport-bar') || $('#ticket-slot'))?.scrollIntoView({
@@ -1378,6 +1470,17 @@ export function initPassportUI() {
         setTimeout(() => addStamp(pending), 1800);
       }
     }, 700);
+  });
+
+  // Nút Check-in cho khách khác (reset lại form cho người tiếp theo)
+  $('#btn-checkin-another')?.addEventListener('click', () => {
+    $('#form-register')?.reset();
+    onOriginChange();
+    const openBox = $('#register-open');
+    const thanksBox = $('#checkin-guest-thanks');
+    if (thanksBox) thanksBox.hidden = true;
+    if (openBox) openBox.hidden = false;
+    $('#f-nickname')?.focus();
   });
 
   $('#btn-restore')?.addEventListener('click', () => openRestore());

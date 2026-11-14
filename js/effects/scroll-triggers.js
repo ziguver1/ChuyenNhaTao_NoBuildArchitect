@@ -72,7 +72,7 @@ export function initScrollAnimations() {
       )
   });
 
-  ['doc-sach', 'tram-trai-nghiem', 'la-so'].forEach((id) => {
+  ['checkin', 'tram-trai-nghiem'].forEach((id) => {
     const el = $('#' + id);
     if (!el) return;
     ScrollTrigger.create({
@@ -80,7 +80,7 @@ export function initScrollAnimations() {
       start: 'top 50%',
       end: 'bottom 50%',
       onToggle: (self) =>
-        $$(`.nav-links a[href="#${id}"]`).forEach((a) => a.classList.toggle('is-active', self.isActive))
+        $$(`.nav-links a[href="#${id}"], .nav-links a[href="#checkin"]`).forEach((a) => a.classList.toggle('is-active', self.isActive))
     });
   });
 

@@ -63,10 +63,12 @@ function initApp() {
   initMobileMenu();
   initOfflineBar();
 
-  // 2. Khởi tạo Storybook 4 chương
-  renderAllChapters();
-  initFlipbook();
-  initBookCommunity();
+  // 2. Khởi tạo Storybook 4 chương (nếu có trên trang)
+  if ($('#flipbook')) {
+    renderAllChapters();
+    initFlipbook();
+    initBookCommunity();
+  }
 
   // 3. Khởi tạo Thẻ thông hành O2O
   initPassportUI();
@@ -78,14 +80,16 @@ function initApp() {
     startPolling();
   }
 
-  // 4. Khởi tạo Chuyện Nhà Đêm 23 (UGC)
-  initUgcUI();
-  renderLetter();
+  // 4. Khởi tạo Chuyện Nhà Đêm 23 (UGC) (nếu có trên trang)
+  if ($('#la-so')) {
+    initUgcUI();
+    renderLetter();
+  }
 
-  // 5. Khởi tạo Hiệu ứng đồ họa & Canvas
-  initLaSoBackground();
-  initSceneCanvas();
-  initBookPassportTransition();
+  // 5. Khởi tạo Hiệu ứng đồ họa & Canvas (nếu có trên trang)
+  if ($('#la-so-bg-canvas')) initLaSoBackground();
+  if ($('#scene-canvas')) initSceneCanvas();
+  if ($('#seam-book-passport')) initBookPassportTransition();
   initScrollAnimations();
   initSiteIntro();
 
