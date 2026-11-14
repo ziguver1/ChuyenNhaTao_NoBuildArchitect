@@ -25,7 +25,7 @@
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&family=Noto+Serif+Display:wght@700;800;900&family=Comforter+Brush&family=Potta+One&family=Patrick+Hand&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-  <link rel="stylesheet" href="styles.css?v=2.2">
+  <link rel="stylesheet" href="styles.css?v=2.3">
   <link rel="preload" href="images/visual/key_visual.webp" as="image">
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
@@ -111,12 +111,12 @@
         <div class="psb-layer psb-bottom"></div>
       </div>
       <div class="container">
-        <div class="section-head reveal" style="text-align: center; margin-bottom: 28px;">
+        <div class="section-head checkin-section-head reveal">
           <h2 id="passport-title">Check-in Sự Kiện</h2>
           <p>Chào mừng bạn đến với Chuyện Nhà Táo! Vui lòng hoàn thành khảo sát check-in bên dưới.</p>
         </div>
 
-        <div style="max-width: 680px; margin: 0 auto;">
+        <div class="checkin-main-wrap">
           <!-- S04 · Khảo sát Check-in & Đăng ký Thẻ -->
           <div class="card form-card reveal" id="register">
             <!-- FORM CHÍNH: Khảo sát check-in 4 câu -->
@@ -132,8 +132,8 @@
 
                 <!-- CÂU 1: TÊN -->
                 <div class="field" id="field-q1-name">
-                  <label for="f-checkin-name" style="font-weight: 700; font-size: 15px;">
-                    1. Bạn tên là gì? <span class="sub-label" style="font-weight: normal; color: var(--text-muted);">(What’s your name?)</span> <span class="req">*</span>
+                  <label for="f-checkin-name" class="q-label">
+                    1. Bạn tên là gì? <span class="sub-label">(What’s your name?)</span> <span class="req">*</span>
                   </label>
                   <input class="input" id="f-checkin-name" name="checkin_name" type="text" autocomplete="name" maxlength="32" required aria-describedby="f-checkin-name-err" placeholder="Ví dụ: Bé Na, Minh Khôi, John Doe...">
                   <p class="error-text" id="f-checkin-name-err" aria-live="polite"></p>
@@ -141,8 +141,8 @@
 
                 <!-- CÂU 2: TUỔI -->
                 <div class="field" role="radiogroup" aria-labelledby="lbl-checkin-age" id="field-q2-age">
-                  <label id="lbl-checkin-age" style="font-weight: 700; font-size: 15px;">
-                    2. Bạn bao nhiêu tuổi? <span class="sub-label" style="font-weight: normal; color: var(--text-muted);">(How old are you?)</span> <span class="req">*</span>
+                  <label id="lbl-checkin-age" class="q-label">
+                    2. Bạn bao nhiêu tuổi? <span class="sub-label">(How old are you?)</span> <span class="req">*</span>
                   </label>
                   <div class="form-options form-options-grid">
                     <label class="option-pill">
@@ -167,29 +167,29 @@
 
                 <!-- CÂU 3: NƠI ĐẾN -->
                 <div class="field" role="radiogroup" aria-labelledby="lbl-origin" id="field-q3-origin">
-                  <label id="lbl-origin" style="font-weight: 700; font-size: 15px;">
-                    3. Bạn đến từ đâu? <span class="sub-label" style="font-weight: normal; color: var(--text-muted);">(Where are you from?)</span> <span class="req">*</span>
+                  <label id="lbl-origin" class="q-label">
+                    3. Bạn đến từ đâu? <span class="sub-label">(Where are you from?)</span> <span class="req">*</span>
                   </label>
                   <div class="form-options form-options-list">
                     <label class="option-pill origin-pill">
                       <input type="radio" name="origin" value="vietnamese" required>
                       <span class="pill-body">
                         <strong>🇻🇳 Người Việt Nam (Vietnamese)</strong>
-                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Đi tiếp tới phần Tạo thẻ thông hành</small>
+                        <small>Đi tiếp tới phần Tạo thẻ thông hành</small>
                       </span>
                     </label>
                     <label class="option-pill origin-pill">
                       <input type="radio" name="origin" value="international">
                       <span class="pill-body">
                         <strong>🌏 Khách quốc tế (International visitor)</strong>
-                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Kết thúc khảo sát check-in sự kiện</small>
+                        <small>Kết thúc khảo sát check-in sự kiện</small>
                       </span>
                     </label>
                     <label class="option-pill origin-pill">
                       <input type="radio" name="origin" value="other">
                       <span class="pill-body">
                         <strong>✨ Khác (Other)</strong>
-                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Kết thúc khảo sát check-in sự kiện</small>
+                        <small>Kết thúc khảo sát check-in sự kiện</small>
                       </span>
                     </label>
                   </div>
@@ -197,12 +197,12 @@
                 </div>
 
                 <!-- CÂU 4: PHẦN THẺ THÔNG HÀNH (Chỉ hiện khi chọn Người Việt Nam, tự động điền sẵn Tên & Độ tuổi) -->
-                <div class="step-vn-pass" id="step-vn-pass" hidden style="margin-top: 20px; padding: 22px 20px; border-radius: 16px; background: rgba(184, 36, 28, 0.04); border: 1.5px dashed var(--accent);">
-                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--accent); font-weight: 800;">
-                    <i class="ph-bold ph-identification-card" style="font-size: 22px;"></i>
-                    <h4 style="font-size: 18px; margin: 0; color: var(--accent);">Tạo thẻ thông hành</h4>
+                <div class="step-vn-pass" id="step-vn-pass" hidden>
+                  <div class="step-vn-pass-head">
+                    <i class="ph-bold ph-identification-card"></i>
+                    <h4>Tạo thẻ thông hành</h4>
                   </div>
-                  <p class="help" style="margin-top: 0; margin-bottom: 16px;">
+                  <p class="help step-vn-pass-desc">
                     Tên và độ tuổi của bạn đã được tự động điền từ khảo sát trên. Vui lòng bổ sung Email và kênh biết đến sự kiện để tạo thẻ thông hành:
                   </p>
 
@@ -502,6 +502,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
   <script src="ca-chep.js" defer></script>
-  <script type="module" src="js/main.js?v=4.5"></script>
+  <script type="module" src="js/main.js?v=4.6"></script>
 </body>
 </html>

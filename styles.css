@@ -1539,13 +1539,13 @@ body::after {
 /* Radio options theo dạng Pill Card */
 .form-options-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 4px;
 }
 @media (max-width: 480px) {
   .form-options-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
 }
@@ -6706,6 +6706,398 @@ body.sheet-locked {
   0%, 100% { box-shadow: 0 0 0 0 rgba(240, 184, 71, 0.4); }
   50% { box-shadow: 0 0 0 6px rgba(240, 184, 71, 0); }
 }
+
+/* ==========================================================================
+   MOBILE & CHECK-IN / CHECK-OUT LAYOUT OPTIMIZATION
+   ========================================================================== */
+
+.checkin-section-head {
+  text-align: center;
+  margin-inline: auto;
+  margin-bottom: 24px;
+}
+
+.checkin-main-wrap {
+  max-width: 560px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.q-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-ink);
+  line-height: 1.35;
+}
+
+.sub-label {
+  display: block;
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.origin-pill {
+  padding: 14px 16px;
+}
+
+.origin-pill-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.step-vn-pass {
+  display: grid;
+  gap: 18px;
+  margin-top: 6px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(184, 36, 28, 0.04);
+  border: 1.5px dashed rgba(184, 36, 28, 0.28);
+}
+
+.vn-pass-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(184, 36, 28, 0.14);
+}
+
+.vn-pass-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff3d6;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  flex: none;
+}
+
+.vn-pass-title {
+  display: block;
+  font-size: 16px;
+  color: var(--accent-ink);
+  line-height: 1.25;
+}
+
+.vn-pass-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.checkout-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed rgba(180, 120, 30, 0.35);
+}
+
+.checkout-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.checkout-wheel-box {
+  padding: 18px;
+  background: var(--gold-soft);
+  border-radius: 16px;
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  border: 1.5px dashed rgba(184, 36, 28, 0.3);
+}
+
+.checkout-feedback-prompt {
+  padding: 14px;
+  background: var(--gold-soft);
+  border-radius: 14px;
+  margin: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px dashed var(--gold);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .footer-hint {
+    display: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding-inline: 14px;
+  }
+
+  .section#tram-trai-nghiem {
+    padding-block: 28px 44px;
+  }
+
+  .checkin-section-head {
+    margin-bottom: 16px;
+  }
+
+  .checkin-section-head .eyebrow {
+    font-size: 12px;
+    padding: 5px 12px;
+    margin-bottom: 8px;
+  }
+
+  .checkin-section-head h2 {
+    font-size: clamp(22px, 6.2vw, 28px);
+    line-height: 1.2;
+  }
+
+  .checkin-section-head p {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  /* Prevent any button from overflowing narrow mobile viewports */
+  .btn {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+    padding-block: 10px;
+  }
+
+  /* Form card & Check-in Steps */
+  .form-card {
+    padding: 18px 14px;
+    gap: 16px;
+    border-radius: 18px;
+  }
+
+  .field {
+    gap: 6px;
+  }
+
+  .q-label {
+    font-size: 15px;
+  }
+
+  .sub-label {
+    font-size: 12px;
+  }
+
+  .input {
+    min-height: 46px;
+    padding: 10px 13px;
+    font-size: 16px; /* Prevents iOS auto-zoom on focus */
+  }
+
+  .option-pill {
+    padding: 10px 12px;
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .origin-pill {
+    padding: 12px 13px;
+  }
+
+  .step-vn-pass {
+    padding: 14px 12px;
+    gap: 14px;
+    border-radius: 14px;
+  }
+
+  .vn-pass-head {
+    gap: 8px;
+    padding-bottom: 8px;
+  }
+
+  .vn-pass-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
+  }
+
+  .vn-pass-title {
+    font-size: 14.5px;
+  }
+
+  .vn-pass-desc {
+    font-size: 12px;
+  }
+
+  .option-other-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .option-other-input {
+    width: 100%;
+  }
+
+  /* Check-out Card */
+  .checkout {
+    margin-top: 14px;
+    padding: 18px 14px;
+    gap: 14px;
+    border-radius: 18px;
+  }
+
+  .checkout h3 {
+    font-size: 19px;
+    line-height: 1.28;
+  }
+
+  .checkout p {
+    font-size: 13.5px;
+    line-height: 1.45;
+  }
+
+  .checkout-top-bar {
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+
+  .checkout-wheel-box {
+    padding: 14px 12px;
+    border-radius: 14px;
+    gap: 8px;
+  }
+
+  .wheel-ticket-banner {
+    font-size: 12px;
+    padding: 5px 10px;
+    gap: 6px;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .checkout-wheel-box #btn-checkout-spin {
+    max-width: 100% !important;
+    width: 100%;
+    font-size: 15px;
+    padding-inline: 14px;
+  }
+
+  .gift-code {
+    font-size: clamp(19px, 5.5vw, 24px);
+    padding: 12px 10px;
+    letter-spacing: 0.1em;
+    word-break: break-all;
+  }
+
+  .won li {
+    padding: 10px 12px;
+    font-size: 13.5px;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+  }
+
+  .checkout-feedback-prompt {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .checkout-feedback-prompt > div strong {
+    justify-content: center;
+  }
+
+  .checkout-feedback-prompt .btn {
+    width: 100%;
+  }
+
+  /* Lucky Wheel & Dialog Modal on Mobile */
+  .dlg {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+  }
+
+  .dlg-box {
+    padding: 18px 14px;
+    gap: 10px;
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+
+  .dlg-title {
+    font-size: 19px;
+    line-height: 1.25;
+  }
+
+  .wheel-wrap {
+    width: min(230px, 64vw);
+    margin: 4px auto;
+  }
+
+  .wheel-center {
+    width: 48px;
+    height: 48px;
+    font-size: 12px;
+  }
+
+  .dlg-actions {
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .dlg-actions .btn {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  /* Feedback Modal on Mobile */
+  .dlg-feedback .feedback-box {
+    padding: 18px 14px;
+    gap: 10px;
+  }
+
+  .feedback-stars-wrap {
+    justify-content: center;
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .star-btn {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    padding-inline: 10px;
+  }
+
+  .form-card,
+  .checkout {
+    padding: 14px 11px;
+  }
+
+  .option-pill {
+    padding: 9px 10px;
+    font-size: 13px;
+  }
+
+  .checkout-top-bar #btn-new-pass {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 
 
 

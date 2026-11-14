@@ -26,7 +26,7 @@ import {
   momentCount,
   saveMoments,
   savePassToHistory
-} from './passport.state.js?v=4.5';
+} from './passport.state.js?v=4.6';
 import {
   setPassportServiceCallbacks,
   pushPass,
@@ -41,8 +41,8 @@ import {
   withSuffix,
   openRestore,
   sendFeedback
-} from './passport.service.js?v=4.5';
-import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.5';
+} from './passport.service.js?v=4.6';
+import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.6';
 
 export const pp = { flip: null, pageEls: [], timers: [] };
 
@@ -710,15 +710,15 @@ export function renderCheckout() {
   const isCheckedOut = Boolean(pass.checkedOut || hasSpun || pass.claimed || pass.checkoutPrize);
 
   box.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px dashed rgba(180,120,30,0.35);">
-      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
-        <span style="width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff3d6;display:grid;place-items:center;font-size:20px;flex:none;">
+    <div class="checkout-top-bar">
+      <div class="checkout-user-info">
+        <span style="width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff3d6;display:grid;place-items:center;font-size:19px;flex:none;">
           <i class="ph-fill ph-${isCheckedOut ? 'seal-check' : 'identification-card'}" aria-hidden="true"></i>
         </span>
-        <div style="min-width:0;">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-            <strong style="font-size:17px;color:var(--text);">${esc(pass.nickname)}</strong>
-            <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;${
+        <div style="min-width:0;flex:1;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <strong style="font-size:16px;color:var(--text);word-break:break-word;">${esc(pass.nickname)}</strong>
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700;${
               isCheckedOut
                 ? 'background:#dcfce7;color:#166534;'
                 : 'background:#fef3c7;color:#92400e;'
@@ -727,7 +727,7 @@ export function renderCheckout() {
               ${isCheckedOut ? 'Đã Check-out' : 'Đã Check-in'}
             </span>
           </div>
-          <span class="mono" style="font-size:13px;color:var(--accent-ink);font-weight:700;letter-spacing:.06em;">${esc(pass.id)}</span>
+          <span class="mono" style="font-size:12.5px;color:var(--accent-ink);font-weight:700;letter-spacing:.06em;display:block;margin-top:2px;">${esc(pass.id)}</span>
         </div>
       </div>
       <button class="btn btn-quiet btn-sm" type="button" id="btn-new-pass" style="font-size:12.5px;padding:4px 10px;--h:34px;">
@@ -746,13 +746,13 @@ export function renderCheckout() {
 
     ${
       !hasSpun
-        ? `<div class="checkout-wheel-box" style="padding:18px;background:var(--gold-soft);border-radius:16px;text-align:center;display:grid;gap:10px;border:1.5px dashed rgba(184,36,28,0.3);">
+        ? `<div class="checkout-wheel-box">
              <div class="wheel-ticket-banner" style="margin: 0 auto;">
                <i class="ph-fill ph-ticket"></i>
                <span>Phần thưởng: <strong>+1 LƯỢT QUAY MAY MẮN</strong></span>
                <span class="plus-badge">+1</span>
              </div>
-             <strong style="font-size:16px;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;gap:6px;">
+             <strong style="font-size:16px;color:var(--gold-ink);display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;">
                <i class="ph-fill ph-sparkle" style="color:var(--accent);"></i> Vòng quay may mắn Check-out
              </strong>
              <p style="margin:0;font-size:14px;color:var(--text-muted);">Bạn có <strong>1 lượt quay may mắn</strong> khi Check-out. Bấm nút dưới để Check-out & quay lấy quà!</p>
@@ -773,12 +773,12 @@ export function renderCheckout() {
                       </button>
                     </div>
                   </div>`
-               : `<div class="checkout-feedback-prompt" style="padding:14px;background:var(--gold-soft);border-radius:14px;margin:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px dashed var(--gold);">
+               : `<div class="checkout-feedback-prompt">
                     <div>
                       <strong style="color:var(--accent);font-size:14.5px;display:flex;align-items:center;gap:6px;"><i class="ph-fill ph-chat-circle-heart"></i> Bạn thích trạm nào nhất?</strong>
                       <small style="color:var(--text-muted);display:block;margin-top:2px;">Hãy gửi đánh giá nhanh cho ban tổ chức nhé!</small>
                     </div>
-                    <button class="btn btn-primary btn-sm" type="button" id="btn-open-feedback-checkout" style="white-space:nowrap;flex:none;">
+                    <button class="btn btn-primary btn-sm" type="button" id="btn-open-feedback-checkout" style="flex:none;">
                       Đánh giá ngay
                     </button>
                   </div>`
