@@ -1148,6 +1148,46 @@ export function initPassportUI() {
     chkOther = $('#chk-source-other'),
     txtOther = $('#f-source-other-text');
 
+  function saveFormDraft() {
+    try {
+      const draft = {
+        name: fName?.value || '',
+        email: fEmail?.value || '',
+        age: document.querySelector('input[name="age"]:checked')?.value || '',
+        sources: Array.from(document.querySelectorAll('input[name="source"]:checked')).map((c) => c.value),
+        otherSource: txtOther?.value || ''
+      };
+      store.set('form_draft', draft);
+    } catch (e) {}
+  }
+
+  function restoreFormDraft() {
+    try {
+      const draft = store.get('form_draft', null);
+      if (!draft) return;
+      if (fName && !fName.value && draft.name) fName.value = draft.name;
+      if (fEmail && !fEmail.value && draft.email) fEmail.value = draft.email;
+      if (draft.age) {
+        const ageRadio = document.querySelector(`input[name="age"][value="${draft.age}"]`);
+        if (ageRadio) ageRadio.checked = true;
+      }
+      if (Array.isArray(draft.sources) && draft.sources.length) {
+        draft.sources.forEach((val) => {
+          const chk = document.querySelector(`input[name="source"][value="${val}"]`);
+          if (chk) chk.checked = true;
+        });
+      }
+      if (draft.otherSource && txtOther && chkOther) {
+        chkOther.checked = true;
+        txtOther.disabled = false;
+        txtOther.value = draft.otherSource;
+      }
+    } catch (e) {}
+  }
+
+  // Tự động khôi phục dữ liệu bản nháp form nếu vừa bị out khỏi Chrome / Google
+  restoreFormDraft();
+
   // Tự động điền tên nếu người dùng đã nhập trước đó ở phần Lưu bút đọc sách
   const prefilledName = store.get('user_nickname');
   if (fName && !fName.value && prefilledName) {
@@ -1156,7 +1196,10 @@ export function initPassportUI() {
   fName?.addEventListener('input', () => {
     const v = fName.value.trim();
     if (v) store.set('user_nickname', v);
+    saveFormDraft();
   });
+
+  fEmail?.addEventListener('input', saveFormDraft);
 
   chkOther?.addEventListener('change', () => {
     if (txtOther) {
@@ -1168,6 +1211,7 @@ export function initPassportUI() {
       }
     }
     validateSource();
+    saveFormDraft();
   });
 
   txtOther?.addEventListener('input', () => {
@@ -1176,14 +1220,21 @@ export function initPassportUI() {
       txtOther.disabled = false;
     }
     validateSource();
+    saveFormDraft();
   });
 
   document.querySelectorAll('input[name="age"]').forEach((r) => {
-    r.addEventListener('change', validateAge);
+    r.addEventListener('change', () => {
+      validateAge();
+      saveFormDraft();
+    });
   });
 
   document.querySelectorAll('input[name="source"]').forEach((c) => {
-    c.addEventListener('change', validateSource);
+    c.addEventListener('change', () => {
+      validateSource();
+      saveFormDraft();
+    });
   });
 
   function validateName() {
@@ -1343,6 +1394,7 @@ export function initPassportUI() {
         store.set('registry', [...new Set([...store.get('registry', []), plain(nickname)])]);
       measure('register');
       store.set('new_pass', false);
+      store.del('form_draft');
       renderRegister();
       if (!offline) pushPass().catch(() => {});
       startPolling();

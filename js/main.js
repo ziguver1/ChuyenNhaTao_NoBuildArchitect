@@ -144,13 +144,45 @@ function initApp() {
     }
   }
 
-  requestAnimationFrame(() => moveIndicator(false));
+  // Tự động khôi phục vị trí trải nghiệm nếu vừa bị reload do out tab trên điện thoại
+  const currentPass = getPass();
+  const lastSection = store.get('last_active_section');
+  if (currentPass && currentPass.stamps && currentPass.stamps.length >= 4) {
+    setTimeout(() => {
+      $('#checkout')?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    }, 450);
+  } else if (lastSection && $('#' + lastSection)) {
+    setTimeout(() => {
+      $('#' + lastSection)?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    }, 450);
+  }
 
-  document.addEventListener('copy', () => {}, { passive: true });
+  const saveCurrentSection = () => {
+    const sections = ['checkout', 'passport-card', 'tram-4', 'tram-3', 'tram-2', 'tram-1', 'flipbook'];
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (el && !el.hidden) {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.7 && rect.bottom > 80) {
+          store.set('last_active_section', id);
+          break;
+        }
+      }
+    }
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) saveCurrentSection();
+  });
   window.addEventListener('pagehide', () => {
+    saveCurrentSection();
     stopVoice();
     stopTale();
   });
+
+  requestAnimationFrame(() => moveIndicator(false));
+
+  document.addEventListener('copy', () => {}, { passive: true });
 }
 
 // Khởi chạy khi DOM đã sẵn sàng

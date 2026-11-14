@@ -7,6 +7,18 @@ export function initSiteIntro() {
   const overlay = document.getElementById('site-intro-overlay');
   if (!overlay) return;
 
+  // Nếu người dùng đã xem intro trước đó hoặc đã có thẻ thông hành, không bao giờ hiện lại màn chào hỏi khi reload / quay lại tab
+  try {
+    if (
+      sessionStorage.getItem('cnt_intro_seen') ||
+      localStorage.getItem('cnt_intro_seen') ||
+      localStorage.getItem('cnt_pass')
+    ) {
+      overlay.style.display = 'none';
+      return;
+    }
+  } catch (e) {}
+
   const skipBtn = document.getElementById('intro-skip-btn');
   const words = overlay.querySelectorAll('.intro-word');
   const fishWrap = document.getElementById('intro-fish-wrapper');
@@ -24,6 +36,10 @@ export function initSiteIntro() {
   function dismissIntro() {
     if (dismissed) return;
     dismissed = true;
+    try {
+      sessionStorage.setItem('cnt_intro_seen', '1');
+      localStorage.setItem('cnt_intro_seen', '1');
+    } catch (e) {}
     if (safetyTimer) clearTimeout(safetyTimer);
     if (introMasterTl) introMasterTl.kill();
     words.forEach((el) => el.classList.remove('sync-dancing'));

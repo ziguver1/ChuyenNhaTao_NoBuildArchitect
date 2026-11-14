@@ -4647,6 +4647,10 @@ body.has-dialog-open {
 /* ===================================================================
    S00 · SITE INTRO ANIMATION (Màn chào hỏi động trước khi vào web)
    =================================================================== */
+html.intro-skip .site-intro-overlay {
+  display: none !important;
+}
+
 .site-intro-overlay {
   position: fixed;
   inset: 0;
