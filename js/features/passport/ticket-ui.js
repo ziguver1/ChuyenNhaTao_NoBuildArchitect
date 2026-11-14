@@ -1029,7 +1029,6 @@ export function renderRegister() {
   const box = $('#register-has');
   if (box) box.hidden = true;
 }
-}
 
 export function initPassportUI() {
   setPassportServiceCallbacks({

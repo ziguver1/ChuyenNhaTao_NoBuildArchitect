@@ -26,64 +26,10 @@
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
   <link rel="stylesheet" href="styles.css?v=2.2">
-  <link rel="preload" href="images/intro/intro_fish.webp?v=7" as="image">
-  <link rel="preload" href="images/intro/word_huyen.webp?v=10" as="image">
-  <link rel="preload" href="images/intro/word_nha.webp?v=8" as="image">
-  <link rel="preload" href="images/intro/word_tao.webp?v=8" as="image">
-  <link rel="preload" href="images/intro/intro_hat.webp?v=6" as="image">
   <link rel="preload" href="images/visual/key_visual.webp" as="image">
   <script>document.documentElement.classList.replace('no-js', 'js');</script>
 </head>
 <body>
-  <!-- ===================================================================
-       S00 · INTRO ANIMATION (Màn chào hỏi động trước khi vào web)
-       =================================================================== -->
-  <aside class="site-intro-overlay" id="site-intro-overlay" aria-label="Màn chào đón Chuyện Nhà Táo">
-    <div class="intro-bg-ambient">
-      <div class="intro-cloud intro-cloud-1"></div>
-      <div class="intro-cloud intro-cloud-2"></div>
-      <div class="intro-cloud intro-cloud-3"></div>
-      <div class="intro-sparkle-field" id="intro-sparkle-field"></div>
-    </div>
-
-    <button class="intro-skip-btn" id="intro-skip-btn" type="button" aria-label="Bỏ qua phần giới thiệu">
-      <span>Bỏ qua</span>
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-    </button>
-
-    <div class="intro-stage" id="intro-stage">
-      <div class="intro-logo-canvas" id="intro-logo-canvas">
-        <!-- Cụm chữ Hàng 1: HUYỆN (liền khối 3D nguyên bản) -->
-        <img src="images/intro/word_huyen.webp?v=10" class="intro-word intro-word-huyen" alt="HUYỆN" draggable="false">
-
-        <!-- Cụm chữ Hàng 2: NHÀ (ngôi nhà 3D nguyên bản) -->
-        <img src="images/intro/word_nha.webp?v=8" class="intro-word intro-word-nha" alt="NHÀ" draggable="false">
-
-        <!-- Cụm chữ Hàng 2: TÁO (chữ Táo 3D nguyên bản) -->
-        <img src="images/intro/word_tao.webp?v=8" class="intro-word intro-word-tao" alt="TÁO" draggable="false">
-
-        <!-- Con cá chép bơi từ trái sang tạo thành chữ C -->
-        <div class="intro-fish-wrapper" id="intro-fish-wrapper" style="opacity: 0;">
-          <div class="fish-water-swirl" id="fish-water-swirl"></div>
-          <img src="images/intro/intro_fish.webp?v=7" class="intro-fish" id="intro-fish" alt="Cá chép chữ C" draggable="false">
-        </div>
-
-        <!-- Chiếc nón cánh chuồn dấu ^ rớt xuống ngay chữ E -->
-        <div class="intro-hat-wrapper" id="intro-hat-wrapper" style="opacity: 0;">
-          <img src="images/intro/intro_hat.webp?v=6" class="intro-hat" id="intro-hat" alt="Nón cánh chuồn dấu ^" draggable="false">
-          <div class="hat-impact-wave" id="hat-impact-wave"></div>
-        </div>
-
-        <!-- Vệt sáng lấp lánh hoàn thiện logo -->
-        <div class="intro-shimmer" id="intro-shimmer"></div>
-      </div>
-    </div>
-    
-    <div class="intro-footer-hint">
-      <span class="intro-hint-text">Chuyện Nhà Táo · Đêm 23 tháng Chạp</span>
-    </div>
-  </aside>
-
   <!-- Bộ lọc mực in typo: mép chữ hơi nhoè, không đều -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="letterpress" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
   <a class="skip-link" href="#checkin">Bỏ qua, đến phần Check-in</a>
@@ -555,6 +501,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
   <script src="ca-chep.js" defer></script>
-  <script type="module" src="js/main.js?v=3.2"></script>
+  <script type="module" src="js/main.js?v=3.3"></script>
 </body>
 </html>

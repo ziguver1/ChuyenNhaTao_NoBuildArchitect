@@ -85,7 +85,6 @@ function initApp() {
   if ($('#scene-canvas')) initSceneCanvas();
   if ($('#seam-book-passport')) initBookPassportTransition();
   initScrollAnimations();
-  initSiteIntro();
 
   // 6. Xử lý Query Params trên URL (?vao=, ?tram=, ?the=, ?test=, ?demo=)
   const qs = new URLSearchParams(location.search);
@@ -142,7 +141,9 @@ function initApp() {
     }
   }
 
-  requestAnimationFrame(() => moveIndicator(false));
+  if ($('#flipbook')) {
+    requestAnimationFrame(() => moveIndicator(false));
+  }
 
   document.addEventListener('copy', () => {}, { passive: true });
   window.addEventListener('pagehide', () => {
