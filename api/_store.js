@@ -293,7 +293,7 @@ function stampCmds(o, key, st, now, outOfStock = new Set(), roundId = 'round_1',
       cmds.push(['HINCRBY', 'prize:round_counts', `${roundId}:${prize}`, '1']);
     }
     if (o.vid) {
-      cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+      cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize, 'checkout_round', roundId]);
     }
   }
 

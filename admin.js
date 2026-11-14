@@ -94,7 +94,8 @@
     q: '',
     commentFilter: { chapter: 'all', q: '' },
     source: 'api',
-    activeTab: 'tab-community'
+    activeTab: 'tab-community',
+    dayFilter: 'all'
   };
 
   const KEY = 'cnt_admin_key';
@@ -358,9 +359,9 @@
         rating: isAnon ? null : (5 - (i % 2)),
         feedbackComment: isAnon ? null : (i % 3 === 0 ? 'Sự kiện rất ý nghĩa và ấm áp!' : ''),
         claimed: stamps.length === 4 && i % 2 === 0,
-        checkin: isAnon ? 0 : now - (i * 3600000 + 1800000),
-        first: now - (i * 3600000 + 7200000),
-        seen: now - (i * 3600000)
+        checkin: isAnon ? 0 : now - (i >= 8 ? 24 * 3600000 : 0) - (i * 1800000 + 1800000),
+        first: now - (i >= 8 ? 24 * 3600000 : 0) - (i * 1800000 + 7200000),
+        seen: now - (i >= 8 ? 24 * 3600000 : 0) - (i * 1800000)
       });
     }
 
@@ -855,10 +856,14 @@
         else if (r.status === 'ended') badge = `<span class="r-badge is-ended">Đã xong</span>`;
         else badge = `<span class="r-badge is-upcoming">Sắp tới</span>`;
 
+        const roundCounts = r.counts || {};
+        const totalAwardedInRound = Object.values(roundCounts).reduce((a, b) => a + Number(b || 0), 0);
+
         return `
           <button type="button" class="round-pill ${isSelected ? 'is-selected' : ''}" data-round-id="${r.id}">
             <i class="ph ${isLive ? 'ph-broadcast' : 'ph-clock'}"></i>
             <span>${esc(r.name)}</span>
+            <span class="dp-count" style="font-size:11px; margin-left:2px;">${totalAwardedInRound} quà</span>
             ${badge}
           </button>
         `;
@@ -1298,6 +1303,173 @@
 
     // 6. Bảng đối chiếu công thức vs số liệu thực tế
     renderFormulaComparison();
+
+    // 7. Báo cáo phân bổ & tiêu hao quà tặng theo từng ngày / đợt sự kiện
+    renderDailyPrizeMatrix();
+  }
+
+  // =========================================================================
+  // BÁO CÁO PHÂN BỔ QUÀ TẶNG THEO TỪNG NGÀY & ĐỢT SỰ KIỆN (DAILY PRIZE MATRIX)
+  // =========================================================================
+  function renderDailyPrizeMatrix() {
+    const rounds = state.rounds || [];
+    if (!rounds.length) return;
+
+    // 1. Cập nhật tiêu đề các cột theo danh sách các Đợt/Ngày
+    const headRow = $('#matrix-head-row');
+    if (headRow) {
+      const roundHeadersHtml = rounds
+        .map((r, idx) => {
+          const isLive = r.id === state.activeRoundId;
+          const dayTag = `Ngày ${idx + 1}`;
+          return `
+            <th style="text-align: center; min-width: 120px;">
+              <div><strong>${esc(r.name)}</strong></div>
+              <div style="font-size: 11px; margin-top: 3px;">
+                ${isLive ? '<span class="stock-badge is-open" style="font-size:10px; padding:1px 6px;">LIVE · ĐANG CHẠY</span>' : `<span style="color:var(--text-muted); font-weight:600;">${dayTag}</span>`}
+              </div>
+            </th>
+          `;
+        })
+        .join('');
+
+      headRow.innerHTML = `
+        <th>Phần quà</th>
+        ${roundHeadersHtml}
+        <th style="text-align: center;">Tổng đã trao</th>
+        <th style="text-align: center;">Tổng kho</th>
+        <th style="text-align: center;">Còn lại</th>
+        <th style="text-align: center;">Tiến độ tiêu hao</th>
+        <th style="text-align: center;">Trạng thái kho</th>
+      `;
+    }
+
+    // 2. Thu thập danh mục tất cả phần quà hiện vật (hỗ trợ quà mặc định & quà tùy chỉnh mới)
+    const prizeMap = new Map();
+    rounds.forEach((r) => {
+      const prizes = ensurePrizes(r);
+      prizes.forEach((p) => {
+        if (!p.isGift) return;
+        if (!prizeMap.has(p.key)) {
+          prizeMap.set(p.key, {
+            key: p.key,
+            name: p.name,
+            short: p.short,
+            icon: p.icon,
+            color: p.color
+          });
+        }
+      });
+    });
+
+    const tbody = $('#daily-prize-matrix-rows');
+    if (!tbody) return;
+
+    const rowsHtml = Array.from(prizeMap.values()).map((p) => {
+      let totalAwarded = 0;
+      let totalStock = 0;
+
+      const roundCellsHtml = rounds.map((r) => {
+        const prizes = ensurePrizes(r);
+        const item = prizes.find((x) => x.key === p.key);
+        const stock = item ? Number(item.stock || 0) : 0;
+        const awarded = Number((r.counts && r.counts[p.key]) || 0);
+        totalAwarded += awarded;
+        totalStock += stock;
+        const isLive = r.id === state.activeRoundId;
+        const remainingInRound = Math.max(0, stock - awarded);
+        const isOut = remainingInRound <= 0;
+
+        return `
+          <td style="text-align: center; ${isLive ? 'background: rgba(220, 252, 231, 0.35); font-weight: 600;' : ''}">
+            <div style="font-size: 13.5px;">
+              <b style="color:${isOut ? '#ef4444' : 'var(--ink)'}; font-size:14px;">${awarded}</b>
+              <span style="color:var(--text-muted); font-size:12px;"> / ${stock}</span>
+            </div>
+            <div style="font-size: 11px; margin-top: 2px;">
+              ${isOut ? '<span style="color:#dc2626; font-weight:700;"><i class="ph-fill ph-lock-key"></i> Hết đợt</span>' : `<span style="color:var(--text-muted);">còn ${remainingInRound}</span>`}
+            </div>
+          </td>
+        `;
+      }).join('');
+
+      const totalRemaining = Math.max(0, totalStock - totalAwarded);
+      const burnPct = totalStock > 0 ? Math.round((totalAwarded / totalStock) * 100) : 0;
+      const isTotalOut = totalRemaining <= 0;
+      const isTotalLow = !isTotalOut && totalRemaining <= 5;
+
+      let statusBadge = `<span class="stock-badge is-open"><i class="ph-fill ph-check-circle"></i> Đang mở</span>`;
+      if (isTotalOut) {
+        statusBadge = `<span class="stock-badge is-out"><i class="ph-fill ph-lock-key"></i> Hết sạch kho</span>`;
+      } else if (isTotalLow) {
+        statusBadge = `<span class="stock-badge is-out" style="background:#fffbeb; color:#b45309;"><i class="ph-fill ph-warning"></i> Sắp hết (${totalRemaining})</span>`;
+      }
+
+      return `
+        <tr>
+          <td>
+            <span style="font-size:16px; margin-right:6px;">${p.icon || '🎁'}</span>
+            <strong style="color:${p.color || '#f59e0b'};">${esc(p.name)}</strong>
+          </td>
+          ${roundCellsHtml}
+          <td class="num" style="text-align: center;"><b style="font-size:14.5px; color:var(--accent);">${totalAwarded}</b></td>
+          <td class="num" style="text-align: center;">${totalStock}</td>
+          <td class="num" style="text-align: center;"><b style="color:${isTotalOut ? '#dc2626' : '#16a34a'}; font-size:14.5px;">${totalRemaining}</b></td>
+          <td style="text-align: center;">
+            <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
+              <div style="width:48px; height:6px; border-radius:3px; background:var(--line); overflow:hidden; display:inline-block;">
+                <div style="width:${Math.min(100, burnPct)}%; height:100%; background:${burnPct > 80 ? '#ef4444' : '#f59e0b'};"></div>
+              </div>
+              <span style="font-size:11.5px; font-weight:700;">${burnPct}%</span>
+            </div>
+          </td>
+          <td style="text-align: center;">${statusBadge}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = rowsHtml;
+
+    // 3. Render Nút Chuyển Đợt Nhanh (1-click Switcher)
+    const quickSwitchBox = $('#daily-round-quick-switch');
+    if (quickSwitchBox) {
+      const activeIdx = rounds.findIndex((r) => r.id === state.activeRoundId);
+      const nextRound = activeIdx >= 0 && activeIdx < rounds.length - 1 ? rounds[activeIdx + 1] : null;
+      const prevRound = activeIdx > 0 ? rounds[activeIdx - 1] : null;
+
+      let btnsHtml = '';
+      if (prevRound) {
+        btnsHtml += `
+          <button class="btn btn-quiet btn-sm" type="button" id="btn-quick-prev-round" data-id="${prevRound.id}" title="Quay lại ${esc(prevRound.name)}" style="font-size:12px;">
+            <i class="ph ph-arrow-left"></i> Quay lại ${esc(prevRound.name)}
+          </button>
+        `;
+      }
+      if (nextRound) {
+        btnsHtml += `
+          <button class="btn btn-primary btn-sm" type="button" id="btn-quick-next-round" data-id="${nextRound.id}" title="Kích hoạt ${esc(nextRound.name)}" style="font-size:12px;">
+            <i class="ph ph-lightning"></i> Kích hoạt sang ${esc(nextRound.name)}
+          </button>
+        `;
+      }
+
+      quickSwitchBox.innerHTML = btnsHtml;
+
+      $('#btn-quick-prev-round')?.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        const targetRound = rounds.find((r) => r.id === id);
+        if (confirm(`Bạn có chắc muốn chuyển vòng quay trực tiếp về "${targetRound?.name || id}"?`)) {
+          switchRound(id);
+        }
+      });
+      $('#btn-quick-next-round')?.addEventListener('click', (e) => {
+        const id = e.currentTarget.dataset.id;
+        const targetRound = rounds.find((r) => r.id === id);
+        if (confirm(`Bạn có chắc muốn kích hoạt vòng quay trực tiếp sang "${targetRound?.name || id}"?`)) {
+          switchRound(id);
+        }
+      });
+    }
   }
 
   // =========================================================================
@@ -1921,10 +2093,121 @@
   }
 
   // =========================================================================
-  // RENDER THÔNG TIN NGƯỜI CHƠI (TAB 2)
+  // PHÂN TÁCH DỮ LIỆU THEO NGÀY SỰ KIỆN (DAY 1, DAY 2...)
+  // =========================================================================
+  function getRowDateKey(r) {
+    const ts = (r.checkin && r.checkin > 0) ? r.checkin : (r.first && r.first > 0 ? r.first : r.seen);
+    if (!ts) return null;
+    const d = new Date(Number(ts));
+    if (isNaN(d.getTime())) return null;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function extractEventDays(rows = []) {
+    const dateMap = new Map();
+    rows.forEach((r) => {
+      const dKey = getRowDateKey(r);
+      if (!dKey) return;
+      if (!dateMap.has(dKey)) {
+        dateMap.set(dKey, { count: 0, rows: [] });
+      }
+      const entry = dateMap.get(dKey);
+      entry.count++;
+      entry.rows.push(r);
+    });
+
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (!dateMap.has(todayKey)) {
+      dateMap.set(todayKey, { count: 0, rows: [] });
+    }
+
+    const sortedDateKeys = Array.from(dateMap.keys()).sort();
+
+    const days = [
+      {
+        key: 'all',
+        label: 'Tất cả các ngày',
+        shortLabel: 'tat-ca',
+        count: rows.length,
+        isToday: false,
+        dateStr: null
+      }
+    ];
+
+    sortedDateKeys.forEach((dKey, idx) => {
+      const entry = dateMap.get(dKey);
+      const [y, m, d] = dKey.split('-');
+      const formattedDate = `${d}/${m}`;
+      const fullDate = `${d}/${m}/${y}`;
+      const isToday = dKey === todayKey;
+      const dayNumber = idx + 1;
+      days.push({
+        key: dKey,
+        dayIndex: dayNumber,
+        label: `Ngày ${dayNumber}: ${formattedDate}`,
+        shortLabel: `ngay-${dayNumber}`,
+        fullDate,
+        dateStr: dKey,
+        count: entry.count,
+        isToday,
+        rows: entry.rows
+      });
+    });
+
+    return days;
+  }
+
+  function renderDayTabs() {
+    const container = $('#day-pills-container');
+    if (!container) return;
+
+    const days = extractEventDays(state.rows);
+    if (state.dayFilter !== 'all' && !days.some((d) => d.key === state.dayFilter)) {
+      state.dayFilter = 'all';
+    }
+
+    container.innerHTML = days
+      .map((d) => {
+        const isActive = state.dayFilter === d.key;
+        return `
+          <button type="button" class="day-pill ${isActive ? 'is-active' : ''}" data-day-key="${d.key}">
+            <i class="ph ${d.key === 'all' ? 'ph-calendar' : 'ph-calendar-blank'}"></i>
+            <span>${esc(d.label)}</span>
+            <span class="dp-count">${d.count}</span>
+            ${d.isToday ? '<span class="dp-today-tag">Hôm nay</span>' : ''}
+          </button>
+        `;
+      })
+      .join('');
+
+    $$('.day-pill', container).forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.dayFilter = btn.dataset.dayKey;
+        renderDayTabs();
+        renderPeople();
+      });
+    });
+  }
+
+  function getFilteredDayRows() {
+    const allRows = state.rows;
+    const dayFilter = state.dayFilter || 'all';
+    if (dayFilter === 'all') return allRows;
+    return allRows.filter((r) => getRowDateKey(r) === dayFilter);
+  }
+
+  // =========================================================================
+  // RENDER THÔNG TIN NGƯỜI CHƠI (TAB 3)
   // =========================================================================
   function renderPeople() {
-    const R = state.rows, n = R.length || 1;
+    renderDayTabs();
+
+    const R = getFilteredDayRows();
+    const n = R.length || 1;
     const sum = (f) => R.reduce((a, r) => a + f(r), 0);
     const prize = (k) => sum((r) => r.prizes.filter((p) => p === k).length);
     const tiles = [
@@ -1998,14 +2281,47 @@
         .join('');
     }
 
-    $('#people-sub').textContent = state.source === 'api' ? `${R.length} người, sắp theo hoạt động gần nhất` : 'Số liệu của trình duyệt này';
+    // Tóm tắt Quà đã trao trong ngày
+    const days = extractEventDays(state.rows);
+    const dayFilter = state.dayFilter || 'all';
+    const curDay = days.find((d) => d.key === dayFilter) || days[0];
+    const banner = $('#day-prize-summary-banner');
+    if (banner) {
+      const pKeychain = prize('keychain');
+      const pSticker = prize('sticker');
+      const pTote = prize('tote');
+      const pBlindbox = prize('blindbox');
+      const pTotal = pKeychain + pSticker + pTote + pBlindbox;
+      const dayLabel = dayFilter === 'all' ? 'Toàn bộ sự kiện' : (curDay.label + ` (${curDay.fullDate})`);
+
+      banner.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <strong><i class="ph-fill ph-gift" style="color:var(--accent);"></i> Quà đã trao (${esc(dayLabel)}):</strong>
+          <span>🔑 Móc khoá: <b>${pKeychain}</b></span> ·
+          <span>🏷️ Sticker: <b>${pSticker}</b></span> ·
+          <span>👜 Túi tote: <b>${pTote}</b></span> ·
+          <span>🎁 Blindbox: <b>${pBlindbox}</b></span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="stock-badge is-open" style="font-size:12.5px;"><i class="ph-fill ph-package"></i> Tổng quà trao: <b>${pTotal} món</b></span>
+          <span style="font-size:12px; color:var(--text-muted); font-weight:600;">(${R.length} người)</span>
+        </div>
+      `;
+    }
+
+    const daySubText = dayFilter === 'all' ? 'toàn bộ sự kiện' : (curDay.label + ` - ${curDay.fullDate}`);
+    $('#people-sub').textContent = state.source === 'api'
+      ? `${R.length} người (${daySubText}), sắp theo hoạt động gần nhất`
+      : `Số liệu của trình duyệt này (${daySubText})`;
+
     renderRows();
   }
 
   function renderRows() {
     const { k, dir } = state.sort;
     $$('th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === k ? (dir > 0 ? 'ascending' : 'descending') : 'none'));
-    const rows = state.rows
+    const baseRows = getFilteredDayRows();
+    const rows = baseRows
       .filter((r) => !state.q || (r.pid || '').toLowerCase().includes(state.q) || (r.name || '').toLowerCase().includes(state.q) || (r.phone || '').includes(state.q) || (r.email || '').toLowerCase().includes(state.q) || (r.favStation || '').toLowerCase().includes(state.q))
       .sort((a, b) => {
         const x = a[k] == null ? -1 : a[k], y = b[k] == null ? -1 : b[k];
@@ -2034,7 +2350,7 @@
       </tr>`
           )
           .join('')
-      : `<tr><td class="empty" colspan="15">Chưa có ai${state.q ? ' khớp với ô tìm kiếm' : ''}.</td></tr>`;
+      : `<tr><td class="empty" colspan="15">Chưa có người tham gia trong ngày này${state.q ? ' hoặc không khớp với ô tìm kiếm' : ''}.</td></tr>`;
   }
 
   function render() {
@@ -2046,7 +2362,7 @@
   // =========================================================================
   // XUẤT CSV (NGƯỜI CHƠI & BÁO CÁO TƯƠNG TÁC SÁCH)
   // =========================================================================
-  function exportPeopleCSV() {
+  function exportPeopleCSV(targetRows = state.rows, label = 'tat-ca') {
     const head = [
       'Mã thẻ', 'Tên', 'Số điện thoại', 'Email', 'Độ tuổi', 'Kênh biết đến', 'Check-in sự kiện', 'Lượt lật trang', 'Số trang đã xem', 'Các trang đã xem',
       'Đang xem trang', 'Chương đã nghe', 'Dấu trạm', 'Quà trạm 1', 'Quà trạm 2', 'Quà trạm 3', 'Quà trạm 4',
@@ -2054,7 +2370,7 @@
     ];
     const cell = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
     const time = (t) => (t ? new Date(t).toISOString() : '');
-    const lines = state.rows.map((r) =>
+    const lines = (targetRows || state.rows).map((r) =>
       [
         r.pid, r.name, r.phone, r.email, r.age, r.source, time(r.checkin), r.flips, r.pagesN, r.pages.join(' '), r.last, r.chapters.join(' '), r.stamps.join(' '),
         ...r.prizes.map((p) => (p ? PRIZE_LABEL[p] : '')), r.claimed ? 'có' : '',
@@ -2067,7 +2383,7 @@
     const blob = new Blob(['\ufeff' + [head.map(cell).join(','), ...lines].join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `chuyen-nha-tao-nguoi-choi-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `chuyen-nha-tao-nguoi-choi-${label}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }
@@ -2230,7 +2546,15 @@
       }
     });
 
-    $('#btn-csv')?.addEventListener('click', exportPeopleCSV);
+    $('#btn-csv')?.addEventListener('click', () => exportPeopleCSV(state.rows, 'toan-bo'));
+    $('#btn-export-all-csv')?.addEventListener('click', () => exportPeopleCSV(state.rows, 'toan-bo'));
+    $('#btn-export-day-csv')?.addEventListener('click', () => {
+      const dayFilter = state.dayFilter || 'all';
+      const eventDays = extractEventDays(state.rows);
+      const curDay = eventDays.find((d) => d.key === dayFilter) || eventDays[0];
+      const targetRows = getFilteredDayRows();
+      exportPeopleCSV(targetRows, curDay.shortLabel || 'ngay-da-chon');
+    });
     $('#btn-csv-interact')?.addEventListener('click', exportInteractionCSV);
 
     // Lưu cấu hình Đợt quay (Rounds), Tỉ lệ (%) & Kho quà

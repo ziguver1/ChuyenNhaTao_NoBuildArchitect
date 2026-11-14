@@ -250,8 +250,10 @@ module.exports = async (req, res) => {
         chapters: nums(out[i * 4 + 2]),
         stamps: nums(out[i * 4 + 3]),
         checkoutPrize: u.checkout_prize || null,
+        checkoutRound: u.checkout_round || null,
         prizes: [u.checkout_prize || null, ...[1, 2, 3, 4].map((s) => u[`prize${s}`] || null)].filter(Boolean),
         claimed: u.claimed === '1',
+        claimedAt: Number(u.claimed_at || 0),
         checkin: Number(u.checkin || 0),
         first: Number(u.first || 0),
         seen: Number(u.seen || 0)

@@ -69,10 +69,10 @@ module.exports = async (req, res) => {
             ['HINCRBY', 'prize:counts', prize, '1']
           );
           if (activeId) cmds.push(['HINCRBY', 'prize:round_counts', `${activeId}:${prize}`, '1']);
-          if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+          if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize, 'checkout_round', activeId]);
         }
         cmds.push(['HSET', key, 'claimed', now, 'checkout_given', now]);
-        if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'claimed', '1']);
+        if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'claimed', '1', 'claimed_at', now]);
       }
     } else if (b.action !== 'lookup') {
       return res.status(400).json({ error: 'action' });

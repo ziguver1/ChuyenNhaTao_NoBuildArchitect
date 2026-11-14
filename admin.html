@@ -229,6 +229,71 @@
     .cmp-variance-badge.is-minor { background: #fef3c7; color: #92400e; }
     .cmp-variance-badge.is-major { background: #fee2e2; color: #991b1b; }
 
+    /* Day Filters Nav & Pill Badges */
+    .day-filter-box {
+      border: 1.5px solid var(--line);
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .day-pill-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .day-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
+      background: var(--surface-2);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .18s ease;
+      user-select: none;
+    }
+    .day-pill:hover {
+      border-color: var(--accent);
+      background: var(--surface);
+      transform: translateY(-1px);
+    }
+    .day-pill.is-active {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(184, 36, 28, 0.28);
+    }
+    .day-pill .dp-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      background: rgba(0,0,0,0.07);
+      color: inherit;
+    }
+    .day-pill.is-active .dp-count {
+      background: rgba(255,255,255,0.25);
+      color: #fff;
+    }
+    .day-pill .dp-today-tag {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: #16a34a;
+      color: #fff;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
     .cmp-burn-bar {
       width: 100px; height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; display: inline-block; vertical-align: middle; margin-right: 6px;
     }
@@ -406,6 +471,40 @@
 
       <!-- TAB 2: VÒNG QUAY & KHO QUÀ -->
       <section class="adm-tab-panel" id="tab-wheel" role="tabpanel" hidden>
+
+        <!-- BẢNG TỔNG HỢP & PHÂN BỔ QUÀ TẶNG THEO TỪNG NGÀY / ĐỢT SỰ KIỆN -->
+        <div class="card" id="daily-prize-matrix-card" style="margin-bottom: 20px;">
+          <div class="toolbar" style="margin-bottom: 12px;">
+            <div>
+              <h2 class="sec-title" style="display:flex; align-items:center; gap:8px;">
+                <i class="ph-fill ph-calendar-check" style="color:var(--accent);"></i>
+                Báo Cáo Phân Bổ & Tiêu Hao Quà Tặng Theo Từng Ngày / Đợt
+              </h2>
+              <p class="sec-sub" style="margin-bottom:0;">
+                Giám sát số lượng từng món quà đã trao trong Ngày 1, Ngày 2, Ngày 3 và đối chiếu tức thời với hạn mức tồn kho thực tế.
+              </p>
+            </div>
+            <div id="daily-round-quick-switch" style="display:flex; align-items:center; gap:8px;"></div>
+          </div>
+
+          <div class="tbl-wrap">
+            <table id="tbl-daily-prize-matrix">
+              <thead>
+                <tr id="matrix-head-row">
+                  <th>Phần quà</th>
+                  <!-- Cột các Đợt/Ngày được sinh tự động -->
+                  <th style="text-align: center;">Tổng đã trao</th>
+                  <th style="text-align: center;">Tổng kho sự kiện</th>
+                  <th style="text-align: center;">Còn lại</th>
+                  <th style="text-align: center;">Tiến độ tiêu hao</th>
+                  <th style="text-align: center;">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody id="daily-prize-matrix-rows"></tbody>
+            </table>
+          </div>
+        </div>
+
         <div class="wheel-admin-grid">
           <!-- Cột Cấu Hình Kho & Đợt Quay -->
           <div class="wheel-config-col">
@@ -739,6 +838,36 @@
 
       <!-- TAB 3: NGƯỜI THAM GIA & HỘ CHIẾU O2O -->
       <section class="adm-tab-panel" id="tab-people" role="tabpanel" hidden>
+        <!-- Bộ Lọc Phân Tách Dữ Liệu Theo Ngày Sự Kiện & Quà Tặng Ngày -->
+        <div class="day-filter-box card" id="day-filter-card" style="margin-bottom: 20px; padding: 16px 20px;">
+          <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:10px; background:var(--accent-subtle); color:var(--accent); font-size:18px;">
+                <i class="ph-fill ph-calendar-check"></i>
+              </span>
+              <div>
+                <strong style="font-size:15.5px; display:block;">Phân Tách Dữ Liệu Theo Ngày Sự Kiện</strong>
+                <span style="font-size:12px; color:var(--text-muted);" id="day-filter-desc">Chọn ngày để xem riêng chỉ số người tham gia, tương tác đọc sách và phần quà đã trao trong ngày đó.</span>
+              </div>
+            </div>
+            <!-- Nút thao tác xuất dữ liệu theo ngày -->
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-quiet btn-sm" type="button" id="btn-export-day-csv" title="Xuất dữ liệu người chơi ngày đang chọn">
+                <i class="ph ph-file-csv"></i> Xuất CSV Ngày này
+              </button>
+              <button class="btn btn-secondary btn-sm" type="button" id="btn-export-all-csv" title="Xuất danh sách toàn bộ sự kiện">
+                <i class="ph ph-download-simple"></i> Xuất CSV Toàn bộ
+              </button>
+            </div>
+          </div>
+
+          <!-- Các nút tab Ngày 1, Ngày 2, Tất cả -->
+          <div class="day-pill-nav" id="day-pills-container"></div>
+
+          <!-- Banner Tóm tắt Quà Tặng Đã Trao Trong Ngày Đang Chọn -->
+          <div id="day-prize-summary-banner" style="margin-top:14px; padding:10px 14px; border-radius:10px; background:var(--surface-2); border:1px solid var(--line); font-size:13px; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px;"></div>
+        </div>
+
         <!-- Khối Chỉ Số KPI Người Chơi -->
         <div class="kpi-grid" id="tiles" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 20px;"></div>
 
