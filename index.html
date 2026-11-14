@@ -25,7 +25,7 @@
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600&family=Noto+Serif+Display:wght@700;800;900&family=Comforter+Brush&family=Potta+One&family=Patrick+Hand&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
-  <link rel="stylesheet" href="styles.css?v=2.3">
+  <link rel="stylesheet" href="styles.css?v=2.4">
   <link rel="preload" href="images/intro/intro_fish.webp?v=7" as="image">
   <link rel="preload" href="images/intro/word_huyen.webp?v=10" as="image">
   <link rel="preload" href="images/intro/word_nha.webp?v=8" as="image">
@@ -102,7 +102,7 @@
 
   <!-- Bộ lọc mực in typo: mép chữ hơi nhoè, không đều -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><filter id="letterpress" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="1.6" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
-  <a class="skip-link" href="#doc-sach">Bỏ qua, đến phần đọc sách</a>
+  <a class="skip-link" href="#tram-trai-nghiem">Bỏ qua, đến phần Thẻ thông hành</a>
 
   <!-- ===================================================================
        S01 · HEADER & NAVIGATION
@@ -114,8 +114,8 @@
       </a>
 
       <nav class="nav-links" aria-label="Điều hướng chính">
-        <a href="#doc-sach" data-nav>Đọc sách</a>
         <a href="#tram-trai-nghiem" data-nav>Vân Du Ký</a>
+        <a href="#doc-sach" data-nav>Đọc sách</a>
         <!-- Góp ý của cô: bỏ "Thẻ Vị Táo" (biến giá trị thành tính cách), thay bằng Chuyện Nhà Đêm 23 ghi đủ 4 giá trị -->
         <a href="#la-so" data-nav>Chuyện Nhà Đêm 23</a>
       </nav>
@@ -127,7 +127,7 @@
         <button class="icon-btn" id="sound-toggle" type="button" aria-pressed="false" aria-label="Bật tiếng lửa bếp">
           <i class="ph ph-speaker-slash" aria-hidden="true"></i>
         </button>
-        <a class="btn btn-primary btn-sm header-cta" href="#doc-sach" data-track="cta_open_book" data-track-from="header">Mở cuốn sách</a>
+        <a class="btn btn-primary btn-sm header-cta" href="#tram-trai-nghiem" data-track="cta_open_ticket" data-track-from="header">Thẻ thông hành</a>
         <button class="icon-btn menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Mở menu">
           <i class="ph ph-list" aria-hidden="true"></i>
         </button>
@@ -136,10 +136,10 @@
   </header>
 
   <div class="mobile-menu" id="mobile-menu" aria-label="Menu">
-    <a href="#doc-sach">Đọc sách <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
     <a href="#tram-trai-nghiem">Vân Du Ký <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <a href="#doc-sach">Đọc sách <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
     <a href="#la-so">Chuyện Nhà Đêm 23 <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
-    <a class="btn btn-primary btn-block" href="#doc-sach" data-track="cta_open_book" data-track-from="menu">Mở cuốn sách</a>
+    <a class="btn btn-primary btn-block" href="#tram-trai-nghiem" data-track="cta_open_ticket" data-track-from="menu">Nhận Thẻ Thông Hành</a>
   </div>
 
   <div class="offline-bar" id="offline-bar" role="status" hidden>
@@ -167,145 +167,11 @@
     </section>
 
     <!-- =================================================================
-         S02 · INTERACTIVE STORYBOOK HUB (4 chương + lắng nghe + huy hiệu)
-         ================================================================= -->
-    <section class="section" id="doc-sach" aria-label="Cuốn sách bốn chương">
-      <!-- Nền của phần sách: tranh cá chép vượt sóng dưới trăng (tông pastel), đứng yên theo màn hình khi cuộn.
-           Canvas vẽ lại từ chính bức tranh: nền đã xoá cá và 2 cụm mây ngoài, cá và mây là lớp cắt từ tranh (app.js: sceneCanvas).
-           Ảnh gốc hiện sẵn trong lúc canvas chưa chạy. -->
-      <!-- Đường nối với hero: viền mây cuộn kiểu hoa văn cổ, chỉ vàng chạy theo mép -->
-      <div class="seam" aria-hidden="true"></div>
-      <div class="scene" aria-hidden="true"><div class="scene-sticky">
-        <img class="scene-fallback" src="images/nen/goc.webp" alt="" decoding="async">
-        <canvas class="scene-canvas" id="scene-canvas"></canvas>
-      </div></div>
-      <div class="container">
-        <!-- Chỉ dẫn nổi bên ngoài cuốn sách -->
-        <div class="flip-floating-guide" aria-hidden="true">
-          <span class="guide-pill"><i class="ph ph-hand-swipe-right"></i> Vuốt góc trang hoặc bấm nút bên dưới để lật sách</span>
-        </div>
-        <!-- S02 + S03: quyển sách lật trang (StPageFlip). Trang do app.js dựng. -->
-        <div class="flip-stage reveal" id="flip-stage" tabindex="0" aria-roledescription="sách lật trang" aria-label="Cuốn sách Chuyện Nhà Táo. Dùng phím mũi tên trái, phải để lật trang.">
-          <div class="flipbook" id="flipbook"></div>
-        </div>
-
-        <!-- Cụm nút tương tác Instagram xếp ngang đặt NGAY DƯỚI cuốn sách -->
-        <aside class="ig-book-actions is-share-only" id="ig-book-actions" aria-label="Tương tác sách" data-noflip="true">
-          <!-- Bảng chọn 4 icon cá chép (Popup nổi phía trên cụm icon) -->
-          <div class="ig-reaction-picker" id="ig-reaction-picker" role="menu" aria-label="Chọn biểu tượng cá chép" hidden data-noflip="true">
-            <button class="ig-picker-item" data-type="maiam" type="button" title="Mái Ấm (Bếp ấm sum họp)" data-noflip="true">
-              <img src="images/reaction/maiam.webp" alt="Mái Ấm" width="38" height="38">
-              <span class="ig-picker-tag">Mái Ấm</span>
-            </button>
-            <button class="ig-picker-item" data-type="tonkinh" type="button" title="Tôn Kính (Biết ơn cội nguồn)" data-noflip="true">
-              <img src="images/reaction/tonkinh.webp" alt="Tôn Kính" width="38" height="38">
-              <span class="ig-picker-tag">Tôn Kính</span>
-            </button>
-            <button class="ig-picker-item" data-type="nhinlai" type="button" title="Nhìn Lại (Thấu hiểu bản thân)" data-noflip="true">
-              <img src="images/reaction/nhinlai.webp" alt="Nhìn Lại" width="38" height="38">
-              <span class="ig-picker-tag">Nhìn Lại</span>
-            </button>
-            <button class="ig-picker-item" data-type="huongthien" type="button" title="Hướng Thiện (Gieo mầm điều lành)" data-noflip="true">
-              <img src="images/reaction/huongthien.webp" alt="Hướng Thiện" width="38" height="38">
-              <span class="ig-picker-tag">Hướng Thiện</span>
-            </button>
-          </div>
-
-          <!-- 1. Thả cảm xúc Cá Chép (Thay thế tim & lồng đèn) -->
-          <div class="ig-reaction-wrap" id="ig-reaction-wrap" data-noflip="true">
-            <!-- Nút chính thả cảm xúc -->
-            <button class="ig-act-btn ig-btn-reaction" id="btn-ig-reaction" type="button" aria-label="Thả cảm xúc cá chép" aria-haspopup="menu" aria-expanded="false" data-noflip="true">
-              <div class="ig-btn-bubble ig-carp-bubble">
-                <img src="images/reaction/maiam.webp" id="ig-current-reaction-img" alt="Cá chép" width="34" height="34">
-              </div>
-              <span class="ig-act-count" id="count-reactions">0</span>
-            </button>
-          </div>
-
-          <!-- 2. Bình luận (Mở Instagram Comment Bottom Sheet theo từng trang) -->
-          <button class="ig-act-btn ig-btn-comment" id="btn-ig-comment" type="button" aria-label="Xem và viết bình luận" aria-haspopup="dialog" data-noflip="true">
-            <div class="ig-btn-bubble">
-              <i class="ph-fill ph-chat-circle-dots" aria-hidden="true"></i>
-            </div>
-            <span class="ig-act-count" id="count-comments">0</span>
-          </button>
-
-          <!-- 3. Chia sẻ (Share) -->
-          <button class="ig-act-btn ig-btn-share" id="btn-ig-share" type="button" aria-label="Chia sẻ trang sách" data-noflip="true">
-            <div class="ig-btn-bubble">
-              <i class="ph-fill ph-paper-plane-tilt" aria-hidden="true"></i>
-            </div>
-            <span class="ig-act-count">Gửi</span>
-          </button>
-        </aside>
-
-        <div class="flip-controls">
-          <button class="icon-btn" type="button" id="flip-prev" aria-label="Trang trước"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
-          <p class="flip-status" id="flip-status" aria-live="polite">Bìa sách</p>
-          <button class="icon-btn" type="button" id="flip-next" aria-label="Trang sau"><i class="ph ph-caret-right" aria-hidden="true"></i></button>
-        </div>
-        <p class="flip-hint">© 2026 Chuyện Nhà Táo. Dự án đồ án phi thương mại được phát triển bởi nhóm 5 sinh viên ngành Truyền thông Đa phương tiện, Trường Đại học FPT.</p>
-      </div>
-    </section>
-
-    <!-- =================================================================
-         CHUYỂN TIẾP VĂN HOÁ: ĐỌC SÁCH -> THẺ THÔNG HÀNH
-         - Mép giấy khép nhẹ
-         - Lớp giấy kem hé mở
-         - Viền vàng xuất hiện trên nền đỏ gạch
-         ================================================================= -->
-    <div class="seam-book-passport" id="seam-book-passport" aria-hidden="true">
-      <div class="sbp-inner">
-        <!-- 3. Nền đỏ gạch & Viền vàng xuất hiện (tầng nền) -->
-        <div class="sbp-brick-band">
-          <div class="sbp-gold-line sbp-gold-top"></div>
-          <div class="sbp-brick-content">
-            <svg class="sbp-gold-svg" viewBox="0 0 1200 56" preserveAspectRatio="none" aria-hidden="true">
-              <defs>
-                <linearGradient id="sbpGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#cf9f38" stop-opacity="0.2"/>
-                  <stop offset="20%" stop-color="#e8be54" stop-opacity="0.85"/>
-                  <stop offset="50%" stop-color="#fff3b8"/>
-                  <stop offset="80%" stop-color="#e8be54" stop-opacity="0.85"/>
-                  <stop offset="100%" stop-color="#cf9f38" stop-opacity="0.2"/>
-                </linearGradient>
-              </defs>
-              <line class="sbp-gold-center-line" x1="20" y1="28" x2="1180" y2="28" stroke="url(#sbpGoldGrad)" stroke-width="1.5"/>
-              <path class="sbp-gold-clouds" d="M100,28 C120,16 145,16 165,28 C185,16 210,16 230,28 M420,28 C440,16 465,16 485,28 C505,16 530,16 550,28 M650,28 C670,16 695,16 715,28 C735,16 760,16 780,28 M970,28 C990,16 1015,16 1035,28 C1055,16 1080,16 1100,28" fill="none" stroke="url(#sbpGoldGrad)" stroke-width="1.2" stroke-linecap="round"/>
-            </svg>
-            <div class="sbp-gold-seal">
-              <span class="sbp-seal-dot"></span>
-              <span class="sbp-seal-text">✦ VÂN DU KÝ ✦</span>
-              <span class="sbp-seal-dot"></span>
-            </div>
-          </div>
-          <div class="sbp-gold-line sbp-gold-bottom"></div>
-        </div>
-
-        <!-- 2. Lớp giấy màu kem hé mở (tầng trung gian che phủ dải đỏ gạch) -->
-        <div class="sbp-cream-curtain">
-          <div class="sbp-cream-leaf sbp-cream-left"></div>
-          <div class="sbp-cream-leaf sbp-cream-right"></div>
-          <div class="sbp-cream-knot">
-            <span class="sbp-knot-gem"></span>
-          </div>
-        </div>
-
-        <!-- 1. Mép giấy khép nhẹ (tầng đỉnh nối với sách) -->
-        <div class="sbp-paper-tuck">
-          <svg class="sbp-paper-svg" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true">
-            <path class="sbp-paper-shadow" d="M0,0 L1200,0 L1200,22 Q900,40 600,22 Q300,4 0,22 Z" fill="rgba(60,30,10,0.08)"/>
-            <path class="sbp-paper-sheet" d="M0,0 L1200,0 L1200,16 Q900,34 600,16 Q300,0 0,16 Z" fill="#f5ede0"/>
-            <path class="sbp-paper-crease" d="M0,16 Q300,0 600,16 Q900,34 1200,16" fill="none" stroke="rgba(140,90,50,0.2)" stroke-width="1.2"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <!-- =================================================================
          S04–S06 · CỔNG CHECK-IN O2O: đăng ký, passport 4 trạm, check-out quà
          ================================================================= -->
-    <section class="section passport-scroll-theme" id="tram-trai-nghiem" aria-labelledby="passport-title">
+    <section class="section passport-scroll-theme cards-ready" id="tram-trai-nghiem" aria-labelledby="passport-title">
+      <!-- Đường nối với hero: viền mây cuộn kiểu hoa văn cổ, chỉ vàng chạy theo mép -->
+      <div class="seam" aria-hidden="true"></div>
       <!-- Nền họa quyển tranh 3 khúc (Thiên - Địa - Nhân) -->
       <div class="passport-scroll-bg" aria-hidden="true">
         <div class="psb-layer psb-top"></div>
@@ -445,6 +311,140 @@
               <div class="checkout" id="checkout" hidden aria-live="polite"></div>
             </div>
           </div>
+      </div>
+    </section>
+
+    <!-- =================================================================
+         CHUYỂN TIẾP VĂN HOÁ: THẺ THÔNG HÀNH -> ĐỌC SÁCH
+         - Mép giấy khép nhẹ
+         - Lớp giấy kem hé mở
+         - Viền vàng xuất hiện trên nền đỏ gạch
+         ================================================================= -->
+    <div class="seam-book-passport" id="seam-book-passport" aria-hidden="true">
+      <div class="sbp-inner">
+        <!-- 3. Nền đỏ gạch & Viền vàng xuất hiện (tầng nền) -->
+        <div class="sbp-brick-band">
+          <div class="sbp-gold-line sbp-gold-top"></div>
+          <div class="sbp-brick-content">
+            <svg class="sbp-gold-svg" viewBox="0 0 1200 56" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="sbpGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#cf9f38" stop-opacity="0.2"/>
+                  <stop offset="20%" stop-color="#e8be54" stop-opacity="0.85"/>
+                  <stop offset="50%" stop-color="#fff3b8"/>
+                  <stop offset="80%" stop-color="#e8be54" stop-opacity="0.85"/>
+                  <stop offset="100%" stop-color="#cf9f38" stop-opacity="0.2"/>
+                </linearGradient>
+              </defs>
+              <line class="sbp-gold-center-line" x1="20" y1="28" x2="1180" y2="28" stroke="url(#sbpGoldGrad)" stroke-width="1.5"/>
+              <path class="sbp-gold-clouds" d="M100,28 C120,16 145,16 165,28 C185,16 210,16 230,28 M420,28 C440,16 465,16 485,28 C505,16 530,16 550,28 M650,28 C670,16 695,16 715,28 C735,16 760,16 780,28 M970,28 C990,16 1015,16 1035,28 C1055,16 1080,16 1100,28" fill="none" stroke="url(#sbpGoldGrad)" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            <div class="sbp-gold-seal">
+              <span class="sbp-seal-dot"></span>
+              <span class="sbp-seal-text">✦ CHUYỆN NHÀ TÁO ✦</span>
+              <span class="sbp-seal-dot"></span>
+            </div>
+          </div>
+          <div class="sbp-gold-line sbp-gold-bottom"></div>
+        </div>
+
+        <!-- 2. Lớp giấy màu kem hé mở (tầng trung gian che phủ dải đỏ gạch) -->
+        <div class="sbp-cream-curtain">
+          <div class="sbp-cream-leaf sbp-cream-left"></div>
+          <div class="sbp-cream-leaf sbp-cream-right"></div>
+          <div class="sbp-cream-knot">
+            <span class="sbp-knot-gem"></span>
+          </div>
+        </div>
+
+        <!-- 1. Mép giấy khép nhẹ (tầng đỉnh nối với sách) -->
+        <div class="sbp-paper-tuck">
+          <svg class="sbp-paper-svg" viewBox="0 0 1200 40" preserveAspectRatio="none" aria-hidden="true">
+            <path class="sbp-paper-shadow" d="M0,0 L1200,0 L1200,22 Q900,40 600,22 Q300,4 0,22 Z" fill="rgba(60,30,10,0.08)"/>
+            <path class="sbp-paper-sheet" d="M0,0 L1200,0 L1200,16 Q900,34 600,16 Q300,0 0,16 Z" fill="#f5ede0"/>
+            <path class="sbp-paper-crease" d="M0,16 Q300,0 600,16 Q900,34 1200,16" fill="none" stroke="rgba(140,90,50,0.2)" stroke-width="1.2"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- =================================================================
+         S02 · INTERACTIVE STORYBOOK HUB (4 chương + lắng nghe + huy hiệu)
+         ================================================================= -->
+    <section class="section" id="doc-sach" aria-label="Cuốn sách bốn chương">
+      <!-- Nền của phần sách: tranh cá chép vượt sóng dưới trăng (tông pastel), đứng yên theo màn hình khi cuộn.
+           Canvas vẽ lại từ chính bức tranh: nền đã xoá cá và 2 cụm mây ngoài, cá và mây là lớp cắt từ tranh (app.js: sceneCanvas).
+           Ảnh gốc hiện sẵn trong lúc canvas chưa chạy. -->
+      <div class="scene" aria-hidden="true"><div class="scene-sticky">
+        <img class="scene-fallback" src="images/nen/goc.webp" alt="" decoding="async">
+        <canvas class="scene-canvas" id="scene-canvas"></canvas>
+      </div></div>
+      <div class="container">
+        <!-- Chỉ dẫn nổi bên ngoài cuốn sách -->
+        <div class="flip-floating-guide" aria-hidden="true">
+          <span class="guide-pill"><i class="ph ph-hand-swipe-right"></i> Vuốt góc trang hoặc bấm nút bên dưới để lật sách</span>
+        </div>
+        <!-- S02 + S03: quyển sách lật trang (StPageFlip). Trang do app.js dựng. -->
+        <div class="flip-stage reveal" id="flip-stage" tabindex="0" aria-roledescription="sách lật trang" aria-label="Cuốn sách Chuyện Nhà Táo. Dùng phím mũi tên trái, phải để lật trang.">
+          <div class="flipbook" id="flipbook"></div>
+        </div>
+
+        <!-- Cụm nút tương tác Instagram xếp ngang đặt NGAY DƯỚI cuốn sách -->
+        <aside class="ig-book-actions is-share-only" id="ig-book-actions" aria-label="Tương tác sách" data-noflip="true">
+          <!-- Bảng chọn 4 icon cá chép (Popup nổi phía trên cụm icon) -->
+          <div class="ig-reaction-picker" id="ig-reaction-picker" role="menu" aria-label="Chọn biểu tượng cá chép" hidden data-noflip="true">
+            <button class="ig-picker-item" data-type="maiam" type="button" title="Mái Ấm (Bếp ấm sum họp)" data-noflip="true">
+              <img src="images/reaction/maiam.webp" alt="Mái Ấm" width="38" height="38">
+              <span class="ig-picker-tag">Mái Ấm</span>
+            </button>
+            <button class="ig-picker-item" data-type="tonkinh" type="button" title="Tôn Kính (Biết ơn cội nguồn)" data-noflip="true">
+              <img src="images/reaction/tonkinh.webp" alt="Tôn Kính" width="38" height="38">
+              <span class="ig-picker-tag">Tôn Kính</span>
+            </button>
+            <button class="ig-picker-item" data-type="nhinlai" type="button" title="Nhìn Lại (Thấu hiểu bản thân)" data-noflip="true">
+              <img src="images/reaction/nhinlai.webp" alt="Nhìn Lại" width="38" height="38">
+              <span class="ig-picker-tag">Nhìn Lại</span>
+            </button>
+            <button class="ig-picker-item" data-type="huongthien" type="button" title="Hướng Thiện (Gieo mầm điều lành)" data-noflip="true">
+              <img src="images/reaction/huongthien.webp" alt="Hướng Thiện" width="38" height="38">
+              <span class="ig-picker-tag">Hướng Thiện</span>
+            </button>
+          </div>
+
+          <!-- 1. Thả cảm xúc Cá Chép (Thay thế tim & lồng đèn) -->
+          <div class="ig-reaction-wrap" id="ig-reaction-wrap" data-noflip="true">
+            <!-- Nút chính thả cảm xúc -->
+            <button class="ig-act-btn ig-btn-reaction" id="btn-ig-reaction" type="button" aria-label="Thả cảm xúc cá chép" aria-haspopup="menu" aria-expanded="false" data-noflip="true">
+              <div class="ig-btn-bubble ig-carp-bubble">
+                <img src="images/reaction/maiam.webp" id="ig-current-reaction-img" alt="Cá chép" width="34" height="34">
+              </div>
+              <span class="ig-act-count" id="count-reactions">0</span>
+            </button>
+          </div>
+
+          <!-- 2. Bình luận (Mở Instagram Comment Bottom Sheet theo từng trang) -->
+          <button class="ig-act-btn ig-btn-comment" id="btn-ig-comment" type="button" aria-label="Xem và viết bình luận" aria-haspopup="dialog" data-noflip="true">
+            <div class="ig-btn-bubble">
+              <i class="ph-fill ph-chat-circle-dots" aria-hidden="true"></i>
+            </div>
+            <span class="ig-act-count" id="count-comments">0</span>
+          </button>
+
+          <!-- 3. Chia sẻ (Share) -->
+          <button class="ig-act-btn ig-btn-share" id="btn-ig-share" type="button" aria-label="Chia sẻ trang sách" data-noflip="true">
+            <div class="ig-btn-bubble">
+              <i class="ph-fill ph-paper-plane-tilt" aria-hidden="true"></i>
+            </div>
+            <span class="ig-act-count">Gửi</span>
+          </button>
+        </aside>
+
+        <div class="flip-controls">
+          <button class="icon-btn" type="button" id="flip-prev" aria-label="Trang trước"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
+          <p class="flip-status" id="flip-status" aria-live="polite">Bìa sách</p>
+          <button class="icon-btn" type="button" id="flip-next" aria-label="Trang sau"><i class="ph ph-caret-right" aria-hidden="true"></i></button>
+        </div>
+        <p class="flip-hint">© 2026 Chuyện Nhà Táo. Dự án đồ án phi thương mại được phát triển bởi nhóm 5 sinh viên ngành Truyền thông Đa phương tiện, Trường Đại học FPT.</p>
       </div>
     </section>
 
@@ -695,8 +695,8 @@
           <div>
             <h4>Trải nghiệm</h4>
             <ul>
-              <li><a href="#doc-sach">Đọc sách</a></li>
               <li><a href="#tram-trai-nghiem">Vân Du Ký</a></li>
+              <li><a href="#doc-sach">Đọc sách</a></li>
               <li><a href="#la-so">Chuyện Nhà Đêm 23</a></li>
             </ul>
           </div>
@@ -1025,6 +1025,6 @@
   <!-- StPageFlip: lật trang sách 3D (PDF S02 gợi ý StPageFlip/Turn.js) -->
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js" defer></script>
   <script src="ca-chep.js?v=2.3" defer></script>
-  <script type="module" src="js/main.js?v=3.3"></script>
+  <script type="module" src="js/main.js?v=3.4"></script>
 </body>
 </html>

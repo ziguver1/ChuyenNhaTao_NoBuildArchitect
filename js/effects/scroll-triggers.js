@@ -72,7 +72,7 @@ export function initScrollAnimations() {
       )
   });
 
-  ['doc-sach', 'tram-trai-nghiem', 'la-so'].forEach((id) => {
+  ['tram-trai-nghiem', 'doc-sach', 'la-so'].forEach((id) => {
     const el = $('#' + id);
     if (!el) return;
     ScrollTrigger.create({

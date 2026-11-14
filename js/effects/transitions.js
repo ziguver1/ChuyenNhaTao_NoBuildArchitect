@@ -7,11 +7,11 @@ import { hasGsap, reduceMotion } from '../core/motion.js';
 export function initBookPassportTransition() {
   const seam = $('#seam-book-passport');
   const targetSection = $('#tram-trai-nghiem');
-  if (!seam || !targetSection) return;
+  if (targetSection) targetSection.classList.add('cards-ready');
+  if (!seam) return;
 
   if (!('IntersectionObserver' in window)) {
     seam.classList.add('is-active');
-    targetSection.classList.add('cards-ready');
     return;
   }
 
@@ -20,20 +20,6 @@ export function initBookPassportTransition() {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           seam.classList.add('is-active');
-          targetSection.classList.add('cards-ready');
-          if (hasGsap && !reduceMotion && window.gsap) {
-            const cards = ['#register', '#ticket-slot'].map((sel) => $(sel)).filter(Boolean);
-            if (cards.length) {
-              gsap.to(cards, {
-                y: 0,
-                opacity: 1,
-                duration: 0.5,
-                stagger: 0.08,
-                ease: 'power2.out',
-                overwrite: 'auto'
-              });
-            }
-          }
           // Khi đã kích hoạt mở, giữ cố định trạng thái để loại bỏ hoàn toàn hiện tượng
           // giật frame/nhấp nháy class khi người dùng lướt lên lướt xuống trên điện thoại
           observer.unobserve(seam);
