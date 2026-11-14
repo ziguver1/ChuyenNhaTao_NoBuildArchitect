@@ -16,8 +16,9 @@ module.exports = async (req, res) => {
     const rawName = req.query?.name || req.query?.nickname || new URL(req.url, 'http://x').searchParams.get('name') || new URL(req.url, 'http://x').searchParams.get('nickname');
     const action = req.query?.action || new URL(req.url, 'http://x').searchParams.get('action');
 
-    // 0. Lấy thông tin vòng quay may mắn của Đợt đang hoạt động
+    // 0. Lấy thông tin vòng quay may mắn của Đợt đang hoạt động (Cache tại Edge 15s để giảm tải Redis khi đông khách)
     if (action === 'wheel') {
+      res.setHeader('Cache-Control', 'public, s-maxage=15, stale-while-revalidate=60');
       const [configData, roundCountsData] = await redis([
         ['HGETALL', 'prize:config'],
         ['HGETALL', 'prize:round_counts']
