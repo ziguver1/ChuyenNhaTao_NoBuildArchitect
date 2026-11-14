@@ -281,6 +281,41 @@ export function renderAllChapters() {
   syncTabs();
 }
 
+/**
+ * Thực hiện hiệu ứng lật trang 3D mượt mà, chuẩn xác (khắc phục lỗi StPageFlip trên cả mobile & desktop)
+ * @param {'next'|'prev'} direction - Hướng lật trang
+ * @param {'top'|'bottom'} corner - Góc lật
+ * @returns {boolean} - true nếu bắt đầu lật thành công
+ */
+function executeFlip(direction, corner = 'top') {
+  if (!book.flip) return false;
+  const ctrl = book.flip.getFlipController();
+  if (!ctrl) return false;
+
+  const r = ctrl.getBoundsRect();
+  if (!r) return false;
+
+  // Tọa độ chuẩn bảo đảm kích hoạt đúng hướng và góc lật trong StPageFlip
+  // Next: góc phải ngoài cùng của khung 2 trang (r.left + r.width - 1)
+  // Prev: góc trái ngoài cùng của khung 2 trang (r.left + 1)
+  const targetX = direction === 'next' ? (r.left + r.width - 1) : (r.left + 1);
+  const targetY = corner === 'bottom' ? (r.top + r.height - 1) : (r.top + 1);
+
+  if (ctrl.calc !== null) {
+    try { ctrl.render.finishAnimation(); } catch (e) {}
+  }
+  if (!ctrl.start({ x: targetX, y: targetY })) return false;
+
+  sound.flip();
+  ctrl.setState('flipping');
+  const h10 = Math.max(10, Math.round(r.height / 10));
+  const s = ctrl.calc.getCorner() === 'bottom' ? r.height - h10 : h10;
+  const n = ctrl.calc.getCorner() === 'bottom' ? r.height : 0;
+  ctrl.calc.calc({ x: r.pageWidth - h10, y: s });
+  ctrl.animateFlippingTo({ x: r.pageWidth - h10, y: s }, { x: -r.pageWidth, y: n }, true);
+  return true;
+}
+
 export function initFlipbook() {
   flipbookEl = $('#flipbook');
   if (!flipbookEl) return;
@@ -413,23 +448,19 @@ export function initFlipbook() {
   $('#flip-prev')?.addEventListener('click', () => {
     if (book.flip) {
       if (book.page <= 0) return;
-      if (isFlipping) {
-        try { book.flip.turnToPrevPage(); } catch (e) { goPage(Math.max(0, book.page - 1)); }
-        return;
-      }
+      if (isFlipping || (book.flip.getState && book.flip.getState() === 'flipping')) return;
       isFlipping = true;
       try {
-        book.flip.flipPrev();
+        const ok = executeFlip('prev', 'top');
+        if (!ok) {
+          try { book.flip.turnToPrevPage(); } catch (e) { goPage(Math.max(0, book.page - 1)); }
+          isFlipping = false;
+        }
       } catch (err) {
         try { book.flip.turnToPrevPage(); } catch (e) { goPage(Math.max(0, book.page - 1)); }
-      }
-      setTimeout(() => {
         isFlipping = false;
-        const after = book.flip ? book.flip.getCurrentPageIndex() : book.page;
-        if (after === book.page && book.page > 0) {
-          try { book.flip.turnToPrevPage(); } catch (e) {}
-        }
-      }, 480);
+      }
+      setTimeout(() => { isFlipping = false; }, 800);
     } else {
       goPage(Math.max(0, book.page - 1));
     }
@@ -438,23 +469,19 @@ export function initFlipbook() {
   $('#flip-next')?.addEventListener('click', () => {
     if (book.flip) {
       if (book.page >= P.count - 1) return;
-      if (isFlipping) {
-        try { book.flip.turnToNextPage(); } catch (e) { goPage(Math.min(P.count - 1, book.page + 1)); }
-        return;
-      }
+      if (isFlipping || (book.flip.getState && book.flip.getState() === 'flipping')) return;
       isFlipping = true;
       try {
-        book.flip.flipNext();
+        const ok = executeFlip('next', 'top');
+        if (!ok) {
+          try { book.flip.turnToNextPage(); } catch (e) { goPage(Math.min(P.count - 1, book.page + 1)); }
+          isFlipping = false;
+        }
       } catch (err) {
         try { book.flip.turnToNextPage(); } catch (e) { goPage(Math.min(P.count - 1, book.page + 1)); }
-      }
-      setTimeout(() => {
         isFlipping = false;
-        const after = book.flip ? book.flip.getCurrentPageIndex() : book.page;
-        if (after === book.page && book.page < P.count - 1) {
-          try { book.flip.turnToNextPage(); } catch (e) {}
-        }
-      }, 480);
+      }
+      setTimeout(() => { isFlipping = false; }, 800);
     } else {
       goPage(Math.min(P.count - 1, book.page + 1));
     }
@@ -515,32 +542,23 @@ export function initFlipbook() {
 
   const ctrl = book.flip.getFlipController();
   if (ctrl) {
-    ctrl.flipPrev = function (t = 'top') {
-      const r = this.render.getRect();
-      const topY = (r.top || 0) + 16;
-      const botY = (r.top || 0) + (r.height || 450) - 16;
-      this.flip({
-        x: (r.left || 0) + 16,
-        y: t === 'top' ? topY : botY
-      });
+    ctrl.flipPrev = function (corner = 'top') {
+      executeFlip('prev', corner);
     };
-    ctrl.flipNext = function (t = 'top') {
-      const r = this.render.getRect();
-      const isLandscape = this.render.getOrientation() === 'landscape';
-      const w = isLandscape ? 2 * r.pageWidth : r.pageWidth;
-      const topY = (r.top || 0) + 16;
-      const botY = (r.top || 0) + (r.height || 450) - 16;
-      this.flip({
-        x: (r.left || 0) + w - 16,
-        y: t === 'top' ? topY : botY
-      });
+    ctrl.flipNext = function (corner = 'top') {
+      executeFlip('next', corner);
     };
   }
 
   book.flip.on('flip', (e) => {
     isFlipping = false;
-    sound.flip();
     onPageChange(e.data);
+  });
+
+  book.flip.on('changeState', (e) => {
+    if (e.data === 'read') {
+      isFlipping = false;
+    }
   });
 
   book.flip.on('changeOrientation', () => {
