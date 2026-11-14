@@ -15,7 +15,7 @@ import {
   setPass,
   server,
   savePassToHistory
-} from './passport.state.js?v=4.6';
+} from './passport.state.js?v=4.7';
 
 let uiCallbacks = {
   renderTicket: (animate) => {},

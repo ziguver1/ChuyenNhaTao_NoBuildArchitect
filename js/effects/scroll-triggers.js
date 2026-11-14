@@ -5,8 +5,8 @@ import { $, $$ } from '../core/dom.js';
 import { toast } from '../core/toast.js';
 import { flushMeter } from '../analytics/meter.js';
 import { hasGsap, reduceMotion } from '../core/motion.js';
-import { syncPass } from '../features/passport/passport.service.js?v=4.6';
-import { getPass } from '../features/passport/passport.state.js?v=4.6';
+import { syncPass } from '../features/passport/passport.service.js?v=4.7';
+import { getPass } from '../features/passport/passport.state.js?v=4.7';
 import { moveIndicator } from '../features/storybook/flipbook.js';
 
 export function initMobileMenu() {
@@ -124,19 +124,6 @@ export function initScrollAnimations() {
             }
           }
         }
-      );
-
-      window.addEventListener(
-        'scroll',
-        () => {
-          if (window.scrollY <= 15) {
-            if (parseFloat(getComputedStyle(heroPlate).opacity) < 0.98) {
-              gsap.set(heroPlate, { y: 0, opacity: 1 });
-              if (heroWords.length) gsap.set(heroWords, { opacity: 1, yPercent: 0 });
-            }
-          }
-        },
-        { passive: true }
       );
     }
 

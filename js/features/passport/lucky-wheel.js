@@ -10,7 +10,7 @@ import { track } from '../../analytics/tracker.js';
 import { measure } from '../../analytics/meter.js';
 import { hasGsap, reduceMotion } from '../../core/motion.js';
 import { STATIONS, PP } from './stations.data.js';
-import { getPass, setPass, savePassToHistory } from './passport.state.js?v=4.6';
+import { getPass, setPass, savePassToHistory } from './passport.state.js?v=4.7';
 
 export const PRIZES = {
   keychain: {
@@ -253,7 +253,8 @@ export const tetFx = {
 
   resize() {
     if (!this.cv) return;
-    const d = Math.min(2, window.devicePixelRatio || 1);
+    const isMobile = window.matchMedia('(max-width: 600px)').matches || ('ontouchstart' in window);
+    const d = Math.min(isMobile ? 1.25 : 2, window.devicePixelRatio || 1);
     this.cv.width = innerWidth * d;
     this.cv.height = innerHeight * d;
     this.ctx.setTransform(d, 0, 0, d, 0, 0);
@@ -287,8 +288,9 @@ export const tetFx = {
 
   burst(x, y, big) {
     if (!this.cv || reduceMotion) return;
-    const sparks = big ? 70 : 18,
-      papers = big ? 46 : 10;
+    const isMobile = window.matchMedia('(max-width: 600px)').matches || ('ontouchstart' in window);
+    const sparks = big ? (isMobile ? 32 : 70) : (isMobile ? 10 : 18),
+      papers = big ? (isMobile ? 20 : 46) : (isMobile ? 6 : 10);
     for (let i = 0; i < sparks; i++) {
       const a = Math.random() * 6.3,
         sp = (big ? 160 : 90) + Math.random() * (big ? 260 : 140);
@@ -321,7 +323,7 @@ export const tetFx = {
         color: Math.random() < 0.8 ? '#d42a1e' : '#f3c64d'
       });
     }
-    this.parts.push({ t: 'flash', x, y, r: big ? 70 : 26, life: big ? 0.25 : 0.12, age: 0 });
+    this.parts.push({ t: 'flash', x, y, r: big ? (isMobile ? 48 : 70) : (isMobile ? 18 : 26), life: big ? 0.25 : 0.12, age: 0 });
   },
 
   loop(now) {
@@ -413,9 +415,11 @@ export function firecrackers() {
     ? box.getBoundingClientRect()
     : { left: 0, top: 0, width: innerWidth, height: innerHeight };
   const w = wheel ? wheel.getBoundingClientRect() : r;
+  const isMobile = window.matchMedia('(max-width: 600px)').matches || ('ontouchstart' in window);
+  const count = isMobile ? 12 : 30;
   let t = 0;
-  for (let i = 0; i < 30; i++) {
-    t += 30 + Math.random() * 70;
+  for (let i = 0; i < count; i++) {
+    t += isMobile ? (50 + Math.random() * 90) : (30 + Math.random() * 70);
     setTimeout(() => {
       sound.pop(false);
       const side = Math.random() < 0.5;
@@ -430,7 +434,8 @@ export function firecrackers() {
   setTimeout(() => {
     sound.pop(true);
     tetFx.burst(w.left + w.width / 2, w.top + w.height * 0.25, true);
-    for (let i = 0; i < 26; i++) tetFx.petal(false, true);
+    const petalCount = isMobile ? 12 : 26;
+    for (let i = 0; i < petalCount; i++) tetFx.petal(false, true);
   }, t + 220);
 }
 
@@ -744,6 +749,7 @@ export async function spinWheel(target = 'checkout') {
         rotation: turn,
         duration: dur,
         ease: reduceMotion ? 'power1.out' : 'power4.out',
+        force3D: true,
         onUpdate,
         onComplete: finish
       }

@@ -42,7 +42,7 @@ if (forceLocalRedis || (!isRealUrl(process.env.KV_REST_API_URL) && !isRealUrl(pr
   process.env.KV_REST_API_URL = 'http://memory.redis';
   process.env.KV_REST_API_TOKEN = 'local';
   console.log('[Dev-Server] Đang sử dụng Redis giả lập trong bộ nhớ (In-Memory) -> Phản hồi 0ms, không phụ thuộc mạng.');
-  const db = { h: {}, s: {}, z: {}, k: {} };
+  const db = { h: {}, s: {}, z: {}, k: {}, l: {} };
   const run = ([cmd, k, ...a]) => {
     switch (cmd) {
       case 'HSET': { const h = (db.h[k] = db.h[k] || {}); for (let i = 0; i < a.length; i += 2) h[a[i]] = a[i + 1]; return 1; }
@@ -54,9 +54,11 @@ if (forceLocalRedis || (!isRealUrl(process.env.KV_REST_API_URL) && !isRealUrl(pr
       case 'SMEMBERS': return [...(db.s[k] || [])];
       case 'ZADD': (db.z[k] = db.z[k] || {})[a[1]] = Number(a[0]); return 1;
       case 'ZREVRANGE': return Object.entries(db.z[k] || {}).sort((x, y) => y[1] - x[1]).slice(Number(a[0]), Number(a[1]) + 1).map((x) => x[0]);
+      case 'LPUSH': { const list = (db.l[k] = db.l[k] || []); list.unshift(a[0]); return list.length; }
+      case 'LRANGE': { const list = (db.l[k] || []); const start = Number(a[0]); const end = Number(a[1]); return end === -1 ? list.slice(start) : list.slice(start, end + 1); }
       case 'GET': return db.k[k] ?? null;
       case 'SET': db.k[k] = a[0]; return 'OK';
-      case 'DEL': { delete db.k[k]; delete db.h[k]; delete db.s[k]; delete db.z[k]; return 1; }
+      case 'DEL': { delete db.k[k]; delete db.h[k]; delete db.s[k]; delete db.z[k]; delete db.l[k]; return 1; }
       case 'INCR': db.k[k] = String(Number(db.k[k] || 0) + 1); return Number(db.k[k]);
       case 'EXPIRE': setTimeout(() => { delete db.k[k]; }, Number(a[0]) * 1000).unref(); return 1;
       default: throw new Error('Lệnh Redis chưa giả lập: ' + cmd);

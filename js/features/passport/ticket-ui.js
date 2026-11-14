@@ -26,7 +26,7 @@ import {
   momentCount,
   saveMoments,
   savePassToHistory
-} from './passport.state.js?v=4.6';
+} from './passport.state.js?v=4.7';
 import {
   setPassportServiceCallbacks,
   pushPass,
@@ -41,8 +41,8 @@ import {
   withSuffix,
   openRestore,
   sendFeedback
-} from './passport.service.js?v=4.6';
-import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.6';
+} from './passport.service.js?v=4.7';
+import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.7';
 
 export const pp = { flip: null, pageEls: [], timers: [] };
 
