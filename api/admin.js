@@ -276,6 +276,12 @@ module.exports = async (req, res) => {
         origin: item.origin || 'vietnamese',
         source: item.source || null,
         gift: item.gift || null,
+        checkoutPrize: item.checkout_prize || null,
+        round: item.round || null,
+        claimed: Boolean(item.claimed || item.checkout_prize),
+        favStation: item.fav_station || null,
+        rating: item.rating ? Number(item.rating) : null,
+        feedbackComment: item.feedback_comment || null,
         vid: item.vid || null,
         created: Number(item.created || item.seen || 0),
         seen: Number(item.seen || item.created || 0)

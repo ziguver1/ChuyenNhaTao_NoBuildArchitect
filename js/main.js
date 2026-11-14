@@ -24,20 +24,20 @@ import {
   moveIndicator
 } from './features/storybook/flipbook.js';
 import { stopVoice, stopTale } from './features/storybook/narrator.js';
-import { getPass, server } from './features/passport/passport.state.js?v=4.4';
+import { getPass, server } from './features/passport/passport.state.js?v=4.5';
 import {
   initPassportUI,
   renderTicket,
   renderRegister,
   addStamp,
   triggerCheckoutNow
-} from './features/passport/ticket-ui.js?v=4.4';
+} from './features/passport/ticket-ui.js?v=4.5';
 import {
   startPolling,
   initPollingObserver,
   enterGate,
   restorePass
-} from './features/passport/passport.service.js?v=4.4';
+} from './features/passport/passport.service.js?v=4.5';
 import { initGuideNote } from './features/passport/guide-note.js';
 import {
   initUgcUI,

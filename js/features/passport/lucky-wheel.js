@@ -10,7 +10,7 @@ import { track } from '../../analytics/tracker.js';
 import { measure } from '../../analytics/meter.js';
 import { hasGsap, reduceMotion } from '../../core/motion.js';
 import { STATIONS, PP } from './stations.data.js';
-import { getPass, setPass, savePassToHistory } from './passport.state.js?v=4.4';
+import { getPass, setPass, savePassToHistory } from './passport.state.js?v=4.5';
 
 export const PRIZES = {
   keychain: {
@@ -505,11 +505,20 @@ export function openWheel(target = 'checkout') {
       if (!isWheelSpinning) spinWheel('checkout');
     });
   }
+  // Đồng bộ thời gian thực với Hệ thống Quản lý Vòng quay trên Admin ngay khi mở popup
+  syncWheelFromActiveRound()
+    .then(() => {
+      if (!isWheelSpinning) {
+        const w = $('#wheel');
+        if (w) w.innerHTML = wheelSVG();
+      }
+    })
+    .catch(() => {});
   track('wheel_open', { station: 'checkout' });
   return p;
 }
 
-export function spinWheel(target = 'checkout') {
+export async function spinWheel(target = 'checkout') {
   const pass = getPass();
   if (!pass || spinOf('checkout') || isWheelSpinning) return;
   isWheelSpinning = true;
@@ -530,6 +539,52 @@ export function spinWheel(target = 'checkout') {
   const closeBtn = $('#wheel-close');
   if (closeBtn) closeBtn.disabled = true;
 
+  // 1. Xin kết quả quay trực tiếp từ Hệ thống Quản lý Vòng quay trên Server (kiểm tra kho & tỉ lệ đợt đang chạy)
+  let serverPrize = pass.checkoutPrize || (pass.serverPrizes && (pass.serverPrizes.checkout || pass.serverPrizes[4])) || null;
+  let syncedWithServer = Boolean(serverPrize);
+
+  if (!serverPrize && navigator.onLine) {
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 1200);
+      const r = await fetch('/api/pass', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'spin',
+          pid: pass.id,
+          name: pass.nickname || '',
+          phone: pass.phone || '',
+          email: pass.email || '',
+          age: pass.age || '',
+          origin: pass.origin || 'vietnamese',
+          source: pass.source || '',
+          gift: pass.giftCode || '',
+          vid: store.get('vid', ''),
+          scope: 'nhasach'
+        }),
+        signal: ctrl.signal
+      });
+      clearTimeout(timer);
+      if (r.ok) {
+        const d = await r.json();
+        if (d.activeRound && Array.isArray(d.activeRound.prizes)) {
+          applyPrizesToWheel(d.activeRound.prizes);
+          store.set('cnt_active_wheel_prizes', d.activeRound.prizes);
+          const wEl = $('#wheel');
+          if (wEl) wEl.innerHTML = wheelSVG();
+        }
+        if (Array.isArray(d.outOfStock)) {
+          store.set('cnt_out_of_stock', d.outOfStock);
+        }
+        if (d.prize) {
+          serverPrize = d.prize;
+          syncedWithServer = true;
+        }
+      }
+    } catch (e) {}
+  }
+
   const outOfStock = new Set(store.get('cnt_out_of_stock', []));
   const inStockPool = WHEEL.map((x, i) => i).filter((i) => !outOfStock.has(WHEEL[i].prize));
   const pool = inStockPool.length ? inStockPool : WHEEL.map((x, i) => i);
@@ -541,7 +596,7 @@ export function spinWheel(target = 'checkout') {
     r -= WHEEL[i].share;
   }
 
-  const fixed = pass.checkoutPrize || (pass.serverPrizes && (pass.serverPrizes.checkout || pass.serverPrizes[4]));
+  const fixed = serverPrize;
   if (fixed && (!outOfStock.has(fixed) || !inStockPool.length)) {
     const ks = WHEEL.map((x, i) => (x.prize === fixed ? i : -1)).filter((i) => i >= 0);
     if (ks.length) k = ks[Math.floor(Math.random() * ks.length)];
@@ -551,20 +606,47 @@ export function spinWheel(target = 'checkout') {
   const at = segStart(k) + WHEEL[k].share * 3.6 * (0.15 + Math.random() * 0.7);
   const prize = WHEEL[k].prize;
 
+  const nowTs = Date.now();
   pass.checkedOut = true;
-  pass.checkoutSpin = { prize, at: Date.now() };
+  pass.claimed = true;
+  pass.checkoutSpin = { prize, at: nowTs };
   pass.checkoutPrize = prize;
   if (!pass.spins) pass.spins = {};
-  pass.spins.checkout = { prize, at: Date.now() };
+  pass.spins.checkout = { prize, at: nowTs };
   setPass(pass);
   savePassToHistory(pass);
 
-  // Nếu online và có server, gọi API spin để lưu quà checkout trên server nếu chưa có
-  if (!fixed && navigator.onLine) {
+  // Cập nhật bản ghi local Nhà Sách check-in để đồng bộ quà vòng quay
+  try {
+    const nsList = store.get('nhasach_checkins', []);
+    const idx = nsList.findIndex((item) => item && item.pid === pass.id);
+    if (idx !== -1) {
+      nsList[idx].checkoutPrize = prize;
+      nsList[idx].claimed = true;
+      nsList[idx].seen = nowTs;
+      store.set('nhasach_checkins', nsList);
+    }
+  } catch (e) {}
+
+  // Nếu lúc bấm mạng chậm chưa kịp gọi xong, đồng bộ ngầm lên server để trừ kho quà trên Admin
+  if (!syncedWithServer && navigator.onLine) {
     fetch('/api/pass', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'spin', pid: pass.id, prize })
+      body: JSON.stringify({
+        action: 'spin',
+        pid: pass.id,
+        prize,
+        name: pass.nickname || '',
+        phone: pass.phone || '',
+        email: pass.email || '',
+        age: pass.age || '',
+        origin: pass.origin || 'vietnamese',
+        source: pass.source || '',
+        gift: pass.giftCode || '',
+        vid: store.get('vid', ''),
+        scope: 'nhasach'
+      })
     }).then((r) => r.json()).then((d) => {
       if (d.pass && d.pass.checkoutPrize) {
         pass.checkoutPrize = d.pass.checkoutPrize;

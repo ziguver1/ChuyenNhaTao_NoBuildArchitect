@@ -10,7 +10,7 @@
 import { $, $$, esc } from '../../core/dom.js';
 import { store } from '../../core/storage.js';
 import { toast } from '../../core/toast.js';
-import { getPass } from '../passport/passport.state.js?v=4.4';
+import { getPass } from '../passport/passport.state.js?v=4.5';
 import { CHAPTERS, P, chapterOfPage, pageLabel } from '../storybook/chapters.data.js';
 
 // Danh mục 4 icon cá chép độc bản

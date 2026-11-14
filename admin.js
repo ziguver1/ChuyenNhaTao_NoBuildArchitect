@@ -2123,6 +2123,15 @@
     renderNhasachRows();
   }
 
+  function getPrizeDisplayName(key) {
+    if (!key) return '';
+    for (const r of state.rounds || []) {
+      const found = (r.prizes || []).find((p) => p.key === key);
+      if (found) return `${found.icon && !/^[a-z0-9-]+$/i.test(found.icon) ? found.icon + ' ' : ''}${found.name}`;
+    }
+    return PRIZE_LABEL[key] || key;
+  }
+
   function renderNhasachRows() {
     const tbody = $('#nhasach-rows');
     if (!tbody) return;
@@ -2136,12 +2145,14 @@
         if (state.nsOrigin !== 'all' && (r.origin || 'vietnamese') !== state.nsOrigin) return false;
         if (!state.nsQ) return true;
         const q = state.nsQ;
+        const prizeTxt = getPrizeDisplayName(r.checkoutPrize).toLowerCase();
         return (
           (r.pid || '').toLowerCase().includes(q) ||
           (r.name || '').toLowerCase().includes(q) ||
           (r.email || '').toLowerCase().includes(q) ||
           (r.age || '').toLowerCase().includes(q) ||
           (r.source || '').toLowerCase().includes(q) ||
+          prizeTxt.includes(q) ||
           (ORIGIN_LABELS[r.origin] || r.origin || '').toLowerCase().includes(q)
         );
       })
@@ -2154,23 +2165,30 @@
     tbody.innerHTML = rows.length
       ? rows
           .map(
-            (r) => `<tr>
+            (r) => {
+              const pName = getPrizeDisplayName(r.checkoutPrize);
+              const prizeCell = pName
+                ? `<span style="display:inline-flex;align-items:center;gap:4px;font-weight:700;color:#b8241c;background:#fef2f2;padding:2px 8px;border-radius:999px;font-size:12.5px;">🎁 ${esc(pName)}</span>`
+                : `<span style="color:var(--text-muted);font-size:12.5px;">Chưa quay Check-out</span>`;
+              return `<tr>
         <td><span class="mono">${esc(r.pid || '—')}</span></td>
         <td><strong>${esc(r.name || '—')}</strong></td>
         <td>${esc(r.age || '—')}</td>
         <td>${esc(ORIGIN_LABELS[r.origin || 'vietnamese'] || r.origin || '—')}</td>
         <td>${esc(r.email || '—')}</td>
         <td>${esc(r.source || '—')}</td>
+        <td>${prizeCell}</td>
         <td><span class="mono">${esc(r.gift || '—')}</span></td>
         <td>${r.seen ? new Date(r.seen).toLocaleString('vi-VN') : '—'}</td>
-      </tr>`
+      </tr>`;
+            }
           )
           .join('')
-      : `<tr><td class="empty" colspan="8">Chưa có dữ liệu Nhà Sách check-in${state.nsQ || state.nsOrigin !== 'all' ? ' khớp bộ lọc' : ''}.</td></tr>`;
+      : `<tr><td class="empty" colspan="9">Chưa có dữ liệu Nhà Sách check-in${state.nsQ || state.nsOrigin !== 'all' ? ' khớp bộ lọc' : ''}.</td></tr>`;
   }
 
   function exportNhasachCSV() {
-    const head = ['Mã thẻ / ID', 'Tên', 'Độ tuổi', 'Nơi đến', 'Email', 'Kênh biết đến', 'Mã quà', 'Thời gian Check-in'];
+    const head = ['Mã thẻ / ID', 'Tên', 'Độ tuổi', 'Nơi đến', 'Email', 'Kênh biết đến', 'Quà vòng quay', 'Mã quà', 'Thời gian Check-in'];
     const cell = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
     const time = (t) => (t ? new Date(t).toLocaleString('vi-VN') : '');
     const lines = (state.nhasachRows || []).map((r) =>
@@ -2181,6 +2199,7 @@
         ORIGIN_LABELS[r.origin || 'vietnamese'] || r.origin,
         r.email,
         r.source,
+        getPrizeDisplayName(r.checkoutPrize) || 'Chưa quay',
         r.gift,
         time(r.seen || r.created)
       ]

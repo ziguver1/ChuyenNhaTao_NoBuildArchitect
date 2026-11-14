@@ -145,28 +145,68 @@ module.exports = async (req, res) => {
       ['HGETALL', 'prize:round_counts']
     ]);
     const o = toObject(h);
-    if (!o.pid) return res.status(404).json({ error: 'notfound' });
+    const now = String(Date.now());
+    const cmds = [];
+
+    // Nếu thẻ chưa kịp đồng bộ lên Redis trước khi bấm Check-out & Quay, tự động khởi tạo thẻ & bản ghi Nhà Sách
+    if (!o.pid) {
+      const name = typeof b.name === 'string' && b.name.trim() ? b.name.trim().slice(0, 32) : 'Khách Check-in';
+      const phone = typeof b.phone === 'string' ? b.phone.trim().slice(0, 20) : '';
+      const email = typeof b.email === 'string' ? b.email.trim().slice(0, 100) : '';
+      const age = typeof b.age === 'string' ? b.age.trim().slice(0, 50) : '';
+      const origin = typeof b.origin === 'string' && b.origin.trim() ? b.origin.trim().slice(0, 50) : 'vietnamese';
+      const source = typeof b.source === 'string' ? b.source.trim().slice(0, 200) : '';
+      const gift = /^QUA-[A-Z0-9]{4}$/.test(b.gift || '') ? b.gift : '';
+      const vid = /^[A-Za-z0-9-]{8,40}$/.test(b.vid || '') ? b.vid : '';
+
+      o.pid = pid;
+      o.name = name;
+      o.origin = origin;
+      o.vid = vid;
+
+      cmds.push(
+        ['HSET', key, 'pid', pid, 'name', name, 'phone', phone, 'email', email, 'age', age, 'origin', origin, 'source', source, 'gift', gift, 'vid', vid, 'created', now],
+        ['HSET', 'name2pid', plainName(name), pid],
+        ['HSET', `nhasach:item:${pid}`, 'pid', pid, 'name', name, 'phone', phone, 'email', email, 'age', age, 'origin', origin, 'source', source, 'gift', gift, 'vid', vid, 'created', now, 'seen', now],
+        ['ZADD', 'nhasach:checkins', now, pid],
+        ['HINCRBY', 'nhasach:origins', origin, '1'],
+        ['HINCRBY', 'nhasach:ages', age || 'unknown', '1']
+      );
+    }
 
     const { rounds, activeId, activeRound } = parseRoundsConfig(toObject(configData));
     const activeCounts = getRoundCounts(toObject(roundCountsData), activeId);
     const outOfStock = getRoundOutOfStockSet(activeRound, activeCounts);
 
-    const cmds = [];
+    const activePrizeKeys = new Set((activeRound.prizes || []).map((p) => p.key));
     let prize = o.checkout_prize || o.prize;
     if (!prize) {
-      const clientPrize = (b.prize && PRIZE_KEYS.has(b.prize) && !outOfStock.has(b.prize)) ? b.prize : null;
+      const clientPrize = (b.prize && activePrizeKeys.has(b.prize) && !outOfStock.has(b.prize)) ? b.prize : null;
       prize = clientPrize || rollPrize(false, outOfStock, activeRound.prizes);
       cmds.push(
-        ['HSET', key, 'checkout_prize', prize, 'round', activeId],
+        ['HSET', key, 'checkout_prize', prize, 'round', activeId, 'claimed', now, 'checkout_given', now],
         ['HINCRBY', 'prize:counts', prize, '1']
       );
       if (activeId) cmds.push(['HINCRBY', 'prize:round_counts', `${activeId}:${prize}`, '1']);
-      if (o.origin) cmds.push(['HSET', `nhasach:item:${pid}`, 'checkout_prize', prize]);
-      else if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+      if (o.origin || b.scope === 'nhasach') {
+        cmds.push(['HSET', `nhasach:item:${pid}`, 'checkout_prize', prize, 'round', activeId, 'claimed', '1', 'checkout_given', now, 'seen', now]);
+      } else if (o.vid) {
+        cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize, 'claimed', '1']);
+      }
     }
     cmds.push(['HGETALL', key]);
     const out = await redis(cmds);
-    return res.status(200).json({ prize, pass: passView(toObject(out[out.length - 1])) });
+    return res.status(200).json({
+      ok: true,
+      prize,
+      activeRound: {
+        id: activeId,
+        name: activeRound.name,
+        prizes: activeRound.prizes
+      },
+      outOfStock: Array.from(outOfStock),
+      pass: passView(toObject(out[out.length - 1]))
+    });
   }
 
   if (req.method === 'POST' && ((readBody(req) || {}).action === 'stamp' || (readBody(req) || {}).action === 'station')) {

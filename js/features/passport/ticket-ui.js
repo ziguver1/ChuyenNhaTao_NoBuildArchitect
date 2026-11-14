@@ -26,7 +26,7 @@ import {
   momentCount,
   saveMoments,
   savePassToHistory
-} from './passport.state.js?v=4.4';
+} from './passport.state.js?v=4.5';
 import {
   setPassportServiceCallbacks,
   pushPass,
@@ -41,8 +41,8 @@ import {
   withSuffix,
   openRestore,
   sendFeedback
-} from './passport.service.js?v=4.4';
-import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.4';
+} from './passport.service.js?v=4.5';
+import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.5';
 
 export const pp = { flip: null, pageEls: [], timers: [] };
 
@@ -555,14 +555,17 @@ export function wonList() {
   if (!spin) return '';
   const pz = PRIZES[spin.prize] || { label: spin.prize, icon: 'gift' };
   const isMiss = spin.prize === 'none';
-  const pass = getPass();
+  const iconHtml =
+    pz.icon && /^[a-z0-9-]+$/i.test(pz.icon)
+      ? `<i class="ph-fill ph-${pz.icon}" aria-hidden="true"></i>`
+      : `<span style="font-size:18px;line-height:1;display:inline-block;vertical-align:middle;">${pz.icon || '🎁'}</span>`;
   return `<div class="won">
-    <strong><i class="ph-fill ph-gift" aria-hidden="true"></i> Quà vòng quay tốt nghiệp</strong>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;">
+    <strong><i class="ph-fill ph-gift" aria-hidden="true"></i> Quà vòng quay Check-out</strong>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;flex-wrap:wrap;">
       <span class="pp-prize ${isMiss ? 'is-miss' : ''}" style="font-size:14px;padding:6px 14px;">
-        <i class="ph-fill ph-${pz.icon || 'gift'}" aria-hidden="true"></i> ${esc(pz.label)}
+        ${iconHtml} ${esc(pz.label)}
       </span>
-      <small style="color:var(--text-muted);font-weight:600;">${pass?.claimed ? '✓ Đã nhận quà' : 'Chờ trao tại bàn Check-out'}</small>
+      <small style="color:#16a34a;font-weight:700;">✓ Đã hoàn tất Check-out</small>
     </div>
   </div>`;
 }
@@ -716,14 +719,12 @@ export function renderCheckout() {
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <strong style="font-size:17px;color:var(--text);">${esc(pass.nickname)}</strong>
             <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;${
-              pass.claimed
+              isCheckedOut
                 ? 'background:#dcfce7;color:#166534;'
-                : isCheckedOut
-                ? 'background:#fef3c7;color:#92400e;'
-                : 'background:#dcfce7;color:#166534;'
+                : 'background:#fef3c7;color:#92400e;'
             }">
               <i class="ph-fill ph-check-circle"></i>
-              ${pass.claimed ? 'Đã nhận quà Check-out' : isCheckedOut ? 'Đã Check-out' : 'Đã Check-in'}
+              ${isCheckedOut ? 'Đã Check-out' : 'Đã Check-in'}
             </span>
           </div>
           <span class="mono" style="font-size:13px;color:var(--accent-ink);font-weight:700;letter-spacing:.06em;">${esc(pass.id)}</span>
@@ -737,11 +738,9 @@ export function renderCheckout() {
     <div>
       <h3>${isCheckedOut ? 'Chúc mừng, bạn đã hoàn tất Check-out!' : 'Bạn đã Check-in thành công!'}</h3>
       <p style="color:var(--text-muted);margin-top:6px">${
-        pass.claimed
-          ? 'Quà may mắn đã được trao. Cảm ơn bạn đã đồng hành cùng Chuyện Nhà Táo!'
-          : hasSpun
-          ? 'Bạn đã quay vòng quay may mắn Check-out. Đưa mã nhận quà hoặc mã QR bên dưới cho nhân sự tại bàn Check-out.'
-          : 'Trạng thái Check-in đang được lưu trên máy của bạn. Khi Check-out ra về, bạn có 1 lượt quay may mắn duy nhất để nhận quà!'
+        hasSpun
+          ? 'Bạn đã hoàn tất Check-out và quay vòng quay may mắn. Đưa màn hình phần quà và mã bên dưới cho nhân sự để nhận quà nhé!'
+          : 'Trạng thái Check-in đang được lưu trên máy của bạn. Khi ra về, bấm nút Check-out bên dưới để nhận 1 lượt quay may mắn!'
       }</p>
     </div>
 
@@ -761,15 +760,8 @@ export function renderCheckout() {
                <i class="ph-fill ph-spiral" aria-hidden="true"></i> Check-out & Quay ngay (1 lượt)
              </button>
            </div>`
-        : wonList()
-    }
-
-    <p class="gift-code ${pass.claimed ? 'is-claimed' : ''}" aria-label="Mã nhận quà ${(pass.giftCode || '')
-    .split('')
-    .join(' ')}">${esc(pass.giftCode || '')}</p>
-    ${
-      pass.claimed
-        ? `<div class="verdict ok" style="margin:12px 0;text-align:center;"><i class="ph-fill ph-check-circle" style="color:#10b981;"></i><span>Đã nhận quà tại bàn Check-out. Cảm ơn bạn đã tham gia!</span></div>
+        : `${wonList()}
+           <p class="gift-code" aria-label="Mã nhận quà ${(pass.giftCode || '').split('').join(' ')}">${esc(pass.giftCode || '')}</p>
            ${
              pass.feedbackAnswered && pass.feedback
                ? `<div style="padding:14px 16px;background:var(--surface-2);border-radius:14px;border:1px solid var(--line);margin:12px 0;text-align:center;display:grid;gap:6px;">
@@ -791,26 +783,6 @@ export function renderCheckout() {
                     </button>
                   </div>`
            }`
-        : `
-        <div style="display:grid;gap:10px;margin:14px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;">
-          <p class="help" style="margin:0;font-size:14px;color:var(--text);font-weight:600;">
-            <i class="ph-fill ph-storefront" style="color:var(--accent);"></i> Trao quà tại Bàn Check-out:
-          </p>
-          <p style="margin:0;font-size:13px;color:var(--text-muted);">
-            Đưa mã QR cho nhân sự tại bàn Check-out quét xác nhận để nhận quà:
-          </p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
-            <button class="btn btn-primary" type="button" data-show-qr style="flex:1;min-width:200px;">
-              <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR (Đưa nhân sự quét)
-            </button>
-            <button class="btn btn-ghost btn-sm" type="button" data-scan-qr style="font-size:12.5px;">
-              <i class="ph ph-camera" aria-hidden="true"></i> Bật camera tự quét
-            </button>
-            <button class="btn btn-ghost btn-sm" type="button" id="btn-claim" style="font-size:12.5px;">
-              <i class="ph ph-hand-heart" aria-hidden="true"></i> Nhân sự xác nhận đã trao quà
-            </button>
-          </div>
-        </div>`
     }`;
 
   $('#btn-checkout-spin')?.addEventListener('click', () => {
@@ -841,27 +813,6 @@ export function renderCheckout() {
     renderCheckout();
     $('#f-checkin-name')?.focus();
   });
-
-  const cb = $('#btn-claim');
-  if (cb) {
-    cb.addEventListener('click', () => {
-      if (pass.claimed) {
-        toast('Mã quà này đã được dùng. Nếu có nhầm lẫn, bạn báo nhân sự giúp nhé.', 'info');
-        return;
-      }
-      pass.claimed = true;
-      pass.checkedOut = true;
-      setPass(pass);
-      track('reward_claimed');
-      measure('claim');
-      toast('Đã ghi nhận trao quà. Chúc bạn một năm mới thật ấm.', 'gold', 'gift');
-      renderCheckout();
-      renderRegister();
-      setTimeout(() => {
-        showFeedbackPopup(true);
-      }, 400);
-    });
-  }
 }
 
 export function renderRegister() {

@@ -16,8 +16,8 @@ import {
   moments,
   MOMENT_SLOTS,
   saveMoments
-} from '../passport/passport.state.js?v=4.4';
-import { pickMoment, ppRefresh, renderTicket, renderRegister } from '../passport/ticket-ui.js?v=4.4';
+} from '../passport/passport.state.js?v=4.5';
+import { pickMoment, ppRefresh, renderTicket, renderRegister } from '../passport/ticket-ui.js?v=4.5';
 import { PP } from '../passport/stations.data.js';
 import {
   drawCard,
