@@ -174,7 +174,7 @@
               <h3>Khảo sát Check-in</h3>
               <p class="lead">Chào mừng bạn đến với Chuyện Nhà Táo! Vui lòng hoàn thành các thông tin bên dưới:</p>
 
-              <form class="form" id="form-register" novalidate>
+              <form class="form" id="form-register" novalidate onsubmit="return false;">
                 <div class="error-summary" id="error-summary" role="alert" tabindex="-1" hidden>
                   <h4>Còn một chút nữa thôi</h4>
                   <div id="error-summary-list"></div>
@@ -433,7 +433,7 @@
         <p class="feedback-sub">Bạn vừa nhận quà tốt nghiệp thành công. Hãy dành ít giây chia sẻ cảm nhận với chúng mình nhé!</p>
       </div>
 
-      <form class="feedback-form" id="form-feedback" novalidate>
+      <form class="feedback-form" id="form-feedback" novalidate onsubmit="return false;">
         <!-- Câu hỏi 1: Bạn thích trạm nào nhất? -->
         <div class="form-group" style="margin-bottom: 16px;">
           <label class="form-lbl" style="font-weight:700; font-size:15px; display:flex; align-items:center; gap:6px;">
@@ -544,6 +544,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
   <script src="ca-chep.js" defer></script>
-  <script type="module" src="js/main.js?v=3.4"></script>
+  <script type="module" src="js/main.js?v=4.2"></script>
 </body>
 </html>

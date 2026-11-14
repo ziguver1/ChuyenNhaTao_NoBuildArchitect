@@ -26,7 +26,7 @@ import {
   momentCount,
   saveMoments,
   savePassToHistory
-} from './passport.state.js';
+} from './passport.state.js?v=4.2';
 import {
   setPassportServiceCallbacks,
   pushPass,
@@ -41,8 +41,8 @@ import {
   withSuffix,
   openRestore,
   sendFeedback
-} from './passport.service.js';
-import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js';
+} from './passport.service.js?v=4.2';
+import { PRIZES, spinOf, openWheel, setWheelCallbacks } from './lucky-wheel.js?v=4.2';
 
 export const pp = { flip: null, pageEls: [], timers: [] };
 
@@ -881,16 +881,24 @@ const NHASACH_SESSION_KEY = 'cnt_nhasach_session';
 
 function setNhasachSession(mode) {
   try {
-    if (mode) sessionStorage.setItem(NHASACH_SESSION_KEY, mode);
-    else sessionStorage.removeItem(NHASACH_SESSION_KEY);
-  } catch (e) {}
+    if (mode) {
+      sessionStorage.setItem(NHASACH_SESSION_KEY, mode);
+      store.set('nhasach_session_mode', mode);
+    } else {
+      sessionStorage.removeItem(NHASACH_SESSION_KEY);
+      store.del('nhasach_session_mode');
+    }
+  } catch (e) {
+    if (mode) store.set('nhasach_session_mode', mode);
+    else store.del('nhasach_session_mode');
+  }
 }
 
 function getNhasachSession() {
   try {
-    return sessionStorage.getItem(NHASACH_SESSION_KEY) || '';
+    return sessionStorage.getItem(NHASACH_SESSION_KEY) || store.get('nhasach_session_mode', '') || '';
   } catch (e) {
-    return '';
+    return store.get('nhasach_session_mode', '') || '';
   }
 }
 
@@ -1119,7 +1127,8 @@ export function renderRegister() {
     renderPassSuccessCard(pass);
     return;
   }
-  if (guest && sessionMode === 'guest') {
+  if (guest && (sessionMode === 'guest' || guest.sessionActive)) {
+    setNhasachSession('guest');
     renderGuestThanksCard(guest);
     return;
   }
@@ -1223,6 +1232,44 @@ export function initPassportUI() {
       validateOrigin();
     });
   });
+
+  // Khôi phục dữ liệu nếu URL có query từ lần submit native trước khi xoá cache (?checkin_name=...)
+  try {
+    const qsForm = new URLSearchParams(location.search);
+    if (qsForm.has('checkin_name') || qsForm.has('origin')) {
+      const qName = (qsForm.get('checkin_name') || qsForm.get('nickname') || '').trim();
+      const qAge = qsForm.get('checkin_age') || qsForm.get('age') || '';
+      const qOrigin = qsForm.get('origin') || '';
+      const qEmail = (qsForm.get('email') || '').trim();
+      ['checkin_name', 'checkin_age', 'origin', 'nickname', 'email', 'age', 'source', 'consent'].forEach((k) =>
+        qsForm.delete(k)
+      );
+      history.replaceState(
+        null,
+        '',
+        location.pathname + (qsForm.toString() ? '?' + qsForm.toString() : '') + location.hash
+      );
+      if (qName && fCheckinName) {
+        fCheckinName.value = qName;
+        syncNameFromCheckin();
+      }
+      if (qAge) {
+        const rAge = document.querySelector(`input[name="checkin_age"][value="${qAge}"]`);
+        if (rAge) {
+          rAge.checked = true;
+          syncAgeFromCheckin();
+        }
+      }
+      if (qEmail && fEmail) fEmail.value = qEmail;
+      if (qOrigin) {
+        const rOrig = document.querySelector(`input[name="origin"][value="${qOrigin}"]`);
+        if (rOrig) {
+          rOrig.checked = true;
+          onOriginChange();
+        }
+      }
+    }
+  } catch (e) {}
 
   fCheckinName?.addEventListener('input', () => {
     syncNameFromCheckin();
@@ -1444,7 +1491,7 @@ export function initPassportUI() {
       } catch (err) {}
 
       const now = Date.now();
-      store.set('visitor_checkin', { id: chkId, name: nickname, age, origin, at: now });
+      store.set('visitor_checkin', { id: chkId, name: nickname, age, origin, at: now, sessionActive: true });
       setNhasachSession('guest');
       saveLocalNhasachRecord({
         pid: chkId,

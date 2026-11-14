@@ -5,8 +5,8 @@ import { $, $$ } from '../core/dom.js';
 import { toast } from '../core/toast.js';
 import { flushMeter } from '../analytics/meter.js';
 import { hasGsap, reduceMotion } from '../core/motion.js';
-import { syncPass } from '../features/passport/passport.service.js';
-import { getPass } from '../features/passport/passport.state.js';
+import { syncPass } from '../features/passport/passport.service.js?v=4.2';
+import { getPass } from '../features/passport/passport.state.js?v=4.2';
 import { moveIndicator } from '../features/storybook/flipbook.js';
 
 export function initMobileMenu() {

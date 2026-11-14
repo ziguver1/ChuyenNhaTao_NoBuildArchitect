@@ -10,7 +10,7 @@ import { track } from '../../analytics/tracker.js';
 import { measure } from '../../analytics/meter.js';
 import { hasGsap, reduceMotion } from '../../core/motion.js';
 import { STATIONS, PP } from './stations.data.js';
-import { getPass, setPass, savePassToHistory } from './passport.state.js';
+import { getPass, setPass, savePassToHistory } from './passport.state.js?v=4.2';
 
 export const PRIZES = {
   keychain: {

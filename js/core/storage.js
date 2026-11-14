@@ -18,6 +18,13 @@ export const store = {
       /* bỏ qua */
     }
   },
+  del(key) {
+    try {
+      localStorage.removeItem('cnt_' + key);
+    } catch (e) {
+      /* bỏ qua */
+    }
+  },
   clear() {
     try {
       Object.keys(localStorage)
