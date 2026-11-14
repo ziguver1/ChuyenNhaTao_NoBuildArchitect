@@ -56,6 +56,7 @@ export function flushMeter(leaving = false) {
     vid: meter.vid,
     pid: pass ? pass.id : null,
     name: pass ? pass.nickname : '',
+    scope: 'nhasach',
     events
   });
 

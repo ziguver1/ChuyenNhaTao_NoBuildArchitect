@@ -84,14 +84,18 @@
   // State quản trị
   const state = {
     rows: [],
+    nhasachRows: [],
     analytics: null,
     inventory: null,
     rounds: [],
     activeRoundId: 'round_1',
     selectedRoundId: 'round_1',
     sort: { k: 'seen', dir: -1 },
+    nsSort: { k: 'seen', dir: -1 },
     pageSort: { k: 'hotScore', dir: -1 },
     q: '',
+    nsQ: '',
+    nsOrigin: 'all',
     commentFilter: { chapter: 'all', q: '' },
     source: 'api',
     activeTab: 'tab-community'
@@ -560,6 +564,7 @@
 
     state.source = 'api';
     state.rows = (data.rows || []).map(enrich);
+    state.nhasachRows = data.nhasachRows || [];
     state.analytics = data.analytics || null;
     state.inventory = data.inventory || null;
     state.rounds = data.rounds || [];
@@ -571,9 +576,19 @@
     showApp();
   }
 
+  function localNhasachRows() {
+    try {
+      const v = localStorage.getItem('cnt_nhasach_checkins');
+      const list = v ? JSON.parse(v) : [];
+      if (Array.isArray(list) && list.length) return list;
+    } catch (e) {}
+    return [];
+  }
+
   function showLocal(why) {
     state.source = 'local';
     state.rows = localRows().map(enrich);
+    state.nhasachRows = localNhasachRows();
     state.analytics = localAnalytics();
     const loc = localInventory();
     state.inventory = loc.inventory;
@@ -2037,10 +2052,156 @@
       : `<tr><td class="empty" colspan="15">Chưa có ai${state.q ? ' khớp với ô tìm kiếm' : ''}.</td></tr>`;
   }
 
+  const ORIGIN_LABELS = {
+    vietnamese: '🇻🇳 Người Việt Nam',
+    international: '🌏 Khách quốc tế',
+    other: '✨ Khác'
+  };
+
+  function renderNhasach() {
+    const R = state.nhasachRows || [];
+    const vnCount = R.filter((r) => (r.origin || 'vietnamese') === 'vietnamese').length;
+    const intlCount = R.filter((r) => r.origin === 'international').length;
+    const otherCount = R.filter((r) => r.origin === 'other').length;
+    const age18 = R.filter((r) => r.age === '<18' || (r.age || '').includes('18')).length;
+
+    const tiles = [
+      {
+        val: R.length.toLocaleString('vi-VN'),
+        label: 'Tổng Check-in Nhà Sách',
+        sub: 'Tách riêng khỏi dữ liệu cũ',
+        icon: 'ph-storefront',
+        color: '#b8241c'
+      },
+      {
+        val: vnCount.toLocaleString('vi-VN'),
+        label: 'Người Việt Nam',
+        sub: 'Đã tạo thẻ thông hành',
+        icon: 'ph-identification-card',
+        color: '#3b82f6'
+      },
+      {
+        val: intlCount.toLocaleString('vi-VN'),
+        label: 'Khách quốc tế',
+        sub: 'International visitors',
+        icon: 'ph-globe-hemisphere-east',
+        color: '#10b981'
+      },
+      {
+        val: otherCount.toLocaleString('vi-VN'),
+        label: 'Khác (Other)',
+        sub: 'Khách check-in khác',
+        icon: 'ph-sparkle',
+        color: '#f59e0b'
+      }
+    ];
+
+    const tilesEl = $('#nhasach-tiles');
+    if (tilesEl) {
+      tilesEl.className = 'kpi-grid';
+      tilesEl.innerHTML = tiles
+        .map(
+          (t) => `
+          <div class="kpi-card" style="border-left: 4px solid ${t.color}; padding: 14px 16px;">
+            <div class="kpi-header">
+              <span style="font-size: 11.5px; font-weight:700;">${esc(t.label)}</span>
+              <i class="ph-fill ${t.icon}" style="color: ${t.color}; font-size: 20px;"></i>
+            </div>
+            <div class="kpi-num" style="font-size: 26px; margin: 4px 0;">${t.val}</div>
+            <div class="kpi-sub" style="font-size: 12px; color:var(--text-muted);">${esc(t.sub)}</div>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    const subEl = $('#nhasach-sub');
+    if (subEl) {
+      subEl.textContent = `${R.length} lượt check-in tại Nhà Sách (lưu độc lập, không gộp chung với tab Người tham gia cũ)`;
+    }
+
+    renderNhasachRows();
+  }
+
+  function renderNhasachRows() {
+    const tbody = $('#nhasach-rows');
+    if (!tbody) return;
+    const { k, dir } = state.nsSort;
+    $$('th[data-nsk]').forEach((th) =>
+      th.setAttribute('aria-sort', th.dataset.nsk === k ? (dir > 0 ? 'ascending' : 'descending') : 'none')
+    );
+
+    const rows = (state.nhasachRows || [])
+      .filter((r) => {
+        if (state.nsOrigin !== 'all' && (r.origin || 'vietnamese') !== state.nsOrigin) return false;
+        if (!state.nsQ) return true;
+        const q = state.nsQ;
+        return (
+          (r.pid || '').toLowerCase().includes(q) ||
+          (r.name || '').toLowerCase().includes(q) ||
+          (r.email || '').toLowerCase().includes(q) ||
+          (r.age || '').toLowerCase().includes(q) ||
+          (r.source || '').toLowerCase().includes(q) ||
+          (ORIGIN_LABELS[r.origin] || r.origin || '').toLowerCase().includes(q)
+        );
+      })
+      .sort((a, b) => {
+        const x = a[k] == null ? '' : a[k];
+        const y = b[k] == null ? '' : b[k];
+        return (x > y ? 1 : x < y ? -1 : 0) * dir;
+      });
+
+    tbody.innerHTML = rows.length
+      ? rows
+          .map(
+            (r) => `<tr>
+        <td><span class="mono">${esc(r.pid || '—')}</span></td>
+        <td><strong>${esc(r.name || '—')}</strong></td>
+        <td>${esc(r.age || '—')}</td>
+        <td>${esc(ORIGIN_LABELS[r.origin || 'vietnamese'] || r.origin || '—')}</td>
+        <td>${esc(r.email || '—')}</td>
+        <td>${esc(r.source || '—')}</td>
+        <td><span class="mono">${esc(r.gift || '—')}</span></td>
+        <td>${r.seen ? new Date(r.seen).toLocaleString('vi-VN') : '—'}</td>
+      </tr>`
+          )
+          .join('')
+      : `<tr><td class="empty" colspan="8">Chưa có dữ liệu Nhà Sách check-in${state.nsQ || state.nsOrigin !== 'all' ? ' khớp bộ lọc' : ''}.</td></tr>`;
+  }
+
+  function exportNhasachCSV() {
+    const head = ['Mã thẻ / ID', 'Tên', 'Độ tuổi', 'Nơi đến', 'Email', 'Kênh biết đến', 'Mã quà', 'Thời gian Check-in'];
+    const cell = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+    const time = (t) => (t ? new Date(t).toLocaleString('vi-VN') : '');
+    const lines = (state.nhasachRows || []).map((r) =>
+      [
+        r.pid,
+        r.name,
+        r.age,
+        ORIGIN_LABELS[r.origin || 'vietnamese'] || r.origin,
+        r.email,
+        r.source,
+        r.gift,
+        time(r.seen || r.created)
+      ]
+        .map(cell)
+        .join(',')
+    );
+    const blob = new Blob(['\ufeff' + [head.map(cell).join(','), ...lines].join('\r\n')], {
+      type: 'text/csv;charset=utf-8'
+    });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `chuyen-nha-tao-nha-sach-checkin-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+
   function render() {
     renderAnalytics();
     renderInventory();
     renderPeople();
+    renderNhasach();
   }
 
   // =========================================================================
@@ -2400,6 +2561,27 @@
         const pk = th.dataset.pk;
         state.pageSort = { k: pk, dir: state.pageSort.k === pk ? -state.pageSort.dir : -1 };
         renderPageHeatmap();
+      })
+    );
+
+    // Tìm kiếm & lọc bảng Nhà Sách check-in
+    $('#nhasach-search')?.addEventListener('input', (e) => {
+      state.nsQ = e.target.value.trim().toLowerCase();
+      renderNhasachRows();
+    });
+
+    $('#nhasach-filter-origin')?.addEventListener('change', (e) => {
+      state.nsOrigin = e.target.value;
+      renderNhasachRows();
+    });
+
+    $('#btn-csv-nhasach')?.addEventListener('click', exportNhasachCSV);
+
+    $$('th[data-nsk]').forEach((th) =>
+      th.addEventListener('click', () => {
+        const k = th.dataset.nsk;
+        state.nsSort = { k, dir: state.nsSort.k === k ? -state.nsSort.dir : -1 };
+        renderNhasachRows();
       })
     );
 

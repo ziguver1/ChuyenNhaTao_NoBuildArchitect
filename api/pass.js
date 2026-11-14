@@ -89,15 +89,14 @@ module.exports = async (req, res) => {
     const vid = /^[A-Za-z0-9-]{8,40}$/.test(b.vid || '') ? b.vid : '';
     if (!name || name.length < 2) return res.status(400).json({ error: 'name_short' });
     const now = String(Date.now());
-    const checkinId = `CHK-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const checkinId = `CHK-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const itemKey = `nhasach:item:${checkinId}`;
     const cmds = [
-      ['HINCRBY', 'checkin:origins', origin, '1'],
-      ['HINCRBY', 'checkin:ages', age || 'unknown', '1'],
-      ['LPUSH', 'checkin:visitors', JSON.stringify({ id: checkinId, name, age, origin, vid, at: Number(now) })]
+      ['HSET', itemKey, 'pid', checkinId, 'name', name, 'age', age, 'origin', origin, 'vid', vid, 'created', now, 'seen', now],
+      ['ZADD', 'nhasach:checkins', now, checkinId],
+      ['HINCRBY', 'nhasach:origins', origin, '1'],
+      ['HINCRBY', 'nhasach:ages', age || 'unknown', '1']
     ];
-    if (vid) {
-      cmds.push(['HSET', `u:${vid}`, 'checkin_origin', origin, 'name', name, 'age', age, 'checkin_at', now]);
-    }
     await redis(cmds);
     return res.status(200).json({ ok: true, checkinId, name, origin });
   }
@@ -232,12 +231,13 @@ module.exports = async (req, res) => {
   if (req.method === 'POST') {
     const b = readBody(req) || {};
     const pid = String(b.pid || '').toUpperCase();
-    const name = typeof b.name === 'string' ? b.name.trim().slice(0, 24) : '';
+    const name = typeof b.name === 'string' ? b.name.trim().slice(0, 32) : '';
     const phone = typeof b.phone === 'string' ? b.phone.trim().slice(0, 20) : '';
     const email = typeof b.email === 'string' ? b.email.trim().slice(0, 100) : '';
     const age = typeof b.age === 'string' ? b.age.trim().slice(0, 50) : '';
     const origin = typeof b.origin === 'string' ? b.origin.trim().slice(0, 50) : 'vietnamese';
     const source = Array.isArray(b.source) ? b.source.join(', ') : typeof b.source === 'string' ? b.source.trim().slice(0, 200) : '';
+    const isNhasach = b.scope === 'nhasach' || Boolean(b.origin);
     const vid = /^[A-Za-z0-9-]{8,40}$/.test(b.vid || '') ? b.vid : '';
     const gift = /^QUA-[A-Z0-9]{4}$/.test(b.gift || '') ? b.gift : '';
     if (!PID_RE.test(pid) || name.length < 2) return res.status(400).json({ error: 'input' });
@@ -250,18 +250,38 @@ module.exports = async (req, res) => {
       if (vid && o.vid === vid) return res.status(200).json(passView(o));
       return res.status(409).json({ error: 'exists' });
     }
+    const now = String(Date.now());
     const cmds = [
-      ['HSET', key, 'name', name, 'created', String(Date.now())],
+      ['HSET', key, 'name', name, 'created', now],
       ['HSET', 'name2pid', plainName(name), pid]
     ];
     if (phone) cmds.push(['HSET', key, 'phone', phone]);
     if (email) cmds.push(['HSET', key, 'email', email]);
     if (age) cmds.push(['HSET', key, 'age', age]);
-    if (origin) cmds.push(['HSET', key, 'origin', origin], ['HINCRBY', 'checkin:origins', origin, '1']);
+    if (origin) cmds.push(['HSET', key, 'origin', origin]);
     if (source) cmds.push(['HSET', key, 'source', source]);
-    if (vid) cmds.push(['HSET', key, 'vid', vid], ['HSET', `u:${vid}`, 'pid', pid, 'name', name, 'phone', phone, 'email', email, 'age', age, 'source', source], ['HSET', 'pid2vid', pid, vid]);
     if (gift) cmds.push(['HSET', key, 'gift', gift]);
-    cmds.push(['ZADD', 'passes', String(Date.now()), pid], ['HGETALL', key]);
+    if (vid) cmds.push(['HSET', key, 'vid', vid]);
+
+    if (isNhasach) {
+      // Lưu riêng vào tab "Nhà Sách check-in", tuyệt đối không ghi chung vào u:{vid} / users của dữ liệu cũ
+      const nsKey = `nhasach:item:${pid}`;
+      cmds.push(
+        ['HSET', nsKey, 'pid', pid, 'name', name, 'phone', phone, 'email', email, 'age', age, 'origin', origin, 'source', source, 'gift', gift, 'vid', vid, 'created', now, 'seen', now],
+        ['ZADD', 'nhasach:checkins', now, pid],
+        ['HINCRBY', 'nhasach:origins', origin || 'vietnamese', '1'],
+        ['HINCRBY', 'nhasach:ages', age || 'unknown', '1']
+      );
+    } else {
+      if (vid) {
+        cmds.push(
+          ['HSET', `u:${vid}`, 'pid', pid, 'name', name, 'phone', phone, 'email', email, 'age', age, 'source', source],
+          ['HSET', 'pid2vid', pid, vid]
+        );
+      }
+      cmds.push(['ZADD', 'passes', now, pid]);
+    }
+    cmds.push(['HGETALL', key]);
     const out = await redis(cmds);
     return res.status(201).json(passView(toObject(out[out.length - 1])));
   }

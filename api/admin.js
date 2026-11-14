@@ -207,11 +207,16 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'unknown_action' });
     }
 
-    // 1. LẤY DỮ LIỆU NGƯỜI DÙNG & HỘ CHIẾU
-    const [vids] = await redis([['ZREVRANGE', 'users', '0', String(LIMIT - 1)]]);
+    // 1. LẤY DỮ LIỆU NGƯỜI DÙNG & HỘ CHIẾU + DANH SÁCH NHÀ SÁCH CHECK-IN RIÊNG BIỆT
+    const [vids, nsIds] = await redis([
+      ['ZREVRANGE', 'users', '0', String(LIMIT - 1)],
+      ['ZREVRANGE', 'nhasach:checkins', '0', String(LIMIT - 1)]
+    ]);
     const list = vids || [];
+    const nsList = nsIds || [];
     const cmds = [];
     list.forEach((v) => cmds.push(['HGETALL', `u:${v}`], ['SMEMBERS', `pg:${v}`], ['SMEMBERS', `ch:${v}`], ['SMEMBERS', `st:${v}`]));
+    nsList.forEach((id) => cmds.push(['HGETALL', `nhasach:item:${id}`]));
     
     // 2. LẤY TOÀN BỘ SỐ LIỆU TƯƠNG TÁC SÁCH & KHO QUÀ
     PAGE_META.forEach(({ page }) => {
@@ -230,7 +235,7 @@ module.exports = async (req, res) => {
     const out = await redis(cmds);
     const nums = (a) => (a || []).map(Number).sort((x, y) => x - y);
 
-    // Xử lý danh sách người dùng
+    // Xử lý danh sách người dùng (dữ liệu cũ)
     const rows = list.map((vid, i) => {
       const u = toObject(out[i * 4]);
       return {
@@ -258,8 +263,27 @@ module.exports = async (req, res) => {
       };
     });
 
+    // Xử lý danh sách Nhà Sách check-in (Tab riêng)
+    const nsOffset = list.length * 4;
+    const nhasachRows = nsList.map((id, idx) => {
+      const item = toObject(out[nsOffset + idx]);
+      return {
+        pid: item.pid || id,
+        name: item.name || '',
+        phone: item.phone || null,
+        email: item.email || null,
+        age: item.age || null,
+        origin: item.origin || 'vietnamese',
+        source: item.source || null,
+        gift: item.gift || null,
+        vid: item.vid || null,
+        created: Number(item.created || item.seen || 0),
+        seen: Number(item.seen || item.created || 0)
+      };
+    });
+
     // Xử lý dữ liệu tương tác sách
-    const commOffset = list.length * 4;
+    const commOffset = list.length * 4 + nsList.length;
     let totalReactions = 0;
     let maiamSum = 0;
     let tonkinhSum = 0;
@@ -465,6 +489,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       configured: true,
       rows,
+      nhasachRows,
       analytics,
       rounds: enrichedRounds,
       activeRoundId: activeId,

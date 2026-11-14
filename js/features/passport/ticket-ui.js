@@ -1046,7 +1046,8 @@ export function initPassportUI() {
   });
   setPassGetter(getPass);
 
-  const fName = $('#f-nickname'),
+  const fCheckinName = $('#f-checkin-name'),
+    fName = $('#f-nickname'),
     fEmail = $('#f-email'),
     fConsent = $('#f-consent'),
     chkOther = $('#chk-source-other'),
@@ -1054,12 +1055,46 @@ export function initPassportUI() {
     stepVnPass = $('#step-vn-pass'),
     btnRegisterLabel = $('#btn-register-label');
 
-  // Xử lý chuyển đổi loại khách: Vietnamese -> Hiện Câu 4 (Email + Nguồn); Khách quốc tế / Khác -> Ẩn Câu 4
+  // Đồng bộ tự động Tên (Câu 1 <-> Thẻ thông hành)
+  function syncNameFromCheckin() {
+    if (fCheckinName && fName) {
+      fName.value = fCheckinName.value;
+    }
+  }
+  function syncNameFromPass() {
+    if (fName && fCheckinName) {
+      fCheckinName.value = fName.value;
+    }
+  }
+
+  // Đồng bộ tự động Độ tuổi (Câu 2 <-> Thẻ thông hành)
+  function syncAgeFromCheckin() {
+    const selected = document.querySelector('input[name="checkin_age"]:checked');
+    if (selected) {
+      const target = document.querySelector(`input[name="age"][value="${selected.value}"]`);
+      if (target) target.checked = true;
+    }
+  }
+  function syncAgeFromPass() {
+    const selected = document.querySelector('input[name="age"]:checked');
+    if (selected) {
+      const target = document.querySelector(`input[name="checkin_age"][value="${selected.value}"]`);
+      if (target) target.checked = true;
+    }
+  }
+
+  // Xử lý chuyển đổi loại khách: Vietnamese -> Hiện phần Tạo thẻ thông hành (điền sẵn Tên + Tuổi); Khách quốc tế / Khác -> Ẩn
   function onOriginChange() {
     const selected = document.querySelector('input[name="origin"]:checked');
     const isVn = selected && selected.value === 'vietnamese';
     if (stepVnPass) {
       stepVnPass.hidden = !isVn;
+      if (isVn) {
+        if (fCheckinName && fName && fCheckinName.value.trim()) {
+          fName.value = fCheckinName.value.trim();
+        }
+        syncAgeFromCheckin();
+      }
     }
     if (btnRegisterLabel) {
       btnRegisterLabel.textContent = isVn ? 'Tạo thẻ thông hành' : 'Hoàn thành Check-in';
@@ -1081,14 +1116,38 @@ export function initPassportUI() {
     });
   });
 
-  // Tự động điền tên nếu người dùng đã nhập trước đó ở phần Lưu bút đọc sách
-  const prefilledName = store.get('user_nickname');
-  if (fName && !fName.value && prefilledName) {
-    fName.value = prefilledName;
-  }
+  fCheckinName?.addEventListener('input', () => {
+    syncNameFromCheckin();
+    const v = fCheckinName.value.trim();
+    if (v) store.set('user_nickname', v);
+    if (fCheckinName.getAttribute('aria-invalid') === 'true') validateCheckinName();
+    if (fName && fName.getAttribute('aria-invalid') === 'true') validateName();
+  });
+  fCheckinName?.addEventListener('blur', validateCheckinName);
+
   fName?.addEventListener('input', () => {
+    syncNameFromPass();
     const v = fName.value.trim();
     if (v) store.set('user_nickname', v);
+    if (fName.getAttribute('aria-invalid') === 'true') validateName();
+    if (fCheckinName && fCheckinName.getAttribute('aria-invalid') === 'true') validateCheckinName();
+  });
+  fName?.addEventListener('blur', validateName);
+
+  document.querySelectorAll('input[name="checkin_age"]').forEach((r) => {
+    r.addEventListener('change', () => {
+      syncAgeFromCheckin();
+      validateCheckinAge();
+      validateAge();
+    });
+  });
+
+  document.querySelectorAll('input[name="age"]').forEach((r) => {
+    r.addEventListener('change', () => {
+      syncAgeFromPass();
+      validateAge();
+      validateCheckinAge();
+    });
   });
 
   chkOther?.addEventListener('change', () => {
@@ -1111,28 +1170,51 @@ export function initPassportUI() {
     validateSource();
   });
 
-  document.querySelectorAll('input[name="age"]').forEach((r) => {
-    r.addEventListener('change', validateAge);
-  });
-
   document.querySelectorAll('input[name="source"]').forEach((c) => {
     c.addEventListener('change', validateSource);
   });
 
-  function validateName() {
-    if (!fName) return false;
-    const v = fName.value.trim();
+  function validateCheckinName() {
+    const inp = fCheckinName || fName;
+    if (!inp) return false;
+    const v = inp.value.trim();
     const msg = !v
       ? 'Vui lòng nhập tên của bạn (Please enter your name).'
       : v.length < 2
       ? 'Tên cần ít nhất 2 ký tự (Name must be at least 2 characters).'
       : '';
-    setFieldError(fName, $('#f-nickname-err'), msg);
+    setFieldError(inp, $('#f-checkin-name-err') || $('#f-nickname-err'), msg);
+    return !msg;
+  }
+
+  function validateName() {
+    const inp = fName || fCheckinName;
+    if (!inp) return false;
+    const v = inp.value.trim() || (fCheckinName ? fCheckinName.value.trim() : '');
+    if (fName && !fName.value.trim() && v) fName.value = v;
+    const msg = !v
+      ? 'Vui lòng nhập tên của bạn (Please enter your name).'
+      : v.length < 2
+      ? 'Tên cần ít nhất 2 ký tự (Name must be at least 2 characters).'
+      : '';
+    setFieldError(fName || fCheckinName, $('#f-nickname-err'), msg);
+    return !msg;
+  }
+
+  function validateCheckinAge() {
+    const selected =
+      document.querySelector('input[name="checkin_age"]:checked') ||
+      document.querySelector('input[name="age"]:checked');
+    const msg = !selected ? 'Vui lòng chọn nhóm tuổi của bạn (Please select your age group).' : '';
+    const errBox = $('#f-checkin-age-err') || $('#f-age-err');
+    if (errBox) errBox.innerHTML = msg ? `<i class="ph ph-warning-circle" aria-hidden="true"></i>${msg}` : '';
     return !msg;
   }
 
   function validateAge() {
-    const selected = document.querySelector('input[name="age"]:checked');
+    const selected =
+      document.querySelector('input[name="age"]:checked') ||
+      document.querySelector('input[name="checkin_age"]:checked');
     const msg = !selected ? 'Vui lòng chọn nhóm tuổi của bạn (Please select your age group).' : '';
     const errBox = $('#f-age-err');
     if (errBox) errBox.innerHTML = msg ? `<i class="ph ph-warning-circle" aria-hidden="true"></i>${msg}` : '';
@@ -1179,12 +1261,6 @@ export function initPassportUI() {
     if (out) out.innerHTML = msg ? `<i class="ph ph-warning-circle" aria-hidden="true"></i>${msg}` : '';
   }
 
-  if (fName) {
-    fName.addEventListener('blur', validateName);
-    fName.addEventListener('input', () => {
-      if (fName.getAttribute('aria-invalid') === 'true') validateName();
-    });
-  }
   if (fEmail) {
     fEmail.addEventListener('blur', validateEmail);
     fEmail.addEventListener('input', () => {
@@ -1192,27 +1268,37 @@ export function initPassportUI() {
     });
   }
 
+  function saveLocalNhasachRecord(rec) {
+    const list = store.get('nhasach_checkins', []);
+    list.unshift(rec);
+    store.set('nhasach_checkins', list.slice(0, 500));
+  }
+
   $('#form-register')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const originEl = document.querySelector('input[name="origin"]:checked');
     const isVn = originEl && originEl.value === 'vietnamese';
 
-    const okName = validateName(),
-      okAge = validateAge(),
+    const okCheckinName = validateCheckinName(),
+      okCheckinAge = validateCheckinAge(),
       okOrigin = validateOrigin();
-    let okEmail = true,
+    let okName = true,
+      okAge = true,
+      okEmail = true,
       okSource = true;
 
     if (isVn) {
+      okName = validateName();
+      okAge = validateAge();
       okEmail = validateEmail();
       okSource = validateSource();
     }
 
     const summary = $('#error-summary');
-    if (!okName || !okAge || !okOrigin || (isVn && (!okEmail || !okSource))) {
+    if (!okCheckinName || !okCheckinAge || !okOrigin || (isVn && (!okName || !okAge || !okEmail || !okSource))) {
       const items = [];
-      if (!okName) items.push('<a href="#f-nickname">Nhập tên của bạn (Enter your name)</a>');
-      if (!okAge) items.push('<a href="#lbl-age">Chọn nhóm tuổi (Select your age group)</a>');
+      if (!okCheckinName || !okName) items.push('<a href="#f-checkin-name">Nhập tên của bạn (Enter your name)</a>');
+      if (!okCheckinAge || !okAge) items.push('<a href="#lbl-checkin-age">Chọn nhóm tuổi (Select your age group)</a>');
       if (!okOrigin) items.push('<a href="#lbl-origin">Chọn nơi bạn đến (Where are you from)</a>');
       if (isVn) {
         if (!okEmail) items.push('<a href="#f-email">Nhập đúng địa chỉ email</a>');
@@ -1228,12 +1314,14 @@ export function initPassportUI() {
     }
     if (summary) summary.hidden = true;
 
-    let nickname = fName.value.trim();
-    const ageEl = document.querySelector('input[name="age"]:checked');
+    let nickname = (isVn && fName && fName.value.trim()) ? fName.value.trim() : (fCheckinName ? fCheckinName.value.trim() : '');
+    const ageEl =
+      document.querySelector('input[name="age"]:checked') ||
+      document.querySelector('input[name="checkin_age"]:checked');
     const age = ageEl ? ageEl.value : '';
     const origin = originEl ? originEl.value : 'vietnamese';
 
-    // FLOW A: Khách quốc tế (International) hoặc Khác (Other) -> Hoàn tất check-in, không tạo thẻ
+    // FLOW A: Khách quốc tế (International) hoặc Khác (Other) -> Hoàn tất check-in, lưu vào tab Nhà Sách check-in
     if (!isVn) {
       const btn = $('#btn-register');
       if (btn) {
@@ -1241,11 +1329,24 @@ export function initPassportUI() {
         btn.innerHTML = '<span class="spinner" aria-hidden="true"></span><span>Đang xử lý check-in…</span>';
       }
 
+      let chkId = 'CHK-' + randCode(6);
       try {
-        await submitVisitorCheckin({ name: nickname, age, origin });
+        const res = await submitVisitorCheckin({ name: nickname, age, origin, scope: 'nhasach' });
+        if (res && res.checkinId) chkId = res.checkinId;
       } catch (err) {}
 
-      store.set('visitor_checkin', { name: nickname, age, origin, at: Date.now() });
+      const now = Date.now();
+      store.set('visitor_checkin', { id: chkId, name: nickname, age, origin, at: now });
+      saveLocalNhasachRecord({
+        pid: chkId,
+        name: nickname,
+        age,
+        origin,
+        email: '',
+        source: '',
+        seen: now,
+        created: now
+      });
       track('visitor_checkin', { origin, age });
       toast(`Cảm ơn bạn ${nickname} đã hoàn tất check-in!`, 'ok', 'seal-check');
 
@@ -1266,7 +1367,7 @@ export function initPassportUI() {
       return;
     }
 
-    // FLOW B: Người Việt Nam (Vietnamese) -> Đi tiếp tới tạo thẻ thông hành
+    // FLOW B: Người Việt Nam (Vietnamese) -> Tạo thẻ thông hành, lưu vào tab Nhà Sách check-in
     const phone = '';
     const email = fEmail ? fEmail.value.trim() : '';
     const sources = Array.from(document.querySelectorAll('input[name="source"]:checked')).map(el => {
@@ -1298,8 +1399,8 @@ export function initPassportUI() {
         return;
       }
       if (choice !== 'suffix') {
-        fName.focus();
-        fName.select();
+        (fName || fCheckinName)?.focus();
+        (fName || fCheckinName)?.select();
         return;
       }
       nickname = suffix;
@@ -1314,6 +1415,7 @@ export function initPassportUI() {
     const consent = fConsent ? fConsent.checked : true;
 
     setTimeout(() => {
+      const now = Date.now();
       const pass = {
         id: (offline ? 'OFF-' : 'TAO-') + randCode(6),
         nickname,
@@ -1322,6 +1424,7 @@ export function initPassportUI() {
         age,
         origin: 'vietnamese',
         source,
+        scope: 'nhasach',
         consent,
         stamps: [],
         giftCode: 'QUA-' + randCode(4),
@@ -1330,10 +1433,21 @@ export function initPassportUI() {
       };
       setPass(pass);
       savePassToHistory(pass);
+      saveLocalNhasachRecord({
+        pid: pass.id,
+        name: nickname,
+        phone,
+        email,
+        age,
+        origin: 'vietnamese',
+        source,
+        gift: pass.giftCode,
+        seen: now,
+        created: now
+      });
       store.set('user_nickname', nickname);
       if (!offline)
         store.set('registry', [...new Set([...store.get('registry', []), plain(nickname)])]);
-      measure('register');
       store.set('new_pass', false);
       if (!offline) pushPass().catch(() => {});
       track('form_submit');
@@ -1345,6 +1459,7 @@ export function initPassportUI() {
       }
       toast('Tạo thẻ thông hành thành công!', 'ok', 'identification-card');
       $('#form-register')?.reset();
+      if (txtOther) txtOther.disabled = true;
       onOriginChange();
 
       // Hiện thẻ xác nhận tạo thẻ thông hành thành công
@@ -1375,23 +1490,25 @@ export function initPassportUI() {
   // Nút Check-in cho khách khác (reset lại form cho người tiếp theo)
   $('#btn-checkin-another')?.addEventListener('click', () => {
     $('#form-register')?.reset();
+    if (txtOther) txtOther.disabled = true;
     onOriginChange();
     const openBox = $('#register-open');
     const thanksBox = $('#checkin-guest-thanks');
     if (thanksBox) thanksBox.hidden = true;
     if (openBox) openBox.hidden = false;
-    $('#f-nickname')?.focus();
+    $('#f-checkin-name')?.focus();
   });
 
   // Nút Tạo thẻ cho người khác (reset lại form cho người tiếp theo)
   $('#btn-pass-another')?.addEventListener('click', () => {
     $('#form-register')?.reset();
+    if (txtOther) txtOther.disabled = true;
     onOriginChange();
     const openBox = $('#register-open');
     const passBox = $('#checkin-pass-success');
     if (passBox) passBox.hidden = true;
     if (openBox) openBox.hidden = false;
-    $('#f-nickname')?.focus();
+    $('#f-checkin-name')?.focus();
   });
 
   $('#btn-restore')?.addEventListener('click', () => openRestore());

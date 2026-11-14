@@ -237,7 +237,7 @@
     }
 
     @media print {
-      .adm-head, .adm-tabs, #tab-community, #tab-wheel, #tab-people, .notice, .no-print { display: none !important; }
+      .adm-head, .adm-tabs, #tab-community, #tab-wheel, #tab-people, #tab-nhasach, .notice, .no-print { display: none !important; }
       #tab-qr { display: block !important; }
       .adm { padding: 0; } .card { box-shadow: none; border: 0; }
       .qr-grid { grid-template-columns: repeat(2, 1fr); } .qr-card { break-inside: avoid; border: 2px solid #000; }
@@ -280,6 +280,9 @@
         </button>
         <button class="adm-tab-btn" id="tab-btn-people" type="button" role="tab" aria-selected="false" data-tab="tab-people">
           <i class="ph-fill ph-identification-badge"></i> Người tham gia & Hộ chiếu
+        </button>
+        <button class="adm-tab-btn" id="tab-btn-nhasach" type="button" role="tab" aria-selected="false" data-tab="tab-nhasach">
+          <i class="ph-fill ph-storefront"></i> Nhà Sách check-in
         </button>
         <button class="adm-tab-btn" id="tab-btn-qr" type="button" role="tab" aria-selected="false" data-tab="tab-qr">
           <i class="ph-fill ph-qr-code"></i> Mã QR Sự kiện
@@ -777,7 +780,51 @@
         </div>
       </section>
 
-      <!-- TAB 3: MÃ QR SỰ KIỆN -->
+      <!-- TAB 4: NHÀ SÁCH CHECK-IN (TÁCH RIÊNG KHỎI DỮ LIỆU CŨ) -->
+      <section class="adm-tab-panel" id="tab-nhasach" role="tabpanel" hidden>
+        <!-- Khối Chỉ Số KPI Nhà Sách check-in -->
+        <div class="kpi-grid" id="nhasach-tiles" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 20px;"></div>
+
+        <div class="card" id="nhasach-card" aria-labelledby="nhasach-title">
+          <div class="toolbar" style="flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h2 class="sec-title" id="nhasach-title"><i class="ph-fill ph-storefront" style="color:var(--accent);"></i> Danh sách Nhà Sách check-in</h2>
+              <p class="sec-sub" id="nhasach-sub">Lưu riêng toàn bộ khách check-in & tạo thẻ thông hành tại Nhà Sách (không trộn chung với dữ liệu cũ).</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+              <select id="nhasach-filter-origin" style="padding: 9px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 13.5px; font-weight: 600; color: var(--ink);">
+                <option value="all">Tất cả nơi đến</option>
+                <option value="vietnamese">🇻🇳 Người Việt Nam (Tạo thẻ)</option>
+                <option value="international">🌏 Khách quốc tế</option>
+                <option value="other">✨ Khác</option>
+              </select>
+              <input class="input" id="nhasach-search" type="search" placeholder="Tìm mã thẻ, tên, email, kênh..." aria-label="Tìm trong Nhà Sách check-in">
+              <button class="btn btn-primary btn-sm" type="button" id="btn-csv-nhasach">
+                <i class="ph ph-download-simple" aria-hidden="true"></i> Xuất CSV Nhà Sách
+              </button>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th data-nsk="pid">Mã thẻ / ID</th>
+                  <th data-nsk="name">Tên</th>
+                  <th data-nsk="age">Độ tuổi</th>
+                  <th data-nsk="origin">Nơi đến</th>
+                  <th data-nsk="email">Email</th>
+                  <th data-nsk="source">Kênh biết đến</th>
+                  <th data-nsk="gift">Mã quà</th>
+                  <th data-nsk="seen">Thời gian Check-in</th>
+                </tr>
+              </thead>
+              <tbody id="nhasach-rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: MÃ QR SỰ KIỆN -->
       <section class="adm-tab-panel" id="tab-qr" role="tabpanel" hidden>
         <div class="card" aria-labelledby="qr-title">
           <div class="toolbar" style="flex-wrap: wrap; gap: 12px;">

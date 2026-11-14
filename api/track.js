@@ -24,6 +24,11 @@ module.exports = async (req, res) => {
   const body = readBody(req);
   const vid = body && String(body.vid || '');
   if (!/^[A-Za-z0-9-]{8,40}$/.test(vid)) return res.status(400).json({ error: 'vid' });
+  const isNhasach = body && body.scope === 'nhasach';
+  if (isNhasach) {
+    // Nhánh Nhà Sách check-in: Không ghi vào ZSET users hay u:{vid} của dữ liệu cũ
+    return res.status(204).end();
+  }
   const events = Array.isArray(body.events) ? body.events.slice(0, MAX_EVENTS) : [];
   const pid = /^(TAO|OFF)-[A-Z0-9]{6}$/.test(body.pid || '') ? body.pid : null;
   const name = typeof body.name === 'string' ? body.name.trim().slice(0, 24) : '';

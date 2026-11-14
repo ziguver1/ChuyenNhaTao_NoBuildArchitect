@@ -61,6 +61,7 @@ export async function pushPass(tries = 0) {
         age: pass.age || '',
         origin: pass.origin || 'vietnamese',
         source: pass.source || '',
+        scope: pass.scope || 'nhasach',
         vid: meter.vid,
         gift: pass.giftCode
       })
@@ -595,7 +596,7 @@ export async function openRestore(preset) {
   await restorePass(v);
 }
 
-export async function submitVisitorCheckin({ name, age, origin }) {
+export async function submitVisitorCheckin({ name, age, origin, scope = 'nhasach' }) {
   try {
     const r = await fetch('/api/pass', {
       method: 'POST',
@@ -605,6 +606,7 @@ export async function submitVisitorCheckin({ name, age, origin }) {
         name,
         age,
         origin,
+        scope,
         vid: meter?.vid || ''
       })
     });

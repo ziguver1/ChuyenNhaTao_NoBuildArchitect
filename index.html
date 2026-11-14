@@ -167,37 +167,37 @@
 
                 <!-- CÂU 1: TÊN -->
                 <div class="field" id="field-q1-name">
-                  <label for="f-nickname" style="font-weight: 700; font-size: 15px;">
+                  <label for="f-checkin-name" style="font-weight: 700; font-size: 15px;">
                     1. Bạn tên là gì? <span class="sub-label" style="font-weight: normal; color: var(--text-muted);">(What’s your name?)</span> <span class="req">*</span>
                   </label>
-                  <input class="input" id="f-nickname" name="nickname" type="text" autocomplete="name" maxlength="32" required aria-describedby="f-nickname-err" placeholder="Ví dụ: Minh Khôi, John Doe...">
-                  <p class="error-text" id="f-nickname-err" aria-live="polite"></p>
+                  <input class="input" id="f-checkin-name" name="checkin_name" type="text" autocomplete="name" maxlength="32" required aria-describedby="f-checkin-name-err" placeholder="Ví dụ: Bé Na, Minh Khôi, John Doe...">
+                  <p class="error-text" id="f-checkin-name-err" aria-live="polite"></p>
                 </div>
 
                 <!-- CÂU 2: TUỔI -->
-                <div class="field" role="radiogroup" aria-labelledby="lbl-age" id="field-q2-age">
-                  <label id="lbl-age" style="font-weight: 700; font-size: 15px;">
+                <div class="field" role="radiogroup" aria-labelledby="lbl-checkin-age" id="field-q2-age">
+                  <label id="lbl-checkin-age" style="font-weight: 700; font-size: 15px;">
                     2. Bạn bao nhiêu tuổi? <span class="sub-label" style="font-weight: normal; color: var(--text-muted);">(How old are you?)</span> <span class="req">*</span>
                   </label>
                   <div class="form-options form-options-grid">
                     <label class="option-pill">
-                      <input type="radio" name="age" value="<18" required>
+                      <input type="radio" name="checkin_age" value="<18" required>
                       <span>&lt;18</span>
                     </label>
                     <label class="option-pill">
-                      <input type="radio" name="age" value="18-24">
+                      <input type="radio" name="checkin_age" value="18-24">
                       <span>18-24</span>
                     </label>
                     <label class="option-pill">
-                      <input type="radio" name="age" value="25-30">
+                      <input type="radio" name="checkin_age" value="25-30">
                       <span>25-30</span>
                     </label>
                     <label class="option-pill">
-                      <input type="radio" name="age" value=">30">
+                      <input type="radio" name="checkin_age" value=">30">
                       <span>&gt;30</span>
                     </label>
                   </div>
-                  <p class="error-text" id="f-age-err" aria-live="polite"></p>
+                  <p class="error-text" id="f-checkin-age-err" aria-live="polite"></p>
                 </div>
 
                 <!-- CÂU 3: NƠI ĐẾN -->
@@ -210,45 +210,75 @@
                       <input type="radio" name="origin" value="vietnamese" required>
                       <span class="pill-body">
                         <strong>🇻🇳 Người Việt Nam (Vietnamese)</strong>
-                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Đi tiếp tới bước 4 để tạo Thẻ thông hành</small>
+                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Đi tiếp tới phần Tạo thẻ thông hành</small>
                       </span>
                     </label>
                     <label class="option-pill origin-pill">
                       <input type="radio" name="origin" value="international">
                       <span class="pill-body">
                         <strong>🌏 Khách quốc tế (International visitor)</strong>
-                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Hoàn tất khảo sát check-in sự kiện</small>
+                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Kết thúc khảo sát check-in sự kiện</small>
                       </span>
                     </label>
                     <label class="option-pill origin-pill">
                       <input type="radio" name="origin" value="other">
                       <span class="pill-body">
                         <strong>✨ Khác (Other)</strong>
-                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Hoàn tất khảo sát check-in sự kiện</small>
+                        <small style="display:block; font-size:12px; color:var(--text-muted); margin-top:2px;">Kết thúc khảo sát check-in sự kiện</small>
                       </span>
                     </label>
                   </div>
                   <p class="error-text" id="f-origin-err" aria-live="polite"></p>
                 </div>
 
-                <!-- CÂU 4: CHỈ HIỆN KHI CHỌN NGƯỜI VIỆT NAM (Tạo thẻ thông hành) -->
-                <div class="step-vn-pass" id="step-vn-pass" hidden style="margin-top: 18px; padding: 18px; border-radius: 14px; background: rgba(184, 36, 28, 0.04); border: 1.5px dashed var(--accent);">
-                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: var(--accent); font-weight: 700;">
-                    <i class="ph-bold ph-identification-card" style="font-size: 20px;"></i>
-                    <span style="font-size: 16px;">Tạo thẻ thông hành</span>
+                <!-- CÂU 4: PHẦN THẺ THÔNG HÀNH (Chỉ hiện khi chọn Người Việt Nam, tự động điền sẵn Tên & Độ tuổi) -->
+                <div class="step-vn-pass" id="step-vn-pass" hidden style="margin-top: 20px; padding: 22px 20px; border-radius: 16px; background: rgba(184, 36, 28, 0.04); border: 1.5px dashed var(--accent);">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: var(--accent); font-weight: 800;">
+                    <i class="ph-bold ph-identification-card" style="font-size: 22px;"></i>
+                    <h4 style="font-size: 18px; margin: 0; color: var(--accent);">Tạo thẻ thông hành</h4>
                   </div>
-                  <p class="help" style="margin-top: 0; margin-bottom: 14px;">
-                    Điền thêm thông tin bên dưới để nhận Thẻ thông hành sự kiện:
+                  <p class="help" style="margin-top: 0; margin-bottom: 16px;">
+                    Tên và độ tuổi của bạn đã được tự động điền từ khảo sát trên. Vui lòng bổ sung Email và kênh biết đến sự kiện để tạo thẻ thông hành:
                   </p>
 
                   <div class="field">
-                    <label for="f-email" style="font-weight: 600;">Địa chỉ Email của bạn <span class="req">*</span></label>
+                    <label for="f-nickname">Tên hoặc nickname <span class="req">*</span></label>
+                    <input class="input" id="f-nickname" name="nickname" type="text" autocomplete="nickname" maxlength="32" aria-describedby="f-nickname-help f-nickname-err" placeholder="Ví dụ: Bé Na, Minh Khôi">
+                    <p class="help" id="f-nickname-help">Tên này được tự động đồng bộ từ câu 1 và sẽ in trên thẻ thông hành của bạn.</p>
+                    <p class="error-text" id="f-nickname-err" aria-live="polite"></p>
+                  </div>
+
+                  <div class="field">
+                    <label for="f-email">Địa chỉ Email của bạn <span class="req">*</span></label>
                     <input class="input" id="f-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="ban@email.com" aria-describedby="f-email-err">
                     <p class="error-text" id="f-email-err" aria-live="polite"></p>
                   </div>
 
+                  <div class="field" role="radiogroup" aria-labelledby="lbl-age">
+                    <label id="lbl-age">Bạn bao nhiêu tuổi? <span class="req">*</span></label>
+                    <div class="form-options form-options-grid">
+                      <label class="option-pill">
+                        <input type="radio" name="age" value="<18">
+                        <span>&lt;18</span>
+                      </label>
+                      <label class="option-pill">
+                        <input type="radio" name="age" value="18-24">
+                        <span>18-24</span>
+                      </label>
+                      <label class="option-pill">
+                        <input type="radio" name="age" value="25-30">
+                        <span>25-30</span>
+                      </label>
+                      <label class="option-pill">
+                        <input type="radio" name="age" value=">30">
+                        <span>&gt;30</span>
+                      </label>
+                    </div>
+                    <p class="error-text" id="f-age-err" aria-live="polite"></p>
+                  </div>
+
                   <div class="field" role="group" aria-labelledby="lbl-source">
-                    <label id="lbl-source" style="font-weight: 600;">Bạn biết đến Sự kiện trải nghiệm "Chuyện Nhà Táo" thông qua đâu? <span class="req">*</span></label>
+                    <label id="lbl-source">Bạn biết đến Sự kiện trải nghiệm "Chuyện Nhà Táo" thông qua đâu? <span class="req">*</span></label>
                     <div class="form-options form-options-list">
                       <label class="option-check">
                         <input type="checkbox" name="source" value="Facebook">
@@ -283,7 +313,7 @@
 
                   <label class="check" for="f-consent" style="margin-top: 14px;">
                     <input id="f-consent" name="consent" type="checkbox" checked>
-                    <span style="font-size: 13px;">Tôi đồng ý cung cấp thông tin để Chuyện Nhà Táo lưu trữ phục vụ hỗ trợ sự kiện.</span>
+                    <span>Tôi đồng ý cung cấp thông tin để Chuyện Nhà Táo lưu trữ phục vụ việc trao quà và hỗ trợ sự kiện.</span>
                   </label>
                 </div>
 
@@ -294,8 +324,6 @@
             </div>
           </div>
         </div>
-      </div>
-    </section>
       </div>
     </section>
 
@@ -501,6 +529,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
   <script src="ca-chep.js" defer></script>
-  <script type="module" src="js/main.js?v=3.3"></script>
+  <script type="module" src="js/main.js?v=3.4"></script>
 </body>
 </html>
