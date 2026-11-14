@@ -961,28 +961,27 @@ export function renderCheckout() {
                     </button>
                   </div>`
            }`
-        : server.on
-        ? `
-        <div style="display:grid;gap:10px;margin:14px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;">
+        : `
+        <div class="checkout-claim-box" style="display:grid;gap:10px;margin:14px 0;background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;">
           <p class="help" style="margin:0;font-size:14px;color:var(--text);font-weight:600;">
-            <i class="ph-fill ph-storefront" style="color:var(--accent);"></i> Trao quà tại Bàn Check-out:
+            <i class="ph-fill ph-gift" style="color:var(--accent);"></i> Nhận quà tốt nghiệp tại Bàn Check-out:
           </p>
           <p style="margin:0;font-size:13px;color:var(--text-muted);">
-            Đưa mã QR cho nhân sự tại bàn Check-out quét xác nhận để nhận quà:
+            Bấm nút xác nhận check-out bên dưới, hoặc đưa mã QR cho nhân sự quét để nhận quà:
           </p>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px;">
-            <button class="btn btn-primary" type="button" data-show-qr style="flex:1;min-width:200px;">
-              <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR (Đưa nhân sự quét)
+          <div style="display:grid;gap:8px;max-width:320px;margin:4px auto 0;width:100%;">
+            <button class="btn btn-primary btn-block" type="button" id="btn-claim" style="min-height:44px;font-size:15px;font-weight:700;">
+              <i class="ph-fill ph-check-circle" aria-hidden="true"></i> Xác nhận nhận quà (Check-out)
             </button>
-            <button class="btn btn-ghost btn-sm" type="button" data-scan-qr style="font-size:12.5px;">
-              <i class="ph ph-camera" aria-hidden="true"></i> Bật camera tự quét
-            </button>
+            <div style="display:flex;gap:6px;justify-content:center;">
+              <button class="btn btn-ghost btn-sm" type="button" data-show-qr style="font-size:12.5px;flex:1;">
+                <i class="ph ph-qr-code" aria-hidden="true"></i> Mở mã QR
+              </button>
+              <button class="btn btn-ghost btn-sm" type="button" data-scan-qr style="font-size:12.5px;flex:1;">
+                <i class="ph ph-camera" aria-hidden="true"></i> Bật camera
+              </button>
+            </div>
           </div>
-        </div>`
-        : `
-        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:12px 0;">
-          <button class="btn btn-ghost" type="button" id="btn-claim"><i class="ph ph-hand-heart" aria-hidden="true"></i> Nhân sự xác nhận đã trao quà</button>
-          <button class="btn btn-secondary btn-sm" type="button" data-scan-qr><i class="ph ph-camera" aria-hidden="true"></i> Bật camera quét</button>
         </div>`
     }
     <div class="optin">
@@ -1443,6 +1442,7 @@ export function initPassportUI() {
     if (!pass) return;
     const canStamp = pass.stamps.length < 4;
     ask({
+      tone: 'qr',
       title: 'Mã QR hộ chiếu',
       html: `<div class="qr-big" id="qr-big" role="img" aria-label="Mã QR của thẻ ${esc(
         pass.id
