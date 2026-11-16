@@ -2444,26 +2444,64 @@
   }
 
   // =========================================================================
-  // XUẤT CSV (NGƯỜI CHƠI & BÁO CÁO TƯƠNG TÁC SÁCH)
+  // XUẤT CSV CHUẨN GOOGLE SHEETS (NGƯỜI CHƠI & BÁO CÁO TƯƠNG TÁC SÁCH)
   // =========================================================================
+  function formatVNDateTime(ts) {
+    const n = Number(ts || 0);
+    if (!Number.isFinite(n) || n <= 0) return '';
+    const [dPart, tPart] = new Date(n + 7 * 3600 * 1000).toISOString().slice(0, 19).split('T');
+    const [y, m, d] = dPart.split('-');
+    return `${d}/${m}/${y} ${tPart}`;
+  }
+
   function exportPeopleCSV(targetRows = state.rows, label = 'tat-ca') {
+    const roundLabels = {
+      '2026-11-13': 'Đợt 1: Ngày 13/11',
+      '2026-11-14': 'Đợt 2: Ngày 14/11',
+      '2026-11-15': 'Đợt 3: Ngày 15/11',
+      round_1: 'Đợt 1: Ngày 13/11',
+      round_2: 'Đợt 2: Ngày 14/11',
+      round_3: 'Đợt 3: Ngày 15/11'
+    };
     const head = [
-      'Mã thẻ', 'Tên', 'Số điện thoại', 'Email', 'Độ tuổi', 'Kênh biết đến', 'Check-in sự kiện', 'Lượt lật trang', 'Số trang đã xem', 'Các trang đã xem',
-      'Đang xem trang', 'Chương đã nghe', 'Dấu trạm', 'Quà trạm 1', 'Quà trạm 2', 'Quà trạm 3', 'Quà trạm 4',
-      'Đã nhận quà cuối', 'Trạm thích nhất', 'Độ hài lòng (sao)', 'Góp ý / Cảm nhận', 'Lần đầu', 'Gần nhất', 'Mã trình duyệt'
+      'Ngày sự kiện', 'Đợt sự kiện', 'Mã thẻ', 'Tên', 'Số điện thoại', 'Email', 'Độ tuổi', 'Kênh / Nơi đến',
+      'Lượt lật trang', 'Số trang đã xem', 'Đang xem trang', 'Chương hoàn thành', 'Dấu trạm',
+      'Quà vòng quay', 'Đã check-out nhận quà', 'Trạm thích nhất', 'Độ hài lòng (sao)', 'Góp ý / Cảm nhận',
+      'Giờ tạo thẻ / Check-in (VN)', 'Hoạt động gần nhất (VN)', 'Mã trình duyệt'
     ];
     const cell = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
-    const time = (t) => (t ? new Date(t).toISOString() : '');
-    const lines = (targetRows || state.rows).map((r) =>
-      [
-        r.pid, r.name, r.phone, r.email, r.age, r.source, time(r.checkin), r.flips, r.pagesN, r.pages.join(' '), r.last, r.chapters.join(' '), r.stamps.join(' '),
-        ...r.prizes.map((p) => (p ? PRIZE_LABEL[p] : '')), r.claimed ? 'có' : '',
-        r.favStation, r.rating, r.feedbackComment,
-        time(r.first), time(r.seen), r.vid
+    const lines = (targetRows || state.rows).map((r) => {
+      const dKey = getRowDateKey(r);
+      const dayDisplay = dKey ? dKey.split('-').reverse().join('/') : '';
+      const roundDisplay = roundLabels[r.checkoutRound] || roundLabels[dKey] || '';
+      const prizeKey = r.checkoutPrize || (r.prizes && r.prizes[0]) || '';
+      const prizeDisplay = prizeKey && prizeKey !== 'none' ? (PRIZE_LABEL[prizeKey] || prizeKey) : '';
+      return [
+        dayDisplay,
+        roundDisplay,
+        r.pid || '',
+        r.name || '',
+        r.phone || '',
+        r.email || '',
+        r.age || '',
+        r.source || '',
+        r.flips || 0,
+        r.pagesN != null ? r.pagesN : (r.pages || []).length,
+        r.last != null ? r.last : '',
+        (r.chapters || []).join(', '),
+        (r.stamps || []).join(', '),
+        prizeDisplay,
+        r.claimed ? 'Có' : 'Chưa',
+        r.favStation || '',
+        r.rating || '',
+        r.feedbackComment || '',
+        formatVNDateTime(r.created || r.first || r.checkin),
+        formatVNDateTime(r.seen),
+        r.vid || ''
       ]
         .map(cell)
-        .join(',')
-    );
+        .join(',');
+    });
     const blob = new Blob(['\ufeff' + [head.map(cell).join(','), ...lines].join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
