@@ -321,10 +321,16 @@
       idx = (idx + 1) % flipsList.length;
     }
 
-    const now = Date.now();
+    const dayAnchors = [
+      Date.parse('2026-11-13T19:00:00+07:00'),
+      Date.parse('2026-11-14T19:00:00+07:00'),
+      Date.parse('2026-11-15T19:00:00+07:00')
+    ];
     const rows = [];
     for (let i = 0; i < 42; i++) {
       const isAnon = i >= 34;
+      const dayIdx = i % 3;
+      const baseTs = dayAnchors[dayIdx] + i * 60000;
       const name = isAnon ? '' : names[i];
       const pid = isAnon ? null : `TAO-${(i + 10).toString(36).toUpperCase()}${((i * 7 + 13) % 36).toString(36).toUpperCase()}${((i * 11 + 29) % 36).toString(36).toUpperCase()}8X`.slice(0, 10);
       const chs = chList[i];
@@ -338,7 +344,7 @@
       const pages = Array.from(pgSet).sort((a, b) => a - b);
       const last = pages[pages.length - 1];
       const stamps = isAnon ? [] : (chs.length >= 3 ? [1, 2, 3, 4] : (chs.length === 2 ? [1, 2] : [1]));
-      const pKeys = ['sticker', 'keychain', 'blindbox', 'none'];
+      const pKeys = ['sticker', 'keychain', 'tote', 'blindbox'];
       const prizes = stamps.length === 4 ? [pKeys[i % pKeys.length]] : [];
 
       rows.push({
@@ -359,9 +365,10 @@
         rating: isAnon ? null : (5 - (i % 2)),
         feedbackComment: isAnon ? null : (i % 3 === 0 ? 'Sự kiện rất ý nghĩa và ấm áp!' : ''),
         claimed: stamps.length === 4 && i % 2 === 0,
-        checkin: isAnon ? 0 : now - (i >= 8 ? 24 * 3600000 : 0) - (i * 1800000 + 1800000),
-        first: now - (i >= 8 ? 24 * 3600000 : 0) - (i * 1800000 + 7200000),
-        seen: now - (i >= 8 ? 24 * 3600000 : 0) - (i * 1800000)
+        created: baseTs,
+        checkin: isAnon ? 0 : baseTs,
+        first: baseTs,
+        seen: baseTs + 1800000
       });
     }
 
@@ -419,22 +426,22 @@
   const DEFAULT_LOCAL_ROUNDS = [
     {
       id: 'round_1',
-      name: 'Đợt 1: Ngày đầu (150 quà)',
-      status: 'active',
+      name: 'Đợt 1: Ngày 13/11',
+      status: 'ended',
       prizes: JSON.parse(JSON.stringify(DEFAULT_LOCAL_PRIZES)),
       counts: {}
     },
     {
       id: 'round_2',
-      name: 'Đợt 2: Cao điểm (150 quà)',
-      status: 'upcoming',
+      name: 'Đợt 2: Ngày 14/11',
+      status: 'ended',
       prizes: JSON.parse(JSON.stringify(DEFAULT_LOCAL_PRIZES)),
       counts: {}
     },
     {
       id: 'round_3',
-      name: 'Đợt 3: Đêm hội Táo Quân (150 quà)',
-      status: 'upcoming',
+      name: 'Đợt 3: Ngày 15/11',
+      status: 'active',
       prizes: JSON.parse(JSON.stringify(DEFAULT_LOCAL_PRIZES)),
       counts: {}
     }
@@ -1321,7 +1328,8 @@
       const roundHeadersHtml = rounds
         .map((r, idx) => {
           const isLive = r.id === state.activeRoundId;
-          const dayTag = `Ngày ${idx + 1}`;
+          const dayLabels = ['Ngày 13/11 (Ngày 1)', 'Ngày 14/11 (Ngày 2)', 'Ngày 15/11 (Ngày 3)'];
+          const dayTag = dayLabels[idx] || `Ngày ${idx + 1}`;
           return `
             <th style="text-align: center; min-width: 120px;">
               <div><strong>${esc(r.name)}</strong></div>
@@ -2093,67 +2101,78 @@
   }
 
   // =========================================================================
-  // PHÂN TÁCH DỮ LIỆU THEO NGÀY SỰ KIỆN (DAY 1, DAY 2...)
+  // PHÂN TÁCH DỮ LIỆU THEO NGÀY SỰ KIỆN (13/11, 14/11, 15/11 - UTC+7)
   // =========================================================================
+  const EVENT_DAY_SPECS = [
+    { key: '2026-11-13', dayIndex: 1, label: 'Ngày 13/11 (Ngày 1)', shortLabel: 'ngay-13-11', fullDate: '13/11/2026' },
+    { key: '2026-11-14', dayIndex: 2, label: 'Ngày 14/11 (Ngày 2)', shortLabel: 'ngay-14-11', fullDate: '14/11/2026' },
+    { key: '2026-11-15', dayIndex: 3, label: 'Ngày 15/11 (Ngày 3)', shortLabel: 'ngay-15-11', fullDate: '15/11/2026' }
+  ];
+
   function getRowDateKey(r) {
-    const ts = (r.checkin && r.checkin > 0) ? r.checkin : (r.first && r.first > 0 ? r.first : r.seen);
+    const ts = (r.created && r.created > 0)
+      ? r.created
+      : ((r.first && r.first > 0)
+        ? r.first
+        : ((r.checkin && r.checkin > 0) ? r.checkin : r.seen));
     if (!ts) return null;
-    const d = new Date(Number(ts));
+    const d = new Date(Number(ts) + 7 * 3600 * 1000);
     if (isNaN(d.getTime())) return null;
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+    return d.toISOString().slice(0, 10);
   }
 
   function extractEventDays(rows = []) {
     const dateMap = new Map();
+    EVENT_DAY_SPECS.forEach((spec) => {
+      dateMap.set(spec.key, { count: 0, passCount: 0, rows: [] });
+    });
+
     rows.forEach((r) => {
       const dKey = getRowDateKey(r);
       if (!dKey) return;
       if (!dateMap.has(dKey)) {
-        dateMap.set(dKey, { count: 0, rows: [] });
+        dateMap.set(dKey, { count: 0, passCount: 0, rows: [] });
       }
       const entry = dateMap.get(dKey);
       entry.count++;
+      if (r.pid) entry.passCount++;
       entry.rows.push(r);
     });
 
-    const now = new Date();
-    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    if (!dateMap.has(todayKey)) {
-      dateMap.set(todayKey, { count: 0, rows: [] });
-    }
-
-    const sortedDateKeys = Array.from(dateMap.keys()).sort();
-
+    const totalPasses = rows.filter((r) => r.pid).length;
     const days = [
       {
         key: 'all',
-        label: 'Tất cả các ngày',
-        shortLabel: 'tat-ca',
+        label: 'Tất cả 3 ngày (13–15/11)',
+        shortLabel: 'tat-ca-3-ngay',
+        fullDate: '13/11 – 15/11/2026',
         count: rows.length,
+        passCount: totalPasses,
         isToday: false,
         dateStr: null
       }
     ];
 
+    const specMap = new Map(EVENT_DAY_SPECS.map((s) => [s.key, s]));
+    const sortedDateKeys = Array.from(dateMap.keys())
+      .filter((k) => specMap.has(k) || (dateMap.get(k)?.count || 0) > 0)
+      .sort();
+
     sortedDateKeys.forEach((dKey, idx) => {
       const entry = dateMap.get(dKey);
+      const spec = specMap.get(dKey);
       const [y, m, d] = dKey.split('-');
-      const formattedDate = `${d}/${m}`;
-      const fullDate = `${d}/${m}/${y}`;
-      const isToday = dKey === todayKey;
-      const dayNumber = idx + 1;
+      const dayNumber = spec ? spec.dayIndex : idx + 1;
       days.push({
         key: dKey,
         dayIndex: dayNumber,
-        label: `Ngày ${dayNumber}: ${formattedDate}`,
-        shortLabel: `ngay-${dayNumber}`,
-        fullDate,
+        label: spec ? spec.label : `Ngày ${d}/${m} (Ngày ${dayNumber})`,
+        shortLabel: spec ? spec.shortLabel : `ngay-${d}-${m}`,
+        fullDate: spec ? spec.fullDate : `${d}/${m}/${y}`,
         dateStr: dKey,
         count: entry.count,
-        isToday,
+        passCount: entry.passCount,
+        isToday: false,
         rows: entry.rows
       });
     });
@@ -2177,8 +2196,7 @@
           <button type="button" class="day-pill ${isActive ? 'is-active' : ''}" data-day-key="${d.key}">
             <i class="ph ${d.key === 'all' ? 'ph-calendar' : 'ph-calendar-blank'}"></i>
             <span>${esc(d.label)}</span>
-            <span class="dp-count">${d.count}</span>
-            ${d.isToday ? '<span class="dp-today-tag">Hôm nay</span>' : ''}
+            <span class="dp-count">${d.count} người · ${d.passCount} thẻ</span>
           </button>
         `;
       })
@@ -2254,9 +2272,9 @@
         color: '#14b8a6'
       },
       {
-        val: `${prize('sticker')} · ${prize('keychain')} · ${prize('blindbox')}`,
+        val: `${prize('sticker')} · ${prize('keychain')} · ${prize('tote')} · ${prize('blindbox')}`,
         label: 'Quà đã trúng',
-        sub: 'Sticker · Móc khoá · Blindbox',
+        sub: 'Sticker · Móc khoá · Tote · Blindbox',
         icon: 'ph-gift',
         color: '#b8241c'
       }
@@ -2281,7 +2299,7 @@
         .join('');
     }
 
-    // Tóm tắt Quà đã trao trong ngày
+    // Tóm tắt Toàn vẹn & Quà đã trao trong ngày
     const days = extractEventDays(state.rows);
     const dayFilter = state.dayFilter || 'all';
     const curDay = days.find((d) => d.key === dayFilter) || days[0];
@@ -2292,26 +2310,38 @@
       const pTote = prize('tote');
       const pBlindbox = prize('blindbox');
       const pTotal = pKeychain + pSticker + pTote + pBlindbox;
-      const dayLabel = dayFilter === 'all' ? 'Toàn bộ sự kiện' : (curDay.label + ` (${curDay.fullDate})`);
+      const passCount = R.filter((r) => r.pid).length;
+      const stamps4Count = R.filter((r) => r.stampsN === 4).length;
+      const claimedCount = R.filter((r) => r.claimed).length;
+      const dayLabel = dayFilter === 'all' ? 'Tất cả 3 ngày (13–15/11)' : `${curDay.label}`;
 
       banner.innerHTML = `
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <strong><i class="ph-fill ph-gift" style="color:var(--accent);"></i> Quà đã trao (${esc(dayLabel)}):</strong>
-          <span>🔑 Móc khoá: <b>${pKeychain}</b></span> ·
-          <span>🏷️ Sticker: <b>${pSticker}</b></span> ·
-          <span>👜 Túi tote: <b>${pTote}</b></span> ·
-          <span>🎁 Blindbox: <b>${pBlindbox}</b></span>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:12.5px;">
+            <strong><i class="ph-fill ph-shield-check" style="color:#16a34a;"></i> Đối chiếu (${esc(dayLabel)}):</strong>
+            <span>Người tham gia: <b>${R.length}</b></span> |
+            <span>Đã tạo thẻ: <b>${passCount}</b></span> |
+            <span>Đủ 4 trạm: <b>${stamps4Count}</b></span> |
+            <span>Đã check-out: <b>${claimedCount}</b></span> |
+            <span>Quà đã trao: <b>${pTotal}</b></span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <strong><i class="ph-fill ph-gift" style="color:var(--accent);"></i> Chi tiết quà:</strong>
+            <span>🔑 Móc khoá: <b>${pKeychain}</b></span> ·
+            <span>🏷️ Sticker: <b>${pSticker}</b></span> ·
+            <span>👜 Túi tote: <b>${pTote}</b></span> ·
+            <span>🎁 Blindbox: <b>${pBlindbox}</b></span>
+          </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="stock-badge is-open" style="font-size:12.5px;"><i class="ph-fill ph-package"></i> Tổng quà trao: <b>${pTotal} món</b></span>
-          <span style="font-size:12px; color:var(--text-muted); font-weight:600;">(${R.length} người)</span>
         </div>
       `;
     }
 
-    const daySubText = dayFilter === 'all' ? 'toàn bộ sự kiện' : (curDay.label + ` - ${curDay.fullDate}`);
+    const daySubText = dayFilter === 'all' ? 'toàn bộ 3 ngày (13–15/11)' : curDay.label;
     $('#people-sub').textContent = state.source === 'api'
-      ? `${R.length} người (${daySubText}), sắp theo hoạt động gần nhất`
+      ? `${R.length} người (${R.filter((r) => r.pid).length} thẻ) · ${daySubText}, sắp theo hoạt động gần nhất`
       : `Số liệu của trình duyệt này (${daySubText})`;
 
     renderRows();

@@ -142,7 +142,7 @@ module.exports = async (req, res) => {
         ['HINCRBY', 'prize:counts', prize, '1']
       );
       if (activeId) cmds.push(['HINCRBY', 'prize:round_counts', `${activeId}:${prize}`, '1']);
-      if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize]);
+      if (o.vid) cmds.push(['HSET', `u:${o.vid}`, 'checkout_prize', prize, 'checkout_round', activeId]);
     }
     cmds.push(['HGETALL', key]);
     const out = await redis(cmds);
@@ -229,17 +229,26 @@ module.exports = async (req, res) => {
       if (vid && o.vid === vid) return res.status(200).json(passView(o));
       return res.status(409).json({ error: 'exists' });
     }
+    const now = String(Date.now());
     const cmds = [
-      ['HSET', key, 'name', name, 'created', String(Date.now())],
+      ['HSET', key, 'name', name, 'created', now],
       ['HSET', 'name2pid', plainName(name), pid]
     ];
     if (phone) cmds.push(['HSET', key, 'phone', phone]);
     if (email) cmds.push(['HSET', key, 'email', email]);
     if (age) cmds.push(['HSET', key, 'age', age]);
     if (source) cmds.push(['HSET', key, 'source', source]);
-    if (vid) cmds.push(['HSET', key, 'vid', vid], ['HSET', `u:${vid}`, 'pid', pid, 'name', name, 'phone', phone, 'email', email, 'age', age, 'source', source], ['HSET', 'pid2vid', pid, vid]);
+    if (vid) {
+      cmds.push(
+        ['HSET', key, 'vid', vid],
+        ['HSETNX', `u:${vid}`, 'first', now],
+        ['HSET', `u:${vid}`, 'pid', pid, 'name', name, 'phone', phone, 'email', email, 'age', age, 'source', source, 'created', now, 'seen', now],
+        ['ZADD', 'users', now, vid],
+        ['HSET', 'pid2vid', pid, vid]
+      );
+    }
     if (gift) cmds.push(['HSET', key, 'gift', gift]);
-    cmds.push(['ZADD', 'passes', String(Date.now()), pid], ['HGETALL', key]);
+    cmds.push(['ZADD', 'passes', now, pid], ['HGETALL', key]);
     const out = await redis(cmds);
     return res.status(201).json(passView(toObject(out[out.length - 1])));
   }

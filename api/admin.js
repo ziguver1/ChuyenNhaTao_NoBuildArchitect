@@ -207,11 +207,16 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'unknown_action' });
     }
 
-    // 1. LẤY DỮ LIỆU NGƯỜI DÙNG & HỘ CHIẾU
-    const [vids] = await redis([['ZREVRANGE', 'users', '0', String(LIMIT - 1)]]);
+    // 1. LẤY DỮ LIỆU NGƯỜI DÙNG & HỘ CHIẾU (đồng bộ cả users ZSET và passes ZSET để không sót thẻ nào)
+    const [vids, pids] = await redis([
+      ['ZREVRANGE', 'users', '0', String(LIMIT - 1)],
+      ['ZREVRANGE', 'passes', '0', String(LIMIT - 1)]
+    ]);
     const list = vids || [];
+    const passList = pids || [];
     const cmds = [];
     list.forEach((v) => cmds.push(['HGETALL', `u:${v}`], ['SMEMBERS', `pg:${v}`], ['SMEMBERS', `ch:${v}`], ['SMEMBERS', `st:${v}`]));
+    passList.forEach((pid) => cmds.push(['HGETALL', `pass:${pid}`]));
     
     // 2. LẤY TOÀN BỘ SỐ LIỆU TƯƠNG TÁC SÁCH & KHO QUÀ
     PAGE_META.forEach(({ page }) => {
@@ -228,40 +233,109 @@ module.exports = async (req, res) => {
     );
 
     const out = await redis(cmds);
-    const nums = (a) => (a || []).map(Number).sort((x, y) => x - y);
+    const nums = (a) => Array.from(new Set((a || []).map(Number))).sort((x, y) => x - y);
 
-    // Xử lý danh sách người dùng
-    const rows = list.map((vid, i) => {
-      const u = toObject(out[i * 4]);
-      return {
-        vid,
-        pid: u.pid || null,
-        name: u.name || '',
-        phone: u.phone || null,
-        email: u.email || null,
-        age: u.age || null,
-        source: u.source || null,
-        favStation: u.fav_station || null,
-        rating: u.rating ? Number(u.rating) : null,
-        feedbackComment: u.feedback_comment || null,
-        flips: Number(u.flips || 0),
-        pages: nums(out[i * 4 + 1]),
-        last: u.last !== undefined ? Number(u.last) : null,
-        chapters: nums(out[i * 4 + 2]),
-        stamps: nums(out[i * 4 + 3]),
-        checkoutPrize: u.checkout_prize || null,
-        checkoutRound: u.checkout_round || null,
-        prizes: [u.checkout_prize || null, ...[1, 2, 3, 4].map((s) => u[`prize${s}`] || null)].filter(Boolean),
-        claimed: u.claimed === '1',
-        claimedAt: Number(u.claimed_at || 0),
-        checkin: Number(u.checkin || 0),
-        first: Number(u.first || 0),
-        seen: Number(u.seen || 0)
-      };
+    const passOffset = list.length * 4;
+    const passMap = new Map();
+    passList.forEach((pid, idx) => {
+      const p = toObject(out[passOffset + idx]);
+      if (p && p.pid) passMap.set(p.pid, p);
     });
 
+    const mergeRowData = (vid, u = {}, p = {}, pgArr = [], chArr = [], stArr = []) => {
+      const checkoutPrize = p.checkout_prize || p.prize || u.checkout_prize || null;
+      const claimed = u.claimed === '1' || Number(p.claimed || 0) > 0;
+      const claimedAt = Number(p.claimed || 0) || Number(u.claimed_at || 0);
+      const stampSet = new Set([
+        ...nums(stArr),
+        ...[1, 2, 3, 4].filter((s) => p[`st${s}`])
+      ]);
+      if (checkoutPrize || claimed) {
+        [1, 2, 3, 4].forEach((s) => stampSet.add(s));
+      }
+      const created = Number(p.created || u.created || u.first || 0);
+      const seen = Math.max(
+        Number(u.seen || 0),
+        Number(p.feedback_at || 0),
+        Number(p.claimed || 0),
+        Number(p.checkout_given || 0),
+        Number(p.st4 || 0),
+        Number(p.st1 || 0),
+        created
+      );
+      return {
+        vid,
+        pid: p.pid || u.pid || null,
+        name: p.name || u.name || '',
+        phone: p.phone || u.phone || null,
+        email: p.email || u.email || null,
+        age: p.age || u.age || null,
+        source: p.source || u.source || null,
+        favStation: p.fav_station || u.fav_station || null,
+        rating: p.rating ? Number(p.rating) : (u.rating ? Number(u.rating) : null),
+        feedbackComment: p.feedback_comment || u.feedback_comment || null,
+        flips: Number(u.flips || 0),
+        pages: nums(pgArr),
+        last: u.last !== undefined ? Number(u.last) : null,
+        chapters: nums(chArr),
+        stamps: Array.from(stampSet).sort((a, b) => a - b),
+        checkoutPrize,
+        checkoutRound: u.checkout_round || p.round || null,
+        prizes: checkoutPrize && checkoutPrize !== 'none' ? [checkoutPrize] : [],
+        claimed,
+        claimedAt,
+        created,
+        checkin: Number(u.checkin || p.st1 || 0),
+        first: Number(u.first || p.created || 0),
+        seen
+      };
+    };
+
+    // Xử lý & khử trùng lặp danh sách người dùng theo pid
+    const rows = [];
+    const seenPids = new Map();
+    list.forEach((vid, i) => {
+      const u = toObject(out[i * 4]);
+      const pid = u.pid || null;
+      const p = pid ? (passMap.get(pid) || {}) : {};
+      const row = mergeRowData(vid, u, p, out[i * 4 + 1], out[i * 4 + 2], out[i * 4 + 3]);
+
+      if (pid && seenPids.has(pid)) {
+        const prev = rows[seenPids.get(pid)];
+        prev.flips += row.flips;
+        prev.pages = nums([...prev.pages, ...row.pages]);
+        prev.chapters = nums([...prev.chapters, ...row.chapters]);
+        prev.stamps = nums([...prev.stamps, ...row.stamps]);
+        prev.claimed = prev.claimed || row.claimed;
+        prev.claimedAt = Math.max(prev.claimedAt || 0, row.claimedAt || 0);
+        prev.checkoutPrize = prev.checkoutPrize || row.checkoutPrize;
+        prev.checkoutRound = prev.checkoutRound || row.checkoutRound;
+        if (!prev.prizes.length && row.prizes.length) prev.prizes = row.prizes;
+        if (!prev.phone && row.phone) prev.phone = row.phone;
+        if (!prev.email && row.email) prev.email = row.email;
+        if (!prev.favStation && row.favStation) prev.favStation = row.favStation;
+        if (!prev.rating && row.rating) prev.rating = row.rating;
+        if (!prev.feedbackComment && row.feedbackComment) prev.feedbackComment = row.feedbackComment;
+        prev.first = prev.first && row.first ? Math.min(prev.first, row.first) : (prev.first || row.first);
+        prev.seen = Math.max(prev.seen || 0, row.seen || 0);
+        return;
+      }
+
+      if (pid) seenPids.set(pid, rows.length);
+      rows.push(row);
+    });
+
+    // Bổ sung các thẻ pass:{pid} chưa xuất hiện trong users (nếu có)
+    for (const p of passMap.values()) {
+      if (!seenPids.has(p.pid)) {
+        seenPids.set(p.pid, rows.length);
+        rows.push(mergeRowData(p.vid || `v-pass-${p.pid.toLowerCase()}`, {}, p, [], [], []));
+      }
+    }
+    rows.sort((a, b) => (b.seen || b.created || 0) - (a.seen || a.created || 0));
+
     // Xử lý dữ liệu tương tác sách
-    const commOffset = list.length * 4;
+    const commOffset = passOffset + passList.length;
     let totalReactions = 0;
     let maiamSum = 0;
     let tonkinhSum = 0;
@@ -364,7 +438,7 @@ module.exports = async (req, res) => {
       { type: 'huongthien', name: 'Hướng Thiện', count: huongthienSum, color: '#10b981' }
     ].sort((a, b) => b.count - a.count);
 
-    const usersCount = list.length || 1;
+    const usersCount = rows.length || 1;
     const totalComments = allComments.length;
     const totalInteractions = totalReactions + totalComments + totalShares;
 
@@ -442,10 +516,10 @@ module.exports = async (req, res) => {
         totalReactions,
         totalComments,
         totalShares,
-        usersCount: list.length,
-        engagementRate: (totalInteractions / Math.max(1, list.length)).toFixed(2),
-        shareRate: ((totalShares / Math.max(1, list.length)) * 100).toFixed(1),
-        commentRate: ((totalComments / Math.max(1, list.length)) * 100).toFixed(1),
+        usersCount: rows.length,
+        engagementRate: (totalInteractions / Math.max(1, rows.length)).toFixed(2),
+        shareRate: ((totalShares / Math.max(1, rows.length)) * 100).toFixed(1),
+        commentRate: ((totalComments / Math.max(1, rows.length)) * 100).toFixed(1),
         dominantEmotion: carpStats[0] || { type: 'maiam', name: 'Mái Ấm', count: 0 }
       },
       reactions: {
