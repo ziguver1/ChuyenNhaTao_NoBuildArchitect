@@ -2228,6 +2228,38 @@
     const n = R.length || 1;
     const sum = (f) => R.reduce((a, r) => a + f(r), 0);
     const prize = (k) => sum((r) => r.prizes.filter((p) => p === k).length);
+    const claimedCount = R.filter((r) => r.claimed).length;
+    const ratedRows = R.filter((r) => Number(r.rating) > 0);
+    const avgRating = ratedRows.length
+      ? (ratedRows.reduce((a, r) => a + Number(r.rating), 0) / ratedRows.length).toFixed(1)
+      : '—';
+    const textCommentsCount = R.filter((r) => r.feedbackComment && r.feedbackComment.trim()).length;
+
+    const stationDefs = [
+      { key: 'Trạm 1 (Chuyện nhà ngày 23 - Tôn Kính)', short: 'Trạm 1', subName: 'Trạm 1: Tôn Kính' },
+      { key: 'Trạm 2 (Bếp nhà còn ấm - Mái Ấm)', short: 'Trạm 2', subName: 'Trạm 2: Mái Ấm' },
+      { key: 'Trạm 3 (Một năm nhìn lại - Nhìn Lại)', short: 'Trạm 3', subName: 'Trạm 3: Nhìn Lại' },
+      { key: 'Trạm 4 (Gieo điều lành - Hướng Thiện)', short: 'Trạm 4', subName: 'Trạm 4: Hướng Thiện' }
+    ];
+    const favCounts = stationDefs.map((st) => ({
+      ...st,
+      count: R.filter((r) => r.favStation === st.key).length
+    }));
+    R.forEach((r) => {
+      if (r.favStation && !stationDefs.some((st) => st.key === r.favStation)) {
+        const found = favCounts.find((x) => x.key === r.favStation);
+        if (found) found.count++;
+        else favCounts.push({ key: r.favStation, short: r.favStation, subName: r.favStation, count: 1 });
+      }
+    });
+    const rankedFavs = [...favCounts].sort((a, b) => b.count - a.count);
+    const totalFavVotes = rankedFavs.reduce((a, x) => a + x.count, 0);
+    const topFav = rankedFavs[0];
+    const topFavLabel = topFav && topFav.count > 0 ? topFav.subName : '—';
+    const topFavSub = topFav && topFav.count > 0
+      ? `${topFav.count} lượt (${Math.round((topFav.count / Math.max(1, totalFavVotes)) * 100)}% lượt bình chọn)`
+      : 'Chưa có lượt bình chọn';
+
     const tiles = [
       {
         val: R.length.toLocaleString('vi-VN'),
@@ -2277,6 +2309,20 @@
         sub: 'Sticker · Móc khoá · Tote · Blindbox',
         icon: 'ph-gift',
         color: '#b8241c'
+      },
+      {
+        val: `${claimedCount.toLocaleString('vi-VN')} (${ratedRows.length ? avgRating + ' ★' : '—'})`,
+        label: 'Check-out & Đánh giá TB',
+        sub: `${ratedRows.length} lượt sao · ${textCommentsCount} phản hồi text`,
+        icon: 'ph-star',
+        color: '#eab308'
+      },
+      {
+        val: topFavLabel,
+        label: 'Trạm yêu thích nhất',
+        sub: topFavSub,
+        icon: 'ph-heart',
+        color: '#e11d48'
       }
     ];
 
@@ -2291,7 +2337,7 @@
               <span style="font-size: 11.5px; font-weight:700;">${esc(t.label)}</span>
               <i class="ph-fill ${t.icon}" style="color: ${t.color}; font-size: 20px;"></i>
             </div>
-            <div class="kpi-num" style="font-size: 26px; margin: 4px 0;">${t.val}</div>
+            <div class="kpi-num" style="font-size: 24px; margin: 4px 0;">${t.val}</div>
             <div class="kpi-sub" style="font-size: 12px; color:var(--text-muted);">${esc(t.sub)}</div>
           </div>
         `
@@ -2299,7 +2345,7 @@
         .join('');
     }
 
-    // Tóm tắt Toàn vẹn & Quà đã trao trong ngày
+    // Tóm tắt Toàn vẹn, Quà đã trao & Phản hồi trong ngày
     const days = extractEventDays(state.rows);
     const dayFilter = state.dayFilter || 'all';
     const curDay = days.find((d) => d.key === dayFilter) || days[0];
@@ -2312,8 +2358,10 @@
       const pTotal = pKeychain + pSticker + pTote + pBlindbox;
       const passCount = R.filter((r) => r.pid).length;
       const stamps4Count = R.filter((r) => r.stampsN === 4).length;
-      const claimedCount = R.filter((r) => r.claimed).length;
       const dayLabel = dayFilter === 'all' ? 'Tất cả 3 ngày (13–15/11)' : `${curDay.label}`;
+      const favLineHtml = rankedFavs
+        .map((f, idx) => `<span>${idx === 0 && f.count > 0 ? '🏆 ' : ''}${esc(f.short)}: <b>${f.count} lượt</b></span>`)
+        .join(' · ');
 
       banner.innerHTML = `
         <div style="display:flex; flex-direction:column; gap:6px;">
@@ -2332,6 +2380,12 @@
             <span>👜 Túi tote: <b>${pTote}</b></span> ·
             <span>🎁 Blindbox: <b>${pBlindbox}</b></span>
           </div>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:12.5px;">
+            <strong><i class="ph-fill ph-star" style="color:#eab308;"></i> Đánh giá TB: <span style="color:#b45309;">${ratedRows.length ? avgRating + ' ★' : '—'}</span></strong>
+            <span style="color:var(--text-muted);">(${textCommentsCount}/${ratedRows.length} có góp ý text)</span> ·
+            <strong><i class="ph-fill ph-heart" style="color:#e11d48;"></i> Top trạm yêu thích:</strong>
+            ${favLineHtml}
+          </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
           <span class="stock-badge is-open" style="font-size:12.5px;"><i class="ph-fill ph-package"></i> Tổng quà trao: <b>${pTotal} món</b></span>
@@ -2341,7 +2395,7 @@
 
     const daySubText = dayFilter === 'all' ? 'toàn bộ 3 ngày (13–15/11)' : curDay.label;
     $('#people-sub').textContent = state.source === 'api'
-      ? `${R.length} người (${R.filter((r) => r.pid).length} thẻ) · ${daySubText}, sắp theo hoạt động gần nhất`
+      ? `${R.length} người (${R.filter((r) => r.pid).length} thẻ · ${claimedCount} check-out) · ${daySubText}, sắp theo hoạt động gần nhất`
       : `Số liệu của trình duyệt này (${daySubText})`;
 
     renderRows();
@@ -2352,7 +2406,7 @@
     $$('th[data-k]').forEach((th) => th.setAttribute('aria-sort', th.dataset.k === k ? (dir > 0 ? 'ascending' : 'descending') : 'none'));
     const baseRows = getFilteredDayRows();
     const rows = baseRows
-      .filter((r) => !state.q || (r.pid || '').toLowerCase().includes(state.q) || (r.name || '').toLowerCase().includes(state.q) || (r.phone || '').includes(state.q) || (r.email || '').toLowerCase().includes(state.q) || (r.favStation || '').toLowerCase().includes(state.q))
+      .filter((r) => !state.q || (r.pid || '').toLowerCase().includes(state.q) || (r.name || '').toLowerCase().includes(state.q) || (r.phone || '').includes(state.q) || (r.email || '').toLowerCase().includes(state.q) || (r.favStation || '').toLowerCase().includes(state.q) || (r.feedbackComment || '').toLowerCase().includes(state.q))
       .sort((a, b) => {
         const x = a[k] == null ? -1 : a[k], y = b[k] == null ? -1 : b[k];
         return (x > y ? 1 : x < y ? -1 : 0) * dir;
@@ -2375,7 +2429,7 @@
         <td>${dots(r.stamps)} ${r.stampsN}/4</td>
         <td>${esc(r.prizesTxt || '—')}${r.claimed ? ' · <strong>đã nhận quà cuối</strong>' : ''}</td>
         <td>${r.favStation ? `<span style="font-weight:600;color:var(--accent);">${esc(r.favStation)}</span>` : '—'}</td>
-        <td>${r.rating ? `<span style="color:#f59e0b;">${'★'.repeat(r.rating)}</span> <small>(${r.rating}/5)</small>` : '—'}</td>
+        <td>${r.rating ? `<div><span style="color:#f59e0b;">${'★'.repeat(r.rating)}</span> <small>(${r.rating}/5)</small></div>${r.feedbackComment ? `<div style="font-size:12px; color:var(--text-muted); margin-top:3px; max-width:240px; white-space:normal; line-height:1.35;">“${esc(r.feedbackComment)}”</div>` : ''}` : '—'}</td>
         <td>${r.seen ? new Date(r.seen).toLocaleString('vi-VN') : '—'}</td>
       </tr>`
           )
