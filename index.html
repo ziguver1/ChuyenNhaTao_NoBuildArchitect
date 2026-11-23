@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Chuyện Nhà Táo | Đêm 23 tháng Chạp</title>
-  <meta name="description" content="Trải nghiệm sâu sắc từ những vật dụng và hình ảnh gắn kết với ngày 23 tháng Chạp. Đọc sách 4 chương, mở khoá Vân Du Ký và viết Chuyện Nhà Đêm 23 gửi Táo.">
+  <meta name="description" content="Trải nghiệm sâu sắc từ những vật dụng và hình ảnh gắn kết với ngày 23 tháng Chạp. Đọc sách 4 chương, mở khoá Thiên Du Ký và viết Chuyện Nhà Đêm 23 gửi Táo.">
   <meta name="theme-color" content="#fff8f0">
   <link rel="icon" type="image/png" sizes="32x32" href="images/logo/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="images/logo/favicon-16x16.png">
@@ -14,7 +14,7 @@
   <!-- OG image / preview khi share (Checklist kỹ thuật). TODO: thay og-image.jpg 1200x630 thật -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Chuyện Nhà Táo | Đêm 23 tháng Chạp">
-  <meta property="og:description" content="Lật sách 4 chương, mở khoá Vân Du Ký, viết Chuyện Nhà Đêm 23 gửi Táo. #ChuyenNhaTao">
+  <meta property="og:description" content="Lật sách 4 chương, mở khoá Thiên Du Ký, viết Chuyện Nhà Đêm 23 gửi Táo. #ChuyenNhaTao">
   <meta property="og:image" content="og-image.jpg">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -41,11 +41,27 @@
   <link rel="preload" href="images/huychuong/huychuong2.webp" as="image">
   <link rel="preload" href="images/huychuong/huychuong3.webp" as="image">
   <link rel="preload" href="images/huychuong/huychuong4.webp" as="image">
+  <style>
+    .intro-skip #site-intro-overlay { display: none !important; }
+    .intro-skip .reveal { opacity: 1 !important; transform: none !important; visibility: visible !important; }
+    html.preview-comments #ig-comment-sheet { display: block !important; visibility: visible !important; opacity: 1 !important; transform: none !important; }
+    html.preview-medal #medal-modal { display: flex !important; visibility: visible !important; opacity: 1 !important; }
+    html.preview-feedback #dlg-feedback { display: block !important; visibility: visible !important; opacity: 1 !important; }
+  </style>
   <script>
     document.documentElement.classList.replace('no-js', 'js');
     try {
-      if (sessionStorage.getItem('cnt_intro_seen') || localStorage.getItem('cnt_intro_seen') || localStorage.getItem('cnt_pass')) {
+      const sp = new URLSearchParams(location.search);
+      if (sp.has('skip_intro') || location.hash || sessionStorage.getItem('cnt_intro_seen') || localStorage.getItem('cnt_intro_seen') || localStorage.getItem('cnt_pass')) {
         document.documentElement.classList.add('intro-skip');
+      }
+      if (sp.get('view') === 'comments') document.documentElement.classList.add('preview-comments');
+      if (sp.get('view') === 'medal') document.documentElement.classList.add('preview-medal');
+      if (sp.get('view') === 'feedback') document.documentElement.classList.add('preview-feedback');
+      if (sp.has('demo_pass')) {
+        localStorage.setItem('cnt_pass', JSON.stringify({
+          id: 'TAO-VMCH29', name: 'Ngọc Hà', nickname: 'Ngọc Hà', unit: 'ĐH FPT TP.HCM', school: 'ĐH FPT TP.HCM', stamps: [1,2,3,4], checkin: Date.now()
+        }));
       }
     } catch (e) {}
   </script>
@@ -114,10 +130,9 @@
       </a>
 
       <nav class="nav-links" aria-label="Điều hướng chính">
-        <a href="#tram-trai-nghiem" data-nav>Vân Du Ký</a>
-        <a href="#doc-sach" data-nav>Đọc sách</a>
-        <!-- Góp ý của cô: bỏ "Thẻ Vị Táo" (biến giá trị thành tính cách), thay bằng Chuyện Nhà Đêm 23 ghi đủ 4 giá trị -->
         <a href="#la-so" data-nav>Chuyện Nhà Đêm 23</a>
+        <a href="#tram-trai-nghiem" data-nav>Thiên Du Ký</a>
+        <a href="#doc-sach" data-nav>Đọc sách</a>
       </nav>
 
       <div class="header-actions">
@@ -136,9 +151,9 @@
   </header>
 
   <div class="mobile-menu" id="mobile-menu" aria-label="Menu">
-    <a href="#tram-trai-nghiem">Vân Du Ký <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
-    <a href="#doc-sach">Đọc sách <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
     <a href="#la-so">Chuyện Nhà Đêm 23 <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <a href="#tram-trai-nghiem">Thiên Du Ký <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+    <a href="#doc-sach">Đọc sách <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
     <a class="btn btn-primary btn-block" href="#tram-trai-nghiem" data-track="cta_open_ticket" data-track-from="menu">Nhận Thẻ Thông Hành</a>
   </div>
 
@@ -157,6 +172,18 @@
       </div>
       <div class="container hero-container">
         <div class="hero-content">
+          <!-- Nút thông báo sự kiện đang diễn ra -->
+          <a href="#la-so" class="hero-live-badge" id="hero-live-event-btn" data-track="cta_hero_event_live" aria-label="Sự kiện đang diễn ra: Khám phá Chuyện Nhà Đêm 23">
+            <span class="live-dot-wrap" aria-hidden="true">
+              <span class="live-dot-ping"></span>
+              <span class="live-dot"></span>
+            </span>
+            <span class="live-tag">ĐANG DIỄN RA</span>
+            <span class="live-divider" aria-hidden="true">·</span>
+            <span class="live-title">Chuyện Nhà Đêm 23</span>
+            <i class="ph-bold ph-arrow-down live-arrow" aria-hidden="true"></i>
+          </a>
+
           <!-- TỰA ĐỀ CHÍNH: CHUYỆN NHÀ TÁO (To lớn, 2 dòng cân xứng, lấp đầy không gian hợp lý) -->
           <h1 class="hero-brand-title" id="hero-title" aria-label="Chuyện Nhà Táo">
             <span class="brand-line brand-line-1">CHUYỆN</span>
@@ -165,6 +192,228 @@
         </div>
       </div>
     </section>
+
+    <!-- =================================================================
+         S07–S08 · CHUYỆN NHÀ ĐÊM 23 (UGC "Year in Values")
+         Cầu hoàng hôn 200px tích hợp liền khối ở đỉnh Chuyện Nhà Đêm 23,
+         cho phép bụi vàng & đèn trời bay xuyên suốt từ đáy Chuyện Nhà Đêm 23 lên hoàng hôn.
+         ================================================================= -->
+    <section class="section" id="la-so" aria-labelledby="letter-title">
+      <!-- Cầu chuyển tiếp hoàng hôn 200px nằm ở tầng nền đỉnh Chuyện Nhà Đêm 23 -->
+      <div class="nightfall-bridge" aria-hidden="true">
+        <div class="nightfall-bridge-glow"></div>
+        <div class="nightfall-bridge-mist"></div>
+      </div>
+      <!-- Canvas trải dài trọn vẹn toàn bộ Chuyện Nhà Đêm 23 & xuyên suốt qua cầu hoàng hôn -->
+      <canvas class="la-so-bg-canvas" id="la-so-bg-canvas" aria-hidden="true"></canvas>
+      <div class="container">
+        <div class="section-head reveal">
+            <span class="tag-phase"><i class="ph ph-scroll" aria-hidden="true"></i> Year in Values</span>
+            <h2 id="letter-title">Chuyện Nhà Đêm 23</h2>
+            <p>Ngày 23 tháng Chạp, ông Táo mang Chuyện Nhà Đêm 23 về trời kể chuyện một năm của mỗi nhà. Đi đủ bốn trạm ở sự kiện là mở Chuyện Nhà Đêm 23: ghi đủ bốn giá trị, kèm những khoảnh khắc bạn chụp.</p>
+          </div>
+
+          <div class="reveal" id="letter-root">
+          <!-- Chưa đủ điều kiện: danh sách việc còn thiếu -->
+          <div class="card letter-lock" id="letter-lock" aria-live="polite"></div>
+
+          <!-- Đủ điều kiện: soạn Chuyện Nhà Đêm 23 + ảnh khoảnh khắc + xem trước -->
+          <div class="ugc-grid" id="letter-open" hidden>
+            <div class="ugc-controls">
+              <!-- Bốn lời gửi ông Táo -->
+              <div class="card letter-edit" id="letter-edit"></div>
+
+              <!-- Gợi ý nội dung sao chép đăng kèm -->
+              <div class="card ugc-captions-card">
+                <div class="captions-head">
+                  <div class="theme-group-title">
+                    <i class="ph ph-copy" aria-hidden="true"></i>
+                    <span>Gợi ý lời đăng (Caption)</span>
+                  </div>
+                  <p class="help">Chạm vào một câu bên dưới để sao chép nhanh lời chia sẻ đăng kèm ảnh lên mạng xã hội.</p>
+                </div>
+                <div class="captions" id="captions"></div>
+              </div>
+            </div>
+
+            <aside class="card ugc-preview" aria-labelledby="result-title">
+              <div>
+                <h3 class="result-title" id="result-title">Chuyện Nhà Đêm 23 của bạn</h3>
+                <p class="result-desc" id="result-desc">Bốn giá trị, bốn lời gửi ông Táo.</p>
+              </div>
+              <div class="canvas-wrap"><canvas id="ugc-canvas" width="1080" height="1080" aria-label="Xem trước Chuyện Nhà Đêm 23 gửi Táo"></canvas></div>
+
+              <!-- Khoảnh khắc ảnh: đặt ngay trên bảng thiết kế để người dùng thêm ảnh thuận tiện -->
+              <div class="moments-block">
+                <div class="theme-group-title">
+                  <i class="ph ph-camera-plus" aria-hidden="true"></i>
+                  <span>Khoảnh khắc trên vé (6 ảnh)</span>
+                </div>
+                <p class="help">Chạm từng ô để tải ảnh từ máy bạn vào 6 vị trí trên vé (4 trạm trải nghiệm & 2 kỷ niệm).</p>
+                <div class="moments" id="moments"></div>
+              </div>
+
+              <!-- Bảng tùy biến giao diện: Thanh Menu Tab Thiết Kế ngay dưới hình ảnh -->
+              <div class="ugc-theme-panel" id="ugc-studio">
+                <div class="theme-panel-head">
+                  <div class="theme-group-title">
+                    <i class="ph ph-palette" aria-hidden="true"></i>
+                    <span>Tùy chỉnh giao diện vé</span>
+                  </div>
+                  <p class="help">Chạm từng tab để chuyển công cụ: chọn khung hình, phối màu & chấm bi, dán sticker và chỉnh khổ ảnh.</p>
+                </div>
+
+                <!-- Thanh Menu Tab Thiết Kế (Segmented Studio Tabs) -->
+                <div class="design-tabs" role="tablist" aria-label="Công cụ thiết kế vé">
+                  <button type="button" class="design-tab is-active" data-tab="frames" role="tab" aria-selected="true" aria-controls="pane-frames" id="tab-frames">
+                    <i class="ph ph-frame-corners" aria-hidden="true"></i>
+                    <span class="design-tab-label">Khung vé</span>
+                  </button>
+                  <button type="button" class="design-tab" data-tab="colors" role="tab" aria-selected="false" aria-controls="pane-colors" id="tab-colors">
+                    <i class="ph ph-paint-brush" aria-hidden="true"></i>
+                    <span class="design-tab-label">Màu & Bi</span>
+                  </button>
+                  <button type="button" class="design-tab" data-tab="stickers" role="tab" aria-selected="false" aria-controls="pane-stickers" id="tab-stickers">
+                    <i class="ph ph-sticker" aria-hidden="true"></i>
+                    <span class="design-tab-label">Sticker</span>
+                    <span class="design-tab-badge" id="sticker-tab-badge" hidden>0</span>
+                  </button>
+                  <button type="button" class="design-tab" data-tab="ratio" role="tab" aria-selected="false" aria-controls="pane-ratio" id="tab-ratio">
+                    <i class="ph ph-crop" aria-hidden="true"></i>
+                    <span class="design-tab-label">Khổ ảnh</span>
+                  </button>
+                </div>
+
+                <!-- Khung nội dung từng tab -->
+                <div class="design-panes">
+                  <!-- Tab 1: Chọn Khung Nội Dung (1 -> 5) -->
+                  <div class="design-pane is-active" id="pane-frames" role="tabpanel" aria-labelledby="tab-frames">
+                    <div class="theme-group-head-compact">
+                      <span class="pane-note">Chọn 1 trong 5 kiểu khung vé:</span>
+                    </div>
+                    <div class="frame-selector" id="frame-selector" role="radiogroup" aria-label="Chọn khung nội dung"></div>
+                  </div>
+
+                  <!-- Tab 2: Nền Chấm Bi / Ngôi Sao: Màu nền & Họa tiết & Gợi ý phối màu -->
+                  <div class="design-pane" id="pane-colors" role="tabpanel" aria-labelledby="tab-colors" hidden>
+                    <div class="theme-subhead">
+                      <span class="pane-note">Chọn họa tiết và màu sắc nền:</span>
+                      <button type="button" class="btn btn-ghost btn-sm" id="btn-swap-colors" title="Đảo ngược màu nền và màu họa tiết">
+                        <i class="ph ph-arrows-left-right" aria-hidden="true"></i>
+                        <span>Đảo màu</span>
+                      </button>
+                    </div>
+
+                    <!-- Lựa chọn Họa tiết: Chấm bi hoặc Ngôi sao (xoay ngẫu hứng) -->
+                    <div class="pattern-selector-group">
+                      <div class="pattern-selector-head">
+                        <span class="color-field-label">Kiểu họa tiết nền:</span>
+                        <button type="button" class="btn btn-ghost btn-xs" id="btn-shuffle-stars" title="Xoay ngẫu nhiên lại góc của các ngôi sao" hidden>
+                          <i class="ph ph-shuffle" aria-hidden="true"></i>
+                          <span>Đổi góc xoay</span>
+                        </button>
+                      </div>
+                      <div class="pattern-selector" role="radiogroup" aria-label="Chọn họa tiết nền">
+                        <button type="button" class="pattern-pill is-active" data-pattern="dots" role="radio" aria-checked="true">
+                          <i class="ph-fill ph-circle" aria-hidden="true"></i>
+                          <span>Chấm bi tròn</span>
+                        </button>
+                        <button type="button" class="pattern-pill" data-pattern="stars" role="radio" aria-checked="false">
+                          <i class="ph-fill ph-star" aria-hidden="true"></i>
+                          <span>Ngôi sao (Xoay ngẫu hứng)</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="color-pickers-row">
+                      <div class="color-field">
+                        <span class="color-field-label">Màu nền</span>
+                        <label class="color-picker-box" id="ugc-bg-box" for="ugc-bg-color">
+                          <input type="color" id="ugc-bg-color" value="#faeb77" aria-label="Chọn màu nền">
+                          <span class="color-code" id="ugc-bg-hex">#FAEB77</span>
+                        </label>
+                      </div>
+
+                      <div class="color-field">
+                        <span class="color-field-label" id="ugc-dot-label">Màu chấm bi</span>
+                        <label class="color-picker-box" id="ugc-dot-box" for="ugc-dot-color">
+                          <input type="color" id="ugc-dot-color" value="#4ec5cb" aria-label="Chọn màu chấm bi">
+                          <span class="color-code" id="ugc-dot-hex">#4EC5CB</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="preset-section">
+                      <span class="preset-title">Phối màu gợi ý:</span>
+                      <div class="preset-list" id="preset-list"></div>
+                    </div>
+                  </div>
+
+                  <!-- Tab 3: Sticker Trang trí Tết (16 mẫu: 8 Cá Chép, 8 Hoa Sen) -->
+                  <div class="design-pane" id="pane-stickers" role="tabpanel" aria-labelledby="tab-stickers" hidden>
+                    <div class="theme-subhead">
+                      <div class="sticker-info-bar">
+                        <span class="pane-note">Chạm dán & kéo thả trên vé:</span>
+                        <span class="sticker-count-badge" id="sticker-active-count">0/16</span>
+                      </div>
+                      <div class="sticker-actions">
+                        <button type="button" class="btn btn-ghost btn-sm" id="btn-random-stickers" title="Gợi ý dán sticker ngẫu nhiên">
+                          <i class="ph ph-shuffle" aria-hidden="true"></i>
+                          <span>Gợi ý đẹp</span>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-stickers" title="Xóa tất cả sticker đã dán">
+                          <i class="ph ph-trash" aria-hidden="true"></i>
+                          <span>Xóa hết</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Filter tabs: Tất cả, Cá Chép, Hoa Sen -->
+                    <div class="sticker-tabs" role="tablist" aria-label="Phân loại sticker">
+                      <button type="button" class="sticker-tab is-active" data-cat="all" role="tab" aria-selected="true">
+                        <i class="ph ph-squares-four" aria-hidden="true"></i> Tất cả (16)
+                      </button>
+                      <button type="button" class="sticker-tab" data-cat="fish" role="tab" aria-selected="false">
+                        <i class="ph ph-fish" aria-hidden="true"></i> Cá Chép (8)
+                      </button>
+                      <button type="button" class="sticker-tab" data-cat="lotus" role="tab" aria-selected="false">
+                        <i class="ph ph-flower-lotus" aria-hidden="true"></i> Hoa Sen (8)
+                      </button>
+                    </div>
+
+                    <!-- Khay cuộn sticker mượt mà cho mobile -->
+                    <div class="sticker-tray-wrap">
+                      <div class="sticker-tray" id="sticker-tray" role="list" aria-label="Danh sách sticker"></div>
+                    </div>
+                  </div>
+
+                  <!-- Tab 4: Khổ ảnh -->
+                  <div class="design-pane" id="pane-ratio" role="tabpanel" aria-labelledby="tab-ratio" hidden>
+                    <div class="theme-group-head-compact">
+                      <span class="pane-note">Chọn tỷ lệ hình ảnh tải về:</span>
+                    </div>
+                    <div class="seg" role="group" aria-labelledby="tab-ratio" id="ratio-seg">
+                      <button type="button" data-ratio="1:1" aria-pressed="true"><i class="ph ph-square" aria-hidden="true"></i> Vuông 1:1</button>
+                      <button type="button" data-ratio="9:16" aria-pressed="false"><i class="ph ph-device-mobile" aria-hidden="true"></i> Story 9:16</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Thao tác tải & chia sẻ -->
+              <div class="share-actions">
+                <button class="btn btn-primary" type="button" id="btn-download"><i class="ph ph-download-simple" aria-hidden="true"></i> Tải ảnh về máy</button>
+                <button class="btn btn-ghost" type="button" id="btn-share-fb" title="Lưu ảnh, copy caption và mở Facebook"><i class="ph ph-facebook-logo" aria-hidden="true"></i> Facebook</button>
+                <button class="btn btn-ghost" type="button" id="btn-share-tt" title="Lưu ảnh, copy caption và mở TikTok"><i class="ph ph-tiktok-logo" aria-hidden="true"></i> TikTok</button>
+                <button class="btn btn-ghost" type="button" id="btn-share-more" title="Chia sẻ qua ứng dụng khác"><i class="ph ph-share-network" aria-hidden="true"></i> Khác</button>
+              </div>
+              <p class="rules">Thể lệ tóm tắt: đăng Chuyện Nhà Đêm 23 ở chế độ công khai, kèm #ChuyenNhaTao #YearInValues. <span class="pending">Thể lệ đầy đủ đang được chốt (mục 2.4).</span></p>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
 
     <!-- =================================================================
          S04–S06 · CỔNG CHECK-IN O2O: đăng ký, passport 4 trạm, check-out quà
@@ -186,7 +435,7 @@
           <div class="pp-intro" id="pp-intro"><div class="pp-intro-in">
           <div class="section-head reveal">
             <!-- PDF: tên "Tâm Thế Thông Hành Hảo Quán" cần xác nhận -->
-            <h2 id="passport-title">Vân Du Ký</h2>
+            <h2 id="passport-title">Thiên Du Ký</h2>
             <p>Tạo thẻ trước, rồi đến sự kiện quét mã tích dấu ở bốn trạm. Đủ bốn dấu đến bàn check-out tham gia Vòng Quay May Mắn duy nhất để nhận quà.</p>
           </div>
 
@@ -449,206 +698,6 @@
     </section>
 
     <!-- =================================================================
-         S07–S08 · CHUYỆN NHÀ ĐÊM 23 (UGC "Year in Values")
-         Cầu hoàng hôn 200px tích hợp liền khối ở đỉnh Chuyện Nhà Đêm 23,
-         cho phép bụi vàng & đèn trời bay xuyên suốt từ đáy Chuyện Nhà Đêm 23 lên hoàng hôn.
-         ================================================================= -->
-    <section class="section" id="la-so" aria-labelledby="letter-title">
-      <!-- Cầu chuyển tiếp hoàng hôn 200px nằm ở tầng nền đỉnh Chuyện Nhà Đêm 23 -->
-      <div class="nightfall-bridge" aria-hidden="true">
-        <div class="nightfall-bridge-glow"></div>
-        <div class="nightfall-bridge-mist"></div>
-      </div>
-      <!-- Canvas trải dài trọn vẹn toàn bộ Chuyện Nhà Đêm 23 & xuyên suốt qua cầu hoàng hôn -->
-      <canvas class="la-so-bg-canvas" id="la-so-bg-canvas" aria-hidden="true"></canvas>
-      <div class="container">
-        <div class="section-head reveal">
-            <span class="tag-phase"><i class="ph ph-scroll" aria-hidden="true"></i> Year in Values</span>
-            <h2 id="letter-title">Chuyện Nhà Đêm 23</h2>
-            <p>Ngày 23 tháng Chạp, ông Táo mang Chuyện Nhà Đêm 23 về trời kể chuyện một năm của mỗi nhà. Đi đủ bốn trạm ở sự kiện là mở Chuyện Nhà Đêm 23: ghi đủ bốn giá trị, kèm những khoảnh khắc bạn chụp.</p>
-          </div>
-
-          <div class="reveal" id="letter-root">
-          <!-- Chưa đủ điều kiện: danh sách việc còn thiếu -->
-          <div class="card letter-lock" id="letter-lock" aria-live="polite"></div>
-
-          <!-- Đủ điều kiện: soạn Chuyện Nhà Đêm 23 + ảnh khoảnh khắc + xem trước -->
-          <div class="ugc-grid" id="letter-open" hidden>
-            <div class="ugc-controls">
-              <!-- Bốn lời gửi ông Táo -->
-              <div class="card letter-edit" id="letter-edit"></div>
-
-              <!-- Gợi ý nội dung sao chép đăng kèm -->
-              <div class="card ugc-captions-card">
-                <div class="captions-head">
-                  <div class="theme-group-title">
-                    <i class="ph ph-copy" aria-hidden="true"></i>
-                    <span>Gợi ý lời đăng (Caption)</span>
-                  </div>
-                  <p class="help">Chạm vào một câu bên dưới để sao chép nhanh lời chia sẻ đăng kèm ảnh lên mạng xã hội.</p>
-                </div>
-                <div class="captions" id="captions"></div>
-              </div>
-            </div>
-
-            <aside class="card ugc-preview" aria-labelledby="result-title">
-              <div>
-                <h3 class="result-title" id="result-title">Chuyện Nhà Đêm 23 của bạn</h3>
-                <p class="result-desc" id="result-desc">Bốn giá trị, bốn lời gửi ông Táo.</p>
-              </div>
-              <div class="canvas-wrap"><canvas id="ugc-canvas" width="1080" height="1080" aria-label="Xem trước Chuyện Nhà Đêm 23 gửi Táo"></canvas></div>
-
-              <!-- Khoảnh khắc ảnh: đặt ngay trên bảng thiết kế để người dùng thêm ảnh thuận tiện -->
-              <div class="moments-block">
-                <div class="theme-group-title">
-                  <i class="ph ph-camera-plus" aria-hidden="true"></i>
-                  <span>Khoảnh khắc trên vé (6 ảnh)</span>
-                </div>
-                <p class="help">Chạm từng ô để tải ảnh từ máy bạn vào 6 vị trí trên vé (4 trạm trải nghiệm & 2 kỷ niệm).</p>
-                <div class="moments" id="moments"></div>
-              </div>
-
-              <!-- Bảng tùy biến giao diện: Thanh Menu Tab Thiết Kế ngay dưới hình ảnh -->
-              <div class="ugc-theme-panel" id="ugc-studio">
-                <div class="theme-panel-head">
-                  <div class="theme-group-title">
-                    <i class="ph ph-palette" aria-hidden="true"></i>
-                    <span>Tùy chỉnh giao diện vé</span>
-                  </div>
-                  <p class="help">Chạm từng tab để chuyển công cụ: chọn khung hình, phối màu & chấm bi, dán sticker và chỉnh khổ ảnh.</p>
-                </div>
-
-                <!-- Thanh Menu Tab Thiết Kế (Segmented Studio Tabs) -->
-                <div class="design-tabs" role="tablist" aria-label="Công cụ thiết kế vé">
-                  <button type="button" class="design-tab is-active" data-tab="frames" role="tab" aria-selected="true" aria-controls="pane-frames" id="tab-frames">
-                    <i class="ph ph-frame-corners" aria-hidden="true"></i>
-                    <span class="design-tab-label">Khung vé</span>
-                  </button>
-                  <button type="button" class="design-tab" data-tab="colors" role="tab" aria-selected="false" aria-controls="pane-colors" id="tab-colors">
-                    <i class="ph ph-paint-brush" aria-hidden="true"></i>
-                    <span class="design-tab-label">Màu & Bi</span>
-                  </button>
-                  <button type="button" class="design-tab" data-tab="stickers" role="tab" aria-selected="false" aria-controls="pane-stickers" id="tab-stickers">
-                    <i class="ph ph-sticker" aria-hidden="true"></i>
-                    <span class="design-tab-label">Sticker</span>
-                    <span class="design-tab-badge" id="sticker-tab-badge" hidden>0</span>
-                  </button>
-                  <button type="button" class="design-tab" data-tab="ratio" role="tab" aria-selected="false" aria-controls="pane-ratio" id="tab-ratio">
-                    <i class="ph ph-crop" aria-hidden="true"></i>
-                    <span class="design-tab-label">Khổ ảnh</span>
-                  </button>
-                </div>
-
-                <!-- Khung nội dung từng tab -->
-                <div class="design-panes">
-                  <!-- Tab 1: Chọn Khung Nội Dung (1 -> 5) -->
-                  <div class="design-pane is-active" id="pane-frames" role="tabpanel" aria-labelledby="tab-frames">
-                    <div class="theme-group-head-compact">
-                      <span class="pane-note">Chọn 1 trong 5 kiểu khung vé:</span>
-                    </div>
-                    <div class="frame-selector" id="frame-selector" role="radiogroup" aria-label="Chọn khung nội dung"></div>
-                  </div>
-
-                  <!-- Tab 2: Nền Chấm Bi: Màu nền & Màu bi & Gợi ý phối màu -->
-                  <div class="design-pane" id="pane-colors" role="tabpanel" aria-labelledby="tab-colors" hidden>
-                    <div class="theme-subhead">
-                      <span class="pane-note">Đổi màu nền và chấm bi:</span>
-                      <button type="button" class="btn btn-ghost btn-sm" id="btn-swap-colors" title="Đảo ngược màu nền và màu bi">
-                        <i class="ph ph-arrows-left-right" aria-hidden="true"></i>
-                        <span>Đảo màu</span>
-                      </button>
-                    </div>
-
-                    <div class="color-pickers-row">
-                      <div class="color-field">
-                        <span class="color-field-label">Màu nền</span>
-                        <label class="color-picker-box" id="ugc-bg-box" for="ugc-bg-color">
-                          <input type="color" id="ugc-bg-color" value="#faeb77" aria-label="Chọn màu nền">
-                          <span class="color-code" id="ugc-bg-hex">#FAEB77</span>
-                        </label>
-                      </div>
-
-                      <div class="color-field">
-                        <span class="color-field-label">Màu chấm bi</span>
-                        <label class="color-picker-box" id="ugc-dot-box" for="ugc-dot-color">
-                          <input type="color" id="ugc-dot-color" value="#4ec5cb" aria-label="Chọn màu chấm bi">
-                          <span class="color-code" id="ugc-dot-hex">#4EC5CB</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <div class="preset-section">
-                      <span class="preset-title">Phối màu gợi ý:</span>
-                      <div class="preset-list" id="preset-list"></div>
-                    </div>
-                  </div>
-
-                  <!-- Tab 3: Sticker Trang trí Tết (16 mẫu: 8 Cá Chép, 8 Hoa Sen) -->
-                  <div class="design-pane" id="pane-stickers" role="tabpanel" aria-labelledby="tab-stickers" hidden>
-                    <div class="theme-subhead">
-                      <div class="sticker-info-bar">
-                        <span class="pane-note">Chạm dán & kéo thả trên vé:</span>
-                        <span class="sticker-count-badge" id="sticker-active-count">0/16</span>
-                      </div>
-                      <div class="sticker-actions">
-                        <button type="button" class="btn btn-ghost btn-sm" id="btn-random-stickers" title="Gợi ý dán sticker ngẫu nhiên">
-                          <i class="ph ph-shuffle" aria-hidden="true"></i>
-                          <span>Gợi ý đẹp</span>
-                        </button>
-                        <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-stickers" title="Xóa tất cả sticker đã dán">
-                          <i class="ph ph-trash" aria-hidden="true"></i>
-                          <span>Xóa hết</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Filter tabs: Tất cả, Cá Chép, Hoa Sen -->
-                    <div class="sticker-tabs" role="tablist" aria-label="Phân loại sticker">
-                      <button type="button" class="sticker-tab is-active" data-cat="all" role="tab" aria-selected="true">
-                        <i class="ph ph-squares-four" aria-hidden="true"></i> Tất cả (16)
-                      </button>
-                      <button type="button" class="sticker-tab" data-cat="fish" role="tab" aria-selected="false">
-                        <i class="ph ph-fish" aria-hidden="true"></i> Cá Chép (8)
-                      </button>
-                      <button type="button" class="sticker-tab" data-cat="lotus" role="tab" aria-selected="false">
-                        <i class="ph ph-flower-lotus" aria-hidden="true"></i> Hoa Sen (8)
-                      </button>
-                    </div>
-
-                    <!-- Khay cuộn sticker mượt mà cho mobile -->
-                    <div class="sticker-tray-wrap">
-                      <div class="sticker-tray" id="sticker-tray" role="list" aria-label="Danh sách sticker"></div>
-                    </div>
-                  </div>
-
-                  <!-- Tab 4: Khổ ảnh -->
-                  <div class="design-pane" id="pane-ratio" role="tabpanel" aria-labelledby="tab-ratio" hidden>
-                    <div class="theme-group-head-compact">
-                      <span class="pane-note">Chọn tỷ lệ hình ảnh tải về:</span>
-                    </div>
-                    <div class="seg" role="group" aria-labelledby="tab-ratio" id="ratio-seg">
-                      <button type="button" data-ratio="1:1" aria-pressed="true"><i class="ph ph-square" aria-hidden="true"></i> Vuông 1:1</button>
-                      <button type="button" data-ratio="9:16" aria-pressed="false"><i class="ph ph-device-mobile" aria-hidden="true"></i> Story 9:16</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Thao tác tải & chia sẻ -->
-              <div class="share-actions">
-                <button class="btn btn-primary" type="button" id="btn-download"><i class="ph ph-download-simple" aria-hidden="true"></i> Tải ảnh về máy</button>
-                <button class="btn btn-ghost" type="button" id="btn-share-fb" title="Lưu ảnh, copy caption và mở Facebook"><i class="ph ph-facebook-logo" aria-hidden="true"></i> Facebook</button>
-                <button class="btn btn-ghost" type="button" id="btn-share-tt" title="Lưu ảnh, copy caption và mở TikTok"><i class="ph ph-tiktok-logo" aria-hidden="true"></i> TikTok</button>
-                <button class="btn btn-ghost" type="button" id="btn-share-more" title="Chia sẻ qua ứng dụng khác"><i class="ph ph-share-network" aria-hidden="true"></i> Khác</button>
-              </div>
-              <p class="rules">Thể lệ tóm tắt: đăng Chuyện Nhà Đêm 23 ở chế độ công khai, kèm #ChuyenNhaTao #YearInValues. <span class="pending">Thể lệ đầy đủ đang được chốt (mục 2.4).</span></p>
-            </aside>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =================================================================
          S09 · DỮ LIỆU CÁ NHÂN, CONSENT & HỖ TRỢ
          ================================================================= -->
     <section class="section theme-dark" id="du-lieu" aria-labelledby="data-title">
@@ -695,9 +744,9 @@
           <div>
             <h4>Trải nghiệm</h4>
             <ul>
-              <li><a href="#tram-trai-nghiem">Vân Du Ký</a></li>
-              <li><a href="#doc-sach">Đọc sách</a></li>
               <li><a href="#la-so">Chuyện Nhà Đêm 23</a></li>
+              <li><a href="#tram-trai-nghiem">Thiên Du Ký</a></li>
+              <li><a href="#doc-sach">Đọc sách</a></li>
             </ul>
           </div>
           <div>
@@ -1026,5 +1075,67 @@
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js" defer></script>
   <script src="ca-chep.js?v=2.3" defer></script>
   <script type="module" src="js/main.js?v=3.7"></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const p = new URLSearchParams(location.search);
+      if (p.has('demo_pass')) {
+        try {
+          localStorage.setItem('cnt_pass', JSON.stringify({
+            id: 'TAO-VMCH29', name: 'Ngọc Hà', nickname: 'Ngọc Hà', unit: 'ĐH FPT TP.HCM', school: 'ĐH FPT TP.HCM', stamps: [1,2,3,4], checkin: Date.now()
+          }));
+        } catch(e) {}
+      }
+      if (p.has('skip_intro')) {
+        document.documentElement.classList.add('intro-skip');
+        const el = document.getElementById('site-intro-overlay');
+        if (el) el.style.display = 'none';
+      }
+      setTimeout(() => {
+        const view = p.get('view');
+        if (view === 'comments') {
+          const sheet = document.getElementById('ig-comment-sheet');
+          if (sheet) { sheet.hidden = false; sheet.classList.add('is-open'); sheet.style.display = 'block'; }
+        } else if (view === 'medal') {
+          const modal = document.getElementById('medal-modal');
+          if (modal) {
+            modal.hidden = false; modal.style.display = 'flex'; modal.style.opacity = '1';
+            const nameEl = document.getElementById('medal-modal-name');
+            if (nameEl) nameEl.textContent = 'HUY HIỆU TÔN KÍNH';
+            const descEl = document.getElementById('medal-modal-desc');
+            if (descEl) descEl.textContent = 'Chúc mừng bạn đã hoàn thành Chương II. Khám phá tiếp con cá chép ngược dòng bên trong bạn!';
+          }
+        } else if (view === 'feedback') {
+          const dlg = document.getElementById('dlg-feedback');
+          if (dlg) { if (typeof dlg.showModal === 'function') dlg.showModal(); dlg.style.display = 'block'; dlg.setAttribute('open', ''); }
+        } else if (view === 'reactions') {
+          const spawnFish = (type, x, y) => {
+            const el = document.createElement('div');
+            el.className = 'floating-fish-reaction active';
+            el.style.cssText = 'position:fixed; z-index:99999; pointer-events:none; left:' + x + 'px; top:' + y + 'px; font-size:32px; filter:drop-shadow(0 4px 12px rgba(0,0,0,0.3)); transform:rotate(-15deg);';
+            const icons = { maiam: '🐟', tonkinh: '🐠', nhinlai: '🐡', huongthien: '✨' };
+            el.innerHTML = '<span style=\"background:rgba(255,255,255,0.95); padding:6px 12px; border-radius:20px; font-weight:800; font-size:12px; box-shadow:0 4px 14px rgba(0,0,0,0.2); display:flex; align-items:center; gap:6px;\"><b>' + (icons[type] || '🐟') + '</b> <span>' + type.toUpperCase() + '</span></span>';
+            document.body.appendChild(el);
+          };
+          spawnFish('maiam', 280, 320);
+          spawnFish('tonkinh', 660, 260);
+          spawnFish('nhinlai', 440, 200);
+          spawnFish('huongthien', 850, 380);
+        }
+        const pageNum = parseInt(p.get('page'));
+        if (!isNaN(pageNum)) {
+          setTimeout(() => {
+            if (window.cntBook && window.cntBook.flip) window.cntBook.flip.turnToPage(pageNum);
+            const btn = document.querySelector('[data-goto="' + pageNum + '"]');
+            if (btn) btn.click();
+          }, 300);
+        }
+        const goto = p.get('goto');
+        if (goto) {
+          const target = document.getElementById(goto);
+          if (target) target.scrollIntoView({ behavior: 'instant', block: 'start' });
+        }
+      }, 400);
+    });
+  </script>
 </body>
 </html>

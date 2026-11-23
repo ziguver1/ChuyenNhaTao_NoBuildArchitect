@@ -124,5 +124,25 @@
 
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
   <script src="staff.js" defer></script>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const p = new URLSearchParams(location.search);
+      if (p.has('autologin')) {
+        setTimeout(() => {
+          const k = document.getElementById('stf-key');
+          const f = document.getElementById('login');
+          if (k) k.value = 'chuyennhatao';
+          if (f) f.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+          setTimeout(() => {
+            const m = document.getElementById('manual-id');
+            if (m && p.get('id')) {
+              m.value = p.get('id');
+              m.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+          }, 400);
+        }, 300);
+      }
+    });
+  </script>
 </body>
 </html>

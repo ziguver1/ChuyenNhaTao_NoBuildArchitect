@@ -168,7 +168,7 @@ export function ppPageHTML(n) {
   if (n === PP.cover)
     return `
     <div class="pp-cover pp-cover-front">
-      <img class="pp-cover-img" src="images/passport/biapassport.webp" alt="Thẻ Thông Hành - Vân Du Ký - Chuyện Nhà Táo" draggable="false">
+      <img class="pp-cover-img" src="images/passport/biapassport.webp" alt="Thẻ Thông Hành - Thiên Du Ký - Chuyện Nhà Táo" draggable="false">
     </div>`;
 
   if (n === PP.data) {

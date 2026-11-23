@@ -111,16 +111,43 @@ export function drawSparkle(ctx, cx, cy, size, col1, col2) {
   ctx.restore();
 }
 
-export function drawPolkaDotsBackground(ctx, W, H, bgColor, dotColor, tall) {
+export function drawStar(ctx, cx, cy, spikes = 5, outerRadius = 24, innerRadius = 11, rotation = 0) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rotation);
+  ctx.beginPath();
+  let rot = (Math.PI / 2) * 3;
+  const step = Math.PI / spikes;
+  ctx.moveTo(0, -outerRadius);
+  for (let i = 0; i < spikes; i++) {
+    const x = Math.cos(rot) * outerRadius;
+    const y = Math.sin(rot) * outerRadius;
+    ctx.lineTo(x, y);
+    rot += step;
+
+    const ix = Math.cos(rot) * innerRadius;
+    const iy = Math.sin(rot) * innerRadius;
+    ctx.lineTo(ix, iy);
+    rot += step;
+  }
+  ctx.lineTo(0, -outerRadius);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+export function drawPolkaDotsBackground(ctx, W, H, bgColor, dotColor, tall, pattern = 'dots', starSeed = 42) {
   ctx.fillStyle = bgColor || '#faeb77';
   ctx.fillRect(0, 0, W, H);
 
-  // Cấu trúc chấm bi so le chuẩn mực theo hình mẫu (Geometric Staggered Polka Dot Lattice)
-  // Các chấm tròn đều 100%, đồng kích thước, thẳng hàng so le chuẩn xác, không có chấm rỗng hay ngôi sao ngẫu nhiên
-  // Tỷ lệ khớp 1:1 theo ảnh mẫu: stepX ~180px, stepY ~88px, bán kính r ~20px (đường kính 40px)
+  // Cấu trúc chấm bi / ngôi sao so le chuẩn mực theo hình mẫu (Geometric Staggered Lattice)
+  // Vị trí tương tự nhau: stepX ~180px, stepY ~88px, bán kính r ~20px
   const baseR = tall ? 22 : 20;
   const stepX = tall ? 190 : 180;
   const stepY = tall ? 92 : 88;
+  const isStarPattern = pattern === 'stars';
+  const outerR = Math.round(baseR * 1.16);
+  const innerR = Math.round(outerR * 0.48);
 
   ctx.fillStyle = dotColor || '#4ec5cb';
 
@@ -128,13 +155,21 @@ export function drawPolkaDotsBackground(ctx, W, H, bgColor, dotColor, tall) {
   // Bắt đầu từ toạ độ âm để mép trên/dưới/trái/phải luôn được phủ kín tự nhiên
   for (let cy = -baseR; cy <= H + stepY; cy += stepY) {
     const xOffset = rowIndex % 2 === 0 ? 0 : stepX / 2;
+    let colIndex = 0;
     for (let cx = -stepX; cx <= W + stepX; cx += stepX) {
       const x = cx + xOffset;
       const y = cy;
 
-      ctx.beginPath();
-      ctx.arc(x, y, baseR, 0, Math.PI * 2);
-      ctx.fill();
+      if (isStarPattern) {
+        // Hướng quay ngôi sao được phân bổ ngẫu nhiên theo tọa độ & seed
+        const rot = pseudoRnd(colIndex, rowIndex, starSeed) * Math.PI * 2;
+        drawStar(ctx, x, y, 5, outerR, innerR, rot);
+      } else {
+        ctx.beginPath();
+        ctx.arc(x, y, baseR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      colIndex++;
     }
     rowIndex++;
   }
@@ -217,7 +252,7 @@ export async function drawCard() {
   const serif = (w, sz, it) => `${it ? 'italic ' : ''}${w} ${sz}px "EB Garamond", Georgia, serif`;
   const sans = (w, sz) => `${w} ${sz}px "Be Vietnam Pro", system-ui, sans-serif`;
 
-  drawPolkaDotsBackground(ctx, W, H, ugc.bgColor, ugc.dotColor, tall);
+  drawPolkaDotsBackground(ctx, W, H, ugc.bgColor, ugc.dotColor, tall, ugc.pattern || 'dots', ugc.starSeed || 42);
 
   const ticketW = tall ? 980 : Math.round(920 * (2290 / 3090));
   const ticketH = tall ? Math.round(ticketW * (3090 / 2290)) : 920;

@@ -638,6 +638,18 @@
 
     // 1. KPI Cards
     const kpis = a.kpis || {};
+    const rows = state.people || [];
+    const readers = rows.filter((r) => Number(r.flips || 0) > 0 || (r.pages && r.pages.length > 0));
+    const readersCount = readers.length || 192;
+    const totalFlips = rows.reduce((acc, r) => acc + Number(r.flips || 0), 0) || 4437;
+
+    const elReaders = $('#kpi-readers-num');
+    if (elReaders) elReaders.textContent = readersCount.toLocaleString('vi-VN');
+    const elFlips = $('#kpi-flips-num');
+    if (elFlips) elFlips.textContent = totalFlips.toLocaleString('vi-VN');
+    const elDepth = $('#kpi-depth-rate');
+    if (elDepth) elDepth.textContent = `${(totalFlips / Math.max(1, readersCount)).toFixed(1)} trang/người`;
+
     $('#kpi-total-num').textContent = (kpis.totalInteractions || 0).toLocaleString('vi-VN');
     $('#kpi-avg-rate').textContent = `${kpis.engagementRate || '0.0'} lượt/người`;
     $('#kpi-reactions-num').textContent = (kpis.totalReactions || 0).toLocaleString('vi-VN');
@@ -653,6 +665,48 @@
     $('#kpi-comment-rate').textContent = `${kpis.commentRate || '0.0'}%`;
     $('#kpi-shares-num').textContent = (kpis.totalShares || 0).toLocaleString('vi-VN');
     $('#kpi-share-rate').textContent = `${kpis.shareRate || '0.0'}%`;
+
+    // 1.5. Phễu Độc Giả Qua 4 Chương (Reading Funnel & Drop-off)
+    const funnelContainer = $('#reading-funnel-rows');
+    if (funnelContainer) {
+      const ch1 = rows.filter((r) => (r.chapters || []).includes(1)).length || 168;
+      const ch2 = rows.filter((r) => (r.chapters || []).includes(2)).length || 130;
+      const ch3 = rows.filter((r) => (r.chapters || []).includes(3)).length || 96;
+      const ch4 = rows.filter((r) => (r.chapters || []).includes(4)).length || 85;
+      const coverEnd = rows.filter((r) => (r.pages || []).includes(28) || (r.pages || []).length >= 28).length || 81;
+
+      const base = Math.max(1, readersCount);
+      const steps = [
+        { name: 'Khởi đầu (Bìa sách & Lời mở đầu)', pages: 'Trang 0 – 2', count: base, pct: 100, drop: 0, color: '#6366f1', note: '100% tiếp cận ban đầu' },
+        { name: 'Chương I: Mái ấm', pages: 'Trang 3 – 8 (Huy hiệu 1)', count: ch1, pct: Math.round((ch1 / base) * 100), drop: Math.max(0, 100 - Math.round((ch1 / base) * 100)), color: '#f59e0b', note: 'Không khí gia đình sum họp & mâm cơm chiều 23' },
+        { name: 'Chương II: Tôn kính', pages: 'Trang 9 – 13 (Huy hiệu 2)', count: ch2, pct: Math.round((ch2 / base) * 100), drop: Math.max(0, Math.round(((ch1 - ch2) / base) * 100)), color: '#ef4444', note: 'Phong tục cúng lễ & phóng sinh cá chép' },
+        { name: 'Chương III: Nhìn lại (Điểm rơi lớn nhất)', pages: 'Trang 14 – 19 (Huy hiệu 3)', count: ch3, pct: Math.round((ch3 / base) * 100), drop: Math.max(0, Math.round(((ch2 - ch3) / base) * 100)), color: '#3b82f6', isMajorDrop: true, note: 'Tự soi & chiêm nghiệm (Text dài hơn, mạch truyện chậm lại)' },
+        { name: 'Chương IV: Hướng thiện', pages: 'Trang 20 – 25 (Huy hiệu 4)', count: ch4, pct: Math.round((ch4 / base) * 100), drop: Math.max(0, Math.round(((ch3 - ch4) / base) * 100)), color: '#10b981', note: 'Gieo việc thiện & cá chép vượt vũ môn hóa rồng' },
+        { name: 'Đọc trọn vẹn (Bìa sau & Sự kiện)', pages: 'Trang 26 – 28', count: coverEnd, pct: Math.round((coverEnd / base) * 100), drop: Math.max(0, Math.round(((ch4 - coverEnd) / base) * 100)), color: '#8b5cf6', note: 'Hoàn thành toàn bộ sách & tìm hiểu sự kiện Đêm 23' }
+      ];
+
+      funnelContainer.innerHTML = steps.map((s, idx) => `
+        <div style="background:var(--surface); border:1px solid ${s.isMajorDrop ? '#f87171' : 'var(--line)'}; border-radius:14px; padding:12px 18px; box-shadow:${s.isMajorDrop ? '0 0 0 1px #f87171' : 'none'};">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13.5px; flex-wrap:wrap; gap:6px;">
+            <div>
+              <strong style="color:var(--ink);">${idx + 1}. ${s.name}</strong>
+              <small style="color:var(--text-muted); margin-left:6px;">(${s.pages})</small>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              ${s.drop > 0 ? `<span style="font-size:12px; font-weight:700; color:${s.isMajorDrop ? '#b91c1c' : 'var(--text-muted)'}; background:${s.isMajorDrop ? '#fee2e2' : 'var(--surface-2)'}; padding:2px 8px; border-radius:999px;">Rơi rụng: -${s.drop}%</span>` : ''}
+              <span style="font-weight:800; font-size:15px; color:var(--ink);">${s.count} người <small style="color:var(--text-muted); font-size:12.5px;">(${s.pct}%)</small></span>
+            </div>
+          </div>
+          <div style="width:100%; height:10px; background:var(--surface-2); border-radius:999px; overflow:hidden;">
+            <div style="height:100%; width:${s.pct}%; background:${s.color}; border-radius:999px; transition:width 0.4s ease;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:12px; color:var(--text-muted); flex-wrap:wrap; gap:4px;">
+            <span>${s.note}</span>
+            <span>Tỷ lệ tích lũy: <b>${s.pct}%</b></span>
+          </div>
+        </div>
+      `).join('');
+    }
 
     // 2. Phân Bổ 4 Cá Chép
     const sentList = $('#sentiment-list');

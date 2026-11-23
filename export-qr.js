@@ -162,7 +162,7 @@ const STATIONS = [
     code: 'CONG23',
     filename: '01_CONG_CHECKIN_CONG23',
     title: 'Cổng Khai Hội (Check-in sự kiện)',
-    sub: 'Quét để tạo Thẻ Vân Du Ký, nhập tên và bắt đầu',
+    sub: 'Quét để tạo Thẻ Thiên Du Ký, nhập tên và bắt đầu',
     param: 'vao=CONG23'
   },
   {
@@ -259,7 +259,7 @@ DANH MỤC 5 MÃ QR SỰ KIỆN
    - File PNG: 01_CONG_CHECKIN_CONG23.png (980x980px)
    - File SVG: 01_CONG_CHECKIN_CONG23.svg (Vector)
    - Vị trí dán: Cổng chào ra vào, Bàn lễ tân đón tiếp khách.
-   - Nhiệm vụ: Khách quét để mở web, nhập tên & tạo Thẻ Vân Du Ký (TAO-XXXXXX).
+   - Nhiệm vụ: Khách quét để mở web, nhập tên & tạo Thẻ Thiên Du Ký (TAO-XXXXXX).
 
 2. TRẠM 1 — TÔN KÍNH:
    - Mã dự phòng: TONKI1
@@ -304,7 +304,7 @@ KHUYẾN NGHỊ IN ẤN & THIẾT KẾ STANDEE
 
 3. Xử lý sự cố camera khách bị mờ / không quét được:
    - Mỗi standee đều có in sẵn mã 6 ký tự (CONG23, TONKI1, MAIAM2, NHINL3, HUONG4).
-   - Khách có thể bấm nút "Nhập mã trạm bằng tay" trên Thẻ Vân Du Ký để nhận dấu bình thường.
+   - Khách có thể bấm nút "Nhập mã trạm bằng tay" trên Thẻ Thiên Du Ký để nhận dấu bình thường.
 `;
 
   fs.writeFileSync(path.join(outDir, 'HUONG_DAN_IN_AN.txt'), guideContent, 'utf8');

@@ -350,6 +350,120 @@ body::after {
   word-spacing: clamp(0.22em, 2vw, 0.32em);
 }
 
+/* =========================================================================
+   NÚT THÔNG BÁO SỰ KIỆN ĐANG DIỄN RA (HERO LIVE EVENT BADGE)
+   ========================================================================= */
+.hero-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 20px;
+  margin-bottom: 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(35, 14, 18, 0.76);
+  border: 1.5px solid rgba(243, 210, 122, 0.7);
+  box-shadow: 
+    0 4px 22px rgba(199, 50, 26, 0.38),
+    0 0 28px rgba(243, 210, 122, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #fff8f0;
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.hero-live-badge:hover {
+  transform: translateY(-2px) scale(1.03);
+  background: rgba(199, 50, 26, 0.88);
+  border-color: #ffd27a;
+  box-shadow: 
+    0 8px 32px rgba(199, 50, 26, 0.6),
+    0 0 40px rgba(243, 210, 122, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+}
+
+.hero-live-badge:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Hiệu ứng chớp đỏ Live Beacon */
+.live-dot-wrap {
+  position: relative;
+  display: inline-flex;
+  width: 10px;
+  height: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3b30;
+  box-shadow: 0 0 10px #ff3b30;
+}
+
+.live-dot-ping {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #ff3b30;
+  opacity: 0.75;
+  animation: live-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes live-ping {
+  0% { transform: scale(1); opacity: 0.8; }
+  75%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+.live-tag {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #ffd666;
+  background: rgba(255, 214, 102, 0.18);
+  padding: 2.5px 7.5px;
+  border-radius: 6px;
+}
+
+.live-divider {
+  opacity: 0.5;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.live-title {
+  font-weight: 700;
+  color: #fff9ea;
+}
+
+.live-arrow {
+  font-size: 14px;
+  color: #ffd666;
+  transition: transform 0.2s ease;
+  animation: bounce-arrow 2s infinite;
+}
+
+.hero-live-badge:hover .live-arrow {
+  transform: translateY(2px);
+}
+
+@keyframes bounce-arrow {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(3.5px); }
+  60% { transform: translateY(1.5px); }
+}
+
 @media (max-width: 600px) {
   .hero {
     padding: calc(var(--nav-h) + 12px) 0 clamp(20px, 4vh, 36px);
@@ -357,6 +471,19 @@ body::after {
   .hero-content {
     width: 100%;
     padding: 0;
+  }
+  .hero-live-badge {
+    padding: 6px 14px;
+    font-size: 12px;
+    margin-bottom: 6px;
+    gap: 7px;
+  }
+  .live-tag {
+    font-size: 10px;
+    padding: 1.5px 5.5px;
+  }
+  .live-title {
+    font-size: 12px;
   }
   .hero-brand-title {
     padding: 6px 0 4px;
@@ -2592,11 +2719,11 @@ body.has-dialog-open {
   position: relative;
   overflow: hidden;
   border-top: none !important; /* Xóa bỏ đường viền 1px trên .section gây vệt đen */
-  margin-top: -2px; /* Khớp liền 2px với phần Thẻ thông hành ở trên */
+  margin-top: -2px; /* Khớp liền 2px với phần Hero ở trên */
   background:
     radial-gradient(ellipse 110% 65% at 50% 45%, #2a122e 0%, #150d24 45%, #080612 100%);
   color: #f7ede2;
-  padding-top: clamp(210px, 24vw, 270px); /* Dành không gian cho 200px cầu hoàng hôn ở đỉnh */
+  padding-top: clamp(80px, 10vw, 120px);
   padding-bottom: clamp(70px, 9vw, 110px);
 }
 .la-so-bg-canvas {
@@ -3134,7 +3261,68 @@ body.has-dialog-open {
   color: var(--text-dim);
 }
 
-/* Nền chấm bi: Color Pickers */
+/* Nền chấm bi & ngôi sao: Pattern & Color Pickers */
+.pattern-selector-group {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pattern-selector-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pattern-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.pattern-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out);
+}
+
+.pattern-pill i {
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.pattern-pill:hover {
+  border-color: var(--accent-ink);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.pattern-pill.is-active {
+  background: rgba(199, 50, 26, 0.08);
+  border-color: var(--accent-ink);
+  color: var(--accent-ink);
+  font-weight: 700;
+  box-shadow: 0 2px 8px -2px rgba(199, 50, 26, 0.3);
+}
+
+.btn-xs {
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: var(--radius-pill);
+  gap: 4px;
+}
+
 .color-pickers-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3310,6 +3498,7 @@ body.has-dialog-open {
   .frame-tag {
     display: none;
   }
+  .pattern-selector,
   .color-pickers-row {
     grid-template-columns: 1fr;
     gap: 8px;
@@ -3922,18 +4111,15 @@ body.has-dialog-open {
   top: -2px; /* Tràn lên 2px che khít mép nối, triệt tiêu khe hở subpixel */
   left: 0;
   right: 0;
-  height: calc(clamp(210px, 24vw, 270px) + 4px);
+  height: clamp(100px, 14vw, 160px);
   pointer-events: none;
   z-index: 0;
-  /* Chuyển tiếp mượt từ tông nền giấy làng quê The_2 (#f7ead0) sang cõi trời đêm (#160f26) */
+  /* Chuyển tiếp mượt từ đáy Hero (#120b07) sang cõi trời đêm (#160f26) */
   background: linear-gradient(180deg,
-    #f7ead0 0%,
-    #eed8b8 12%,
-    #e2a466 32%,
-    #b84d38 52%,
-    #6d1f30 72%,
-    #2b1226 88%,
-    #160f26 100%
+    #120b07 0%,
+    rgba(35, 18, 38, 0.95) 45%,
+    rgba(21, 13, 36, 0.6) 80%,
+    transparent 100%
   );
 }
 
@@ -6419,7 +6605,7 @@ body.sheet-locked {
   vertical-align: middle;
 }
 
-/* Thẻ thông báo COMING SOON phong cách Vân Du Ký / Chuyện Nhà Đêm 23 */
+/* Thẻ thông báo COMING SOON phong cách Thiên Du Ký / Chuyện Nhà Đêm 23 */
 .coming-soon-card {
   position: relative;
   max-width: 420px;

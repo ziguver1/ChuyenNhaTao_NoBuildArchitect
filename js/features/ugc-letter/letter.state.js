@@ -16,12 +16,16 @@ export const ugc = Object.assign(
     frame: '1',
     bgColor: '#faeb77',
     dotColor: '#4ec5cb',
+    pattern: 'dots',
+    starSeed: 42,
     stickers: []
   },
   store.get('ugc_settings', {})
 );
 
 if (!Array.isArray(ugc.stickers)) ugc.stickers = [];
+if (!ugc.pattern) ugc.pattern = 'dots';
+if (!ugc.starSeed) ugc.starSeed = 42;
 
 export const saveUgcSettings = () =>
   store.set('ugc_settings', {
@@ -29,6 +33,8 @@ export const saveUgcSettings = () =>
     frame: ugc.frame,
     bgColor: ugc.bgColor,
     dotColor: ugc.dotColor,
+    pattern: ugc.pattern,
+    starSeed: ugc.starSeed,
     caption: ugc.caption,
     stickers: ugc.stickers
   });

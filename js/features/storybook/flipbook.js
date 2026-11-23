@@ -148,7 +148,7 @@ export function buildPageHTML() {
         <div><i class="ph ph-calendar-blank" aria-hidden="true"></i><span><dt>Ngày giờ</dt><dd><span class="soon">Sắp công bố</span></dd></span></div>
         <div><i class="ph ph-map-pin" aria-hidden="true"></i><span><dt>Địa điểm</dt><dd><span class="soon">Sắp công bố</span></dd></span></div>
       </dl>
-      <a class="btn btn-primary btn-block" href="#tram-trai-nghiem" data-track="cta_passport" data-track-from="summary">Vân Du Ký (Coming Soon)</a>
+      <a class="btn btn-primary btn-block" href="#tram-trai-nghiem" data-track="cta_passport" data-track-from="summary">Thiên Du Ký (Coming Soon)</a>
     </div>${folio(P.event)}`;
 
   pageHTML[P.back] = `

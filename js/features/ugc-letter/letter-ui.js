@@ -34,7 +34,8 @@ export const gate = () => {
   const pass = getPass();
   const ch = book.done.size,
     st = pass ? pass.stamps.length : 0;
-  return { ch, st, ok: st === 4 };
+  // Mở trực tiếp trong sự kiện đang diễn ra để người dùng trải nghiệm ngay
+  return { ch, st, ok: true };
 };
 
 export function renderLetter() {
@@ -315,7 +316,52 @@ export function renderColorControls() {
   const dotInput = $('#ugc-dot-color');
   const bgHex = $('#ugc-bg-hex');
   const dotHex = $('#ugc-dot-hex');
+  const dotLabel = $('#ugc-dot-label');
   const presetList = $('#preset-list');
+  const shuffleBtn = $('#btn-shuffle-stars');
+
+  // Đồng bộ giao diện lựa chọn họa tiết (chấm bi / ngôi sao)
+  const syncPatternUI = () => {
+    const isStars = ugc.pattern === 'stars';
+    $$('#pane-colors [data-pattern]').forEach((btn) => {
+      const active = btn.dataset.pattern === (ugc.pattern || 'dots');
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-checked', String(active));
+    });
+    if (dotLabel) {
+      dotLabel.textContent = isStars ? 'Màu ngôi sao' : 'Màu chấm bi';
+    }
+    if (shuffleBtn) {
+      shuffleBtn.hidden = !isStars;
+    }
+  };
+
+  syncPatternUI();
+
+  $$('#pane-colors [data-pattern]').forEach((btn) => {
+    btn.onclick = () => {
+      ugc.pattern = btn.dataset.pattern || 'dots';
+      saveUgcSettings();
+      syncPatternUI();
+      drawCard();
+      toast(
+        ugc.pattern === 'stars'
+          ? 'Đã đổi sang nền ngôi sao (xoay ngẫu hứng)'
+          : 'Đã đổi sang nền chấm bi tròn',
+        'ok',
+        ugc.pattern === 'stars' ? 'star' : 'circle'
+      );
+    };
+  });
+
+  if (shuffleBtn) {
+    shuffleBtn.onclick = () => {
+      ugc.starSeed = Math.floor(Math.random() * 1000000) + 1;
+      saveUgcSettings();
+      drawCard();
+      toast('Đã đổi góc xoay ngẫu nhiên của các ngôi sao', 'ok', 'shuffle');
+    };
+  }
 
   if (bgInput) {
     bgInput.value = ugc.bgColor;
@@ -354,7 +400,13 @@ export function renderColorControls() {
       saveUgcSettings();
       updatePresetActive();
       drawCard();
-      toast('Đã đảo màu nền và màu chấm bi', 'ok', 'arrows-left-right');
+      toast(
+        ugc.pattern === 'stars'
+          ? 'Đã đảo màu nền và màu ngôi sao'
+          : 'Đã đảo màu nền và màu chấm bi',
+        'ok',
+        'arrows-left-right'
+      );
     };
   }
 
