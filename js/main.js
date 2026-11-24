@@ -42,7 +42,7 @@ import {
   initUgcUI,
   renderLetter,
   unlockTest
-} from './features/ugc-letter/letter-ui.js';
+} from './features/ugc-letter/letter-ui.js?v=3.8';
 import { initLaSoBackground } from './effects/gold-dust.js';
 import { initSceneCanvas } from './effects/scene-canvas.js';
 import { initBookPassportTransition } from './effects/transitions.js';
@@ -54,40 +54,49 @@ import {
 import { initSiteIntro } from './effects/site-intro.js';
 import { initBookCommunity } from './features/community/book-community.js';
 
+// Một bước khởi tạo lỗi không được làm hỏng các phần còn lại của trang.
+function safe(name, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error('[init] ' + name + ' lỗi:', err);
+  }
+}
+
 function initApp() {
   // 1. Hạ tầng cốt lõi & Analytics
-  initMotionToggle(track);
-  initSoundToggle();
-  initAnalytics();
-  initMeterListeners();
-  initMobileMenu();
-  initOfflineBar();
+  safe('initMotionToggle', () => initMotionToggle(track));
+  safe('initSoundToggle', () => initSoundToggle());
+  safe('initAnalytics', () => initAnalytics());
+  safe('initMeterListeners', () => initMeterListeners());
+  safe('initMobileMenu', () => initMobileMenu());
+  safe('initOfflineBar', () => initOfflineBar());
 
   // 2. Khởi tạo Storybook 4 chương
-  renderAllChapters();
-  initFlipbook();
-  initBookCommunity();
+  safe('renderAllChapters', () => renderAllChapters());
+  safe('initFlipbook', () => initFlipbook());
+  safe('initBookCommunity', () => initBookCommunity());
 
   // 3. Khởi tạo Thẻ thông hành O2O
-  initPassportUI();
-  initGuideNote();
-  initPollingObserver();
-  renderTicket();
-  renderRegister();
-  if (getPass()) {
-    startPolling();
-  }
+  safe('initPassportUI', () => initPassportUI());
+  safe('initGuideNote', () => initGuideNote());
+  safe('initPollingObserver', () => initPollingObserver());
+  safe('renderTicket', () => renderTicket());
+  safe('renderRegister', () => renderRegister());
+  safe('startPolling', () => {
+    if (getPass()) startPolling();
+  });
 
   // 4. Khởi tạo Chuyện Nhà Đêm 23 (UGC)
-  initUgcUI();
-  renderLetter();
+  safe('initUgcUI', () => initUgcUI());
+  safe('renderLetter', () => renderLetter());
 
   // 5. Khởi tạo Hiệu ứng đồ họa & Canvas
-  initLaSoBackground();
-  initSceneCanvas();
-  initBookPassportTransition();
-  initScrollAnimations();
-  initSiteIntro();
+  safe('initLaSoBackground', () => initLaSoBackground());
+  safe('initSceneCanvas', () => initSceneCanvas());
+  safe('initBookPassportTransition', () => initBookPassportTransition());
+  safe('initScrollAnimations', () => initScrollAnimations());
+  safe('initSiteIntro', () => initSiteIntro());
 
   // 6. Xử lý Query Params trên URL (?vao=, ?tram=, ?the=, ?test=, ?demo=)
   const qs = new URLSearchParams(location.search);

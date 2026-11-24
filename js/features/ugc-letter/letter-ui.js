@@ -26,7 +26,7 @@ import {
   setSelectedSticker,
   setupCanvasStickerDrag,
   initCanvasExporter
-} from './canvas-exporter.js';
+} from './canvas-exporter.js?v=3.8';
 import { initShareButtons } from './share.js';
 
 let letterShown = false;
