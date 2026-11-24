@@ -15,13 +15,123 @@ let activeDragSticker = null;
 let dragOffset = { x: 0, y: 0 };
 let currentTicketBounds = null;
 
-export const loadImg = (src) =>
-  new Promise((res) => {
+// Cache ảnh đã tải: kéo sticker / gõ chữ không phải tải và giải mã lại ảnh mỗi khung hình.
+const imgCache = new Map();
+export const loadImg = (src) => {
+  if (!src) return Promise.resolve(null);
+  if (imgCache.has(src)) return imgCache.get(src);
+  const p = new Promise((res) => {
     const im = new Image();
+    im.decoding = 'async';
     im.onload = () => res(im);
-    im.onerror = () => res(null);
+    im.onerror = () => {
+      imgCache.delete(src);
+      res(null);
+    };
     im.src = src;
   });
+  imgCache.set(src, p);
+  if (imgCache.size > 40) imgCache.delete(imgCache.keys().next().value);
+  return p;
+};
+
+// ---------- Sticker: chọn, vẽ viền cắt giấy (die-cut) và cache ----------
+let selectedSticker = null;
+const stickerAspect = new Map();
+const spriteCache = new Map();
+let drawQueued = 0;
+
+export const getSelectedSticker = () => selectedSticker;
+export function setSelectedSticker(s) {
+  const next = s || null;
+  if (selectedSticker === next) return;
+  selectedSticker = next;
+  document.dispatchEvent(new CustomEvent('sticker:select', { detail: next }));
+  scheduleDraw();
+}
+
+// Gộp nhiều yêu cầu vẽ trong cùng một khung hình (tránh vẽ dồn khi kéo/chụm ngón tay).
+export function scheduleDraw() {
+  if (drawQueued) return;
+  drawQueued = requestAnimationFrame(() => {
+    drawQueued = 0;
+    drawCard();
+  });
+}
+
+// Sticker có viền trắng như tem dán + bóng mềm, dựng một lần rồi dùng lại (không dùng shadowBlur mỗi khung hình).
+function getStickerSprite(img, key, targetW) {
+  const w = Math.min(640, Math.max(48, Math.round(targetW / 16) * 16));
+  const ck = key + '@' + w;
+  const hit = spriteCache.get(ck);
+  if (hit) return hit;
+  const h = Math.max(1, Math.round((w * img.height) / img.width));
+  const pad = Math.round(w * 0.16);
+  const outline = Math.max(3, Math.round(w * 0.032));
+  const cw = w + pad * 2,
+    ch = h + pad * 2;
+
+  const sil = document.createElement('canvas');
+  sil.width = cw;
+  sil.height = ch;
+  const sg = sil.getContext('2d');
+  for (let a = 0; a < 16; a++) {
+    const ang = (a / 16) * Math.PI * 2;
+    sg.drawImage(img, pad + Math.cos(ang) * outline, pad + Math.sin(ang) * outline, w, h);
+  }
+  sg.drawImage(img, pad, pad, w, h);
+  sg.globalCompositeOperation = 'source-in';
+  sg.fillStyle = '#ffffff';
+  sg.fillRect(0, 0, cw, ch);
+
+  const cv = document.createElement('canvas');
+  cv.width = cw;
+  cv.height = ch;
+  const g = cv.getContext('2d');
+  g.shadowColor = 'rgba(48, 22, 8, 0.30)';
+  g.shadowBlur = Math.round(w * 0.05);
+  g.shadowOffsetY = Math.round(w * 0.024);
+  g.drawImage(sil, 0, 0);
+  g.shadowColor = 'transparent';
+  g.shadowBlur = 0;
+  g.shadowOffsetY = 0;
+  g.drawImage(img, pad, pad, w, h);
+
+  const sprite = { cv, w, h, pad };
+  if (spriteCache.size > 48) spriteCache.delete(spriteCache.keys().next().value);
+  spriteCache.set(ck, sprite);
+  return sprite;
+}
+
+function drawSelectionRing(ctx, sw, sh, unit) {
+  const m = 12 * unit;
+  const x = -sw / 2 - m,
+    y = -sh / 2 - m,
+    w = sw + m * 2,
+    h = sh + m * 2;
+  ctx.save();
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 5 * unit;
+  ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x, y, w, h, 18 * unit) : ctx.rect(x, y, w, h);
+  ctx.stroke();
+  ctx.lineWidth = 3 * unit;
+  ctx.strokeStyle = '#c7321a';
+  ctx.setLineDash([10 * unit, 8 * unit]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#c7321a';
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 3 * unit;
+  [[x, y], [x + w, y], [x, y + h], [x + w, y + h]].forEach(([px, py]) => {
+    ctx.beginPath();
+    ctx.arc(px, py, 7 * unit, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.restore();
+}
 
 export function drawImageCover(ctx, img, x, y, w, h, radius = 0) {
   if (!img || !img.width || !img.height) return;
@@ -246,9 +356,14 @@ export async function drawCard() {
   });
 
   if (ticket !== drawing) return;
-  cv.width = W;
-  cv.height = H;
+  // Chỉ cấp lại bộ nhớ canvas khi đổi khổ ảnh, còn lại chỉ xóa nội dung.
+  if (cv.width !== W || cv.height !== H) {
+    cv.width = W;
+    cv.height = H;
+  }
   const ctx = cv.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);
   const serif = (w, sz, it) => `${it ? 'italic ' : ''}${w} ${sz}px "EB Garamond", Georgia, serif`;
   const sans = (w, sz) => `${w} ${sz}px "Be Vietnam Pro", system-ui, sans-serif`;
 
@@ -404,25 +519,34 @@ export async function drawCard() {
     activeStickers.forEach((s, idx) => {
       const img = loadedStickerImgs[idx];
       if (!img || !img.width || !img.height) return;
+      const aspect = img.height / img.width;
+      stickerAspect.set(s.src, aspect);
       const cx = ticketX + s.relX * ticketW;
       const cy = ticketY + s.relY * ticketH;
       const stickerW = ticketW * (s.relScale || 0.2);
-      const aspect = img.height / img.width;
-      const stickerH = stickerW * aspect;
+      const sprite = getStickerSprite(img, s.src, stickerW);
+      const k = stickerW / sprite.w;
 
       ctx.save();
       ctx.translate(cx, cy);
-      if (s.rot) {
-        ctx.rotate((s.rot * Math.PI) / 180);
-      }
-
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.24)';
-      ctx.shadowBlur = Math.round(14 * (scale / 0.42));
-      ctx.shadowOffsetX = Math.round(2 * (scale / 0.42));
-      ctx.shadowOffsetY = Math.round(7 * (scale / 0.42));
-
-      ctx.drawImage(img, -stickerW / 2, -stickerH / 2, stickerW, stickerH);
+      if (s.rot) ctx.rotate((s.rot * Math.PI) / 180);
+      if (s.flip) ctx.scale(-1, 1);
+      ctx.drawImage(
+        sprite.cv,
+        -(sprite.w / 2 + sprite.pad) * k,
+        -(sprite.h / 2 + sprite.pad) * k,
+        sprite.cv.width * k,
+        sprite.cv.height * k
+      );
       ctx.restore();
+
+      if (s === selectedSticker) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        if (s.rot) ctx.rotate((s.rot * Math.PI) / 180);
+        drawSelectionRing(ctx, stickerW, stickerW * aspect, scale / 0.42);
+        ctx.restore();
+      }
     });
   }
 
@@ -494,12 +618,21 @@ export async function copyCaption(i) {
   track('copy_caption', { version: i + 1 });
 }
 
-export function cardBlob() {
-  return new Promise((res) => {
-    const cv = $('#ugc-canvas');
-    if (!cv) res(null);
-    else cv.toBlob(res, 'image/png');
-  });
+export async function cardBlob() {
+  const cv = $('#ugc-canvas');
+  if (!cv) return null;
+  // Ảnh xuất ra không được dính khung chọn sticker.
+  const prev = selectedSticker;
+  if (prev) {
+    selectedSticker = null;
+    await drawCard();
+  }
+  const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
+  if (prev) {
+    selectedSticker = prev;
+    scheduleDraw();
+  }
+  return blob;
 }
 
 export async function downloadCardImage() {
@@ -523,13 +656,20 @@ export function setupCanvasStickerDrag() {
   if (!cv || isCanvasDragInit) return;
   isCanvasDragInit = true;
 
+  const pointers = new Map();
+  let pinch = null;
+  let saveTimer = 0;
+  const saveSoon = () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveUgcSettings, 250);
+  };
+  const emitUpdate = () => document.dispatchEvent(new CustomEvent('sticker:update'));
+
   function getCanvasPos(e) {
     const rect = cv.getBoundingClientRect();
-    const scaleX = cv.width / rect.width;
-    const scaleY = cv.height / rect.height;
     return {
-      x: (e.clientX - rect.left) * scaleX,
-      y: (e.clientY - rect.top) * scaleY
+      x: (e.clientX - rect.left) * (cv.width / rect.width),
+      y: (e.clientY - rect.top) * (cv.height / rect.height)
     };
   }
 
@@ -541,57 +681,107 @@ export function setupCanvasStickerDrag() {
       const cx = ticketX + s.relX * ticketW;
       const cy = ticketY + s.relY * ticketH;
       const stickerW = ticketW * (s.relScale || 0.2);
-      const radius = stickerW * 0.65;
-      const dist = Math.hypot(pos.x - cx, pos.y - cy);
-      if (dist <= radius) {
-        return { sticker: s, cx, cy };
-      }
+      const aspect = stickerAspect.get(s.src) || 1;
+      const hw = Math.max(34, (stickerW / 2) * 1.08);
+      const hh = Math.max(34, ((stickerW * aspect) / 2) * 1.08);
+      const ang = (-(s.rot || 0) * Math.PI) / 180;
+      const dx = pos.x - cx,
+        dy = pos.y - cy;
+      const lx = dx * Math.cos(ang) - dy * Math.sin(ang);
+      const ly = dx * Math.sin(ang) + dy * Math.cos(ang);
+      if (Math.abs(lx) <= hw && Math.abs(ly) <= hh) return { sticker: s, cx, cy };
     }
     return null;
   }
 
+  const pinchMetrics = () => {
+    const [p1, p2] = [...pointers.values()];
+    return { d: Math.hypot(p2.x - p1.x, p2.y - p1.y) || 1, a: Math.atan2(p2.y - p1.y, p2.x - p1.x) };
+  };
+
   cv.addEventListener('pointerdown', (e) => {
     const pos = getCanvasPos(e);
+    pointers.set(e.pointerId, pos);
+    try {
+      cv.setPointerCapture(e.pointerId);
+    } catch (err) {}
+
+    if (pointers.size === 2 && selectedSticker) {
+      const m = pinchMetrics();
+      pinch = { d0: m.d, a0: m.a, s0: selectedSticker.relScale || 0.2, r0: selectedSticker.rot || 0 };
+      activeDragSticker = null;
+      return;
+    }
     const hit = hitTestSticker(pos);
     if (hit) {
       activeDragSticker = hit.sticker;
       dragOffset.x = pos.x - hit.cx;
       dragOffset.y = pos.y - hit.cy;
       cv.classList.add('is-dragging-sticker');
-      try {
-        cv.setPointerCapture(e.pointerId);
-      } catch (err) {}
+      setSelectedSticker(hit.sticker);
+    } else if (pointers.size === 1) {
+      setSelectedSticker(null);
     }
   });
 
   cv.addEventListener('pointermove', (e) => {
     const pos = getCanvasPos(e);
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, pos);
+
+    if (pinch && pointers.size >= 2 && selectedSticker) {
+      const m = pinchMetrics();
+      selectedSticker.relScale = Math.max(0.08, Math.min(0.55, pinch.s0 * (m.d / pinch.d0)));
+      let r = pinch.r0 + ((m.a - pinch.a0) * 180) / Math.PI;
+      r = ((((r + 180) % 360) + 360) % 360) - 180;
+      selectedSticker.rot = Math.round(r);
+      scheduleDraw();
+      emitUpdate();
+      return;
+    }
     if (activeDragSticker && currentTicketBounds) {
       const { ticketX, ticketY, ticketW, ticketH } = currentTicketBounds;
-      const targetX = pos.x - dragOffset.x;
-      const targetY = pos.y - dragOffset.y;
-      activeDragSticker.relX = (targetX - ticketX) / ticketW;
-      activeDragSticker.relY = (targetY - ticketY) / ticketH;
-      drawCard();
-    } else {
-      const hit = hitTestSticker(pos);
-      cv.classList.toggle('is-hovering-sticker', Boolean(hit));
+      activeDragSticker.relX = Math.max(0, Math.min(1, (pos.x - dragOffset.x - ticketX) / ticketW));
+      activeDragSticker.relY = Math.max(0, Math.min(1, (pos.y - dragOffset.y - ticketY) / ticketH));
+      scheduleDraw();
+    } else if (e.pointerType === 'mouse') {
+      cv.classList.toggle('is-hovering-sticker', Boolean(hitTestSticker(pos)));
     }
   });
 
   const endDrag = (e) => {
+    pointers.delete(e.pointerId);
+    try {
+      cv.releasePointerCapture(e.pointerId);
+    } catch (err) {}
+    if (pinch && pointers.size < 2) {
+      pinch = null;
+      saveUgcSettings();
+    }
     if (activeDragSticker) {
       activeDragSticker = null;
       cv.classList.remove('is-dragging-sticker');
       saveUgcSettings();
-      try {
-        cv.releasePointerCapture(e.pointerId);
-      } catch (err) {}
     }
   };
-
   cv.addEventListener('pointerup', endDrag);
   cv.addEventListener('pointercancel', endDrag);
+
+  // Lăn chuột trên sticker để phóng to / thu nhỏ.
+  cv.addEventListener(
+    'wheel',
+    (e) => {
+      const hit = hitTestSticker(getCanvasPos(e));
+      const target = hit ? hit.sticker : null;
+      if (!target) return;
+      e.preventDefault();
+      setSelectedSticker(target);
+      target.relScale = Math.max(0.08, Math.min(0.55, (target.relScale || 0.2) * Math.exp(-e.deltaY * 0.0015)));
+      scheduleDraw();
+      emitUpdate();
+      saveSoon();
+    },
+    { passive: false }
+  );
 }
 
 export function initCanvasExporter() {

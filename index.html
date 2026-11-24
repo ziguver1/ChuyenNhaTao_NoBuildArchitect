@@ -167,7 +167,7 @@
          ================================================================= -->
     <section class="hero theme-dark" id="hero" aria-labelledby="hero-title">
       <div class="hero-backdrop" aria-hidden="true">
-        <img class="hero-bg-img" src="images/visual/key_visual.webp" alt="Chuyện Nhà Táo - Key Visual" decoding="async">
+        <img class="hero-bg-img" src="images/visual/key_visual.webp" alt="Chuyện Nhà Táo - Key Visual" decoding="async" fetchpriority="high">
         <div class="hero-overlay"></div>
       </div>
       <div class="container hero-container">
@@ -353,7 +353,7 @@
                   <div class="design-pane" id="pane-stickers" role="tabpanel" aria-labelledby="tab-stickers" hidden>
                     <div class="theme-subhead">
                       <div class="sticker-info-bar">
-                        <span class="pane-note">Chạm dán & kéo thả trên vé:</span>
+                        <span class="pane-note">Chạm để dán, kéo để di chuyển, chụm 2 ngón để chỉnh cỡ & xoay:</span>
                         <span class="sticker-count-badge" id="sticker-active-count">0/16</span>
                       </div>
                       <div class="sticker-actions">
@@ -379,6 +379,21 @@
                       <button type="button" class="sticker-tab" data-cat="lotus" role="tab" aria-selected="false">
                         <i class="ph ph-flower-lotus" aria-hidden="true"></i> Hoa Sen (8)
                       </button>
+                    </div>
+
+                    <!-- Bảng chỉnh sticker đang chọn -->
+                    <div class="sticker-editor" id="sticker-editor" hidden>
+                      <div class="se-head">
+                        <span class="se-title"><i class="ph-fill ph-sticker" aria-hidden="true"></i> <b id="se-name">Sticker</b></span>
+                        <div class="se-btns">
+                          <button type="button" class="se-btn" id="se-flip" title="Lật ngang" aria-label="Lật ngang"><i class="ph ph-flip-horizontal" aria-hidden="true"></i></button>
+                          <button type="button" class="se-btn" id="se-front" title="Đưa lên trên cùng" aria-label="Đưa lên trên cùng"><i class="ph ph-stack" aria-hidden="true"></i></button>
+                          <button type="button" class="se-btn" id="se-dup" title="Nhân đôi" aria-label="Nhân đôi"><i class="ph ph-copy" aria-hidden="true"></i></button>
+                          <button type="button" class="se-btn is-danger" id="se-del" title="Gỡ sticker" aria-label="Gỡ sticker"><i class="ph ph-trash" aria-hidden="true"></i></button>
+                        </div>
+                      </div>
+                      <label class="se-row"><i class="ph ph-arrows-out-simple" aria-hidden="true"></i><span>Cỡ</span><input type="range" id="se-size" min="8" max="55" step="1" value="20"><output id="se-size-out">20%</output></label>
+                      <label class="se-row"><i class="ph ph-arrows-clockwise" aria-hidden="true"></i><span>Xoay</span><input type="range" id="se-rot" min="-180" max="180" step="1" value="0"><output id="se-rot-out">0°</output></label>
                     </div>
 
                     <!-- Khay cuộn sticker mượt mà cho mobile -->
@@ -643,19 +658,19 @@
           <!-- Bảng chọn 4 icon cá chép (Popup nổi phía trên cụm icon) -->
           <div class="ig-reaction-picker" id="ig-reaction-picker" role="menu" aria-label="Chọn biểu tượng cá chép" hidden data-noflip="true">
             <button class="ig-picker-item" data-type="maiam" type="button" title="Mái Ấm (Bếp ấm sum họp)" data-noflip="true">
-              <img src="images/reaction/maiam.webp" alt="Mái Ấm" width="38" height="38">
+              <img loading="lazy" decoding="async" src="images/reaction/maiam.webp" alt="Mái Ấm" width="38" height="38">
               <span class="ig-picker-tag">Mái Ấm</span>
             </button>
             <button class="ig-picker-item" data-type="tonkinh" type="button" title="Tôn Kính (Biết ơn cội nguồn)" data-noflip="true">
-              <img src="images/reaction/tonkinh.webp" alt="Tôn Kính" width="38" height="38">
+              <img loading="lazy" decoding="async" src="images/reaction/tonkinh.webp" alt="Tôn Kính" width="38" height="38">
               <span class="ig-picker-tag">Tôn Kính</span>
             </button>
             <button class="ig-picker-item" data-type="nhinlai" type="button" title="Nhìn Lại (Thấu hiểu bản thân)" data-noflip="true">
-              <img src="images/reaction/nhinlai.webp" alt="Nhìn Lại" width="38" height="38">
+              <img loading="lazy" decoding="async" src="images/reaction/nhinlai.webp" alt="Nhìn Lại" width="38" height="38">
               <span class="ig-picker-tag">Nhìn Lại</span>
             </button>
             <button class="ig-picker-item" data-type="huongthien" type="button" title="Hướng Thiện (Gieo mầm điều lành)" data-noflip="true">
-              <img src="images/reaction/huongthien.webp" alt="Hướng Thiện" width="38" height="38">
+              <img loading="lazy" decoding="async" src="images/reaction/huongthien.webp" alt="Hướng Thiện" width="38" height="38">
               <span class="ig-picker-tag">Hướng Thiện</span>
             </button>
           </div>
@@ -665,7 +680,7 @@
             <!-- Nút chính thả cảm xúc -->
             <button class="ig-act-btn ig-btn-reaction" id="btn-ig-reaction" type="button" aria-label="Thả cảm xúc cá chép" aria-haspopup="menu" aria-expanded="false" data-noflip="true">
               <div class="ig-btn-bubble ig-carp-bubble">
-                <img src="images/reaction/maiam.webp" id="ig-current-reaction-img" alt="Cá chép" width="34" height="34">
+                <img loading="lazy" decoding="async" src="images/reaction/maiam.webp" id="ig-current-reaction-img" alt="Cá chép" width="34" height="34">
               </div>
               <span class="ig-act-count" id="count-reactions">0</span>
             </button>
@@ -939,7 +954,7 @@
             <span class="sp-5">✦</span>
             <span class="sp-6">✦</span>
           </div>
-          <img class="medal-modal-img" id="medal-modal-img" src="" alt="Huy chương" width="240" height="240">
+          <img loading="lazy" decoding="async" class="medal-modal-img" id="medal-modal-img" src="" alt="Huy chương" width="240" height="240">
         </div>
         <h3 class="medal-modal-congrats" id="medal-modal-congrats">Chúc mừng bạn đã nhận được Huy Chương!</h3>
         <h4 class="medal-modal-name" id="medal-modal-name">Huy hiệu Hướng Thiện</h4>

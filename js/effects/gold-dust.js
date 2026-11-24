@@ -12,6 +12,9 @@ export function initLaSoBackground() {
   if (!canvas || !section) return;
 
   const ctx = canvas.getContext('2d');
+  // Điện thoại: ít hạt hơn, 30fps, bỏ shadowBlur (tốn GPU nhất).
+  const IS_MOBILE = window.matchMedia('(max-width: 768px)').matches;
+  let lastT = 0;
   let width = 0,
     height = 0;
   let particles = [];
@@ -30,6 +33,7 @@ export function initLaSoBackground() {
 
   function resize() {
     const rect = section.getBoundingClientRect();
+    if (width && Math.abs(rect.width - width) < 1 && Math.abs(rect.height - height) < 60) return;
     width = canvas.width = rect.width;
     height = canvas.height = rect.height;
     createParticles();
@@ -40,7 +44,7 @@ export function initLaSoBackground() {
   function createParticles() {
     particles = [];
     lanterns = [];
-    const count = width < 600 ? 42 : width < 1024 ? 75 : 110;
+    const count = width < 600 ? 16 : width < 1024 ? 60 : 110;
     const speedMult = reduceMotion ? 0.25 : 1;
     for (let i = 0; i < count; i++) {
       const isSparkle = Math.random() < 0.25;
@@ -70,7 +74,7 @@ export function initLaSoBackground() {
       });
     }
 
-    const lanternCount = width < 600 ? 5 : 8;
+    const lanternCount = width < 600 ? 3 : 8;
     for (let j = 0; j < lanternCount; j++) {
       lanterns.push({
         x: Math.random() * width,
@@ -93,7 +97,7 @@ export function initLaSoBackground() {
     ctx.fillStyle = color;
     ctx.globalAlpha = alpha;
     ctx.shadowColor = '#ffe082';
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = IS_MOBILE ? 0 : 10;
 
     ctx.beginPath();
     const arm = size;
@@ -146,8 +150,15 @@ export function initLaSoBackground() {
     ctx.restore();
   }
 
-  function render() {
+  function render(ts) {
     if (!isVisible) return;
+    if (IS_MOBILE) {
+      if (ts - lastT < 32) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastT = ts;
+    }
     ctx.clearRect(0, 0, width, height);
 
     const moonX = width * 0.82,
@@ -233,7 +244,7 @@ export function initLaSoBackground() {
         ctx.fillStyle = grad;
         ctx.globalAlpha = p.alpha * 0.65;
         ctx.shadowColor = p.color;
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = IS_MOBILE ? 0 : 8;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
         ctx.fill();
@@ -243,7 +254,7 @@ export function initLaSoBackground() {
         ctx.fillStyle = p.color;
         ctx.globalAlpha = p.alpha;
         ctx.shadowColor = p.color;
-        ctx.shadowBlur = 4;
+        ctx.shadowBlur = IS_MOBILE ? 0 : 4;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();

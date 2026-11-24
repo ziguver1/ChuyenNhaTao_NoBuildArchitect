@@ -21,6 +21,9 @@ import { pickMoment, ppRefresh, renderTicket, renderRegister } from '../passport
 import { PP } from '../passport/stations.data.js';
 import {
   drawCard,
+  scheduleDraw,
+  getSelectedSticker,
+  setSelectedSticker,
   setupCanvasStickerDrag,
   initCanvasExporter
 } from './canvas-exporter.js';
@@ -488,6 +491,7 @@ export function renderStickerControls() {
     clearBtn.onclick = () => {
       if (!ugc.stickers || !ugc.stickers.length) return;
       ugc.stickers = [];
+      setSelectedSticker(null);
       saveUgcSettings();
       updateStickerTray();
       drawCard();
@@ -497,6 +501,90 @@ export function renderStickerControls() {
 
   updateStickerTray();
   setupCanvasStickerDrag();
+  setupStickerEditor();
+}
+
+let stickerEditorReady = false;
+const MAX_STICKERS = 16;
+
+function syncStickerEditor() {
+  const box = $('#sticker-editor');
+  if (!box) return;
+  const s = getSelectedSticker();
+  box.hidden = !s || !(ugc.stickers || []).includes(s);
+  if (box.hidden) return;
+  const size = Math.round((s.relScale || 0.2) * 100);
+  const rot = Math.round(s.rot || 0);
+  $('#se-name').textContent = s.name || 'Sticker';
+  $('#se-size').value = size;
+  $('#se-rot').value = rot;
+  $('#se-size-out').textContent = size + '%';
+  $('#se-rot-out').textContent = rot + '°';
+}
+
+function setupStickerEditor() {
+  if (stickerEditorReady || !$('#sticker-editor')) return;
+  stickerEditorReady = true;
+
+  document.addEventListener('sticker:select', () => {
+    syncStickerEditor();
+    updateStickerTray();
+    // Chọn sticker trên vé thì tự mở tab Sticker để chỉnh.
+    if (getSelectedSticker() && $('#pane-stickers')?.hidden) $('#tab-stickers')?.click();
+  });
+  document.addEventListener('sticker:update', syncStickerEditor);
+
+  const edit = (fn, save = false) => {
+    const s = getSelectedSticker();
+    if (!s) return;
+    fn(s);
+    syncStickerEditor();
+    scheduleDraw();
+    if (save) saveUgcSettings();
+  };
+
+  $('#se-size').addEventListener('input', (e) => edit((s) => (s.relScale = +e.target.value / 100)));
+  $('#se-size').addEventListener('change', () => saveUgcSettings());
+  $('#se-rot').addEventListener('input', (e) => edit((s) => (s.rot = +e.target.value)));
+  $('#se-rot').addEventListener('change', () => saveUgcSettings());
+  $('#se-flip').addEventListener('click', () => edit((s) => (s.flip = !s.flip), true));
+  $('#se-front').addEventListener('click', () => {
+    const s = getSelectedSticker();
+    if (!s) return;
+    const i = ugc.stickers.indexOf(s);
+    if (i < 0 || i === ugc.stickers.length - 1) return;
+    ugc.stickers.push(ugc.stickers.splice(i, 1)[0]);
+    saveUgcSettings();
+    scheduleDraw();
+    toast('Đã đưa sticker lên trên cùng', 'ok', 'stack');
+  });
+  $('#se-dup').addEventListener('click', () => {
+    const s = getSelectedSticker();
+    if (!s) return;
+    if (ugc.stickers.length >= MAX_STICKERS) {
+      toast('Vé đã đủ 16 sticker rồi', 'info', 'info');
+      return;
+    }
+    const copy = {
+      ...s,
+      relX: Math.min(0.94, s.relX + 0.06),
+      relY: Math.min(0.94, s.relY + 0.05)
+    };
+    ugc.stickers.push(copy);
+    saveUgcSettings();
+    updateStickerTray();
+    setSelectedSticker(copy);
+  });
+  $('#se-del').addEventListener('click', () => {
+    const s = getSelectedSticker();
+    if (!s) return;
+    ugc.stickers = ugc.stickers.filter((x) => x !== s);
+    setSelectedSticker(null);
+    saveUgcSettings();
+    updateStickerTray();
+    scheduleDraw();
+    toast('Đã gỡ sticker', 'info', 'x');
+  });
 }
 
 export function updateStickerTray() {
@@ -547,6 +635,7 @@ export function toggleSticker(id) {
   if (!Array.isArray(ugc.stickers)) ugc.stickers = [];
   const existingIndex = ugc.stickers.findIndex((s) => s.id === id);
   if (existingIndex >= 0) {
+    if (getSelectedSticker() === ugc.stickers[existingIndex]) setSelectedSticker(null);
     ugc.stickers.splice(existingIndex, 1);
     saveUgcSettings();
     updateStickerTray();
@@ -555,11 +644,15 @@ export function toggleSticker(id) {
   } else {
     const def = STICKER_CATALOG.find((s) => s.id === id);
     if (!def) return;
+    if (ugc.stickers.length >= MAX_STICKERS) {
+      toast('Vé đã đủ 16 sticker rồi', 'info', 'info');
+      return;
+    }
     const slotIndex = ugc.stickers.length % STICKER_DEFAULT_SLOTS.length;
     const baseSlot = STICKER_DEFAULT_SLOTS[slotIndex];
     const jitterX = (Math.random() - 0.5) * 0.04;
     const jitterY = (Math.random() - 0.5) * 0.04;
-    ugc.stickers.push({
+    const placed = {
       id: def.id,
       src: def.src,
       name: def.name,
@@ -567,9 +660,11 @@ export function toggleSticker(id) {
       relY: Math.max(0.06, Math.min(0.94, baseSlot.relY + jitterY)),
       relScale: baseSlot.relScale,
       rot: baseSlot.rot
-    });
+    };
+    ugc.stickers.push(placed);
     saveUgcSettings();
     updateStickerTray();
+    setSelectedSticker(placed);
     drawCard();
     toast(`Đã dán ${def.name} lên vé!`, 'ok', 'sticker');
   }
@@ -582,6 +677,7 @@ export function applyRandomStickers() {
   const c2 = carps[(Math.floor(Math.random() * (carps.length - 1)) + 1) % carps.length];
   const l1 = lotuses[Math.floor(Math.random() * lotuses.length)];
 
+  setSelectedSticker(null);
   ugc.stickers = [
     { id: c1.id, src: c1.src, name: c1.name, relX: 0.88, relY: 0.08, relScale: 0.22, rot: 14 },
     { id: l1.id, src: l1.src, name: l1.name, relX: 0.12, relY: 0.94, relScale: 0.2, rot: -12 },
