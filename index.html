@@ -304,13 +304,17 @@
                       </button>
                     </div>
 
-                    <!-- Lựa chọn Họa tiết: Chấm bi hoặc Ngôi sao (xoay ngẫu hứng) -->
+                    <!-- Lựa chọn Họa tiết: Chấm bi, Ngôi sao, Màu trơn, Gradient -->
                     <div class="pattern-selector-group">
                       <div class="pattern-selector-head">
                         <span class="color-field-label">Kiểu họa tiết nền:</span>
                         <button type="button" class="btn btn-ghost btn-xs" id="btn-shuffle-stars" title="Xoay ngẫu nhiên lại góc của các ngôi sao" hidden>
                           <i class="ph ph-shuffle" aria-hidden="true"></i>
                           <span>Đổi góc xoay</span>
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-xs" id="btn-gradient-dir" title="Đổi hướng chuyển sắc Gradient" hidden>
+                          <i class="ph ph-compass" aria-hidden="true"></i>
+                          <span>Đổi hướng</span>
                         </button>
                       </div>
                       <div class="pattern-selector" role="radiogroup" aria-label="Chọn họa tiết nền">
@@ -320,21 +324,29 @@
                         </button>
                         <button type="button" class="pattern-pill" data-pattern="stars" role="radio" aria-checked="false">
                           <i class="ph-fill ph-star" aria-hidden="true"></i>
-                          <span>Ngôi sao (Xoay ngẫu hứng)</span>
+                          <span>Ngôi sao</span>
+                        </button>
+                        <button type="button" class="pattern-pill" data-pattern="solid" role="radio" aria-checked="false">
+                          <i class="ph-fill ph-square" aria-hidden="true"></i>
+                          <span>Màu trơn</span>
+                        </button>
+                        <button type="button" class="pattern-pill" data-pattern="gradient" role="radio" aria-checked="false">
+                          <i class="ph-fill ph-gradient" aria-hidden="true"></i>
+                          <span>Gradient</span>
                         </button>
                       </div>
                     </div>
 
                     <div class="color-pickers-row">
                       <div class="color-field">
-                        <span class="color-field-label">Màu nền</span>
+                        <span class="color-field-label" id="ugc-bg-label">Màu nền</span>
                         <label class="color-picker-box" id="ugc-bg-box" for="ugc-bg-color">
                           <input type="color" id="ugc-bg-color" value="#faeb77" aria-label="Chọn màu nền">
                           <span class="color-code" id="ugc-bg-hex">#FAEB77</span>
                         </label>
                       </div>
 
-                      <div class="color-field">
+                      <div class="color-field" id="ugc-dot-field">
                         <span class="color-field-label" id="ugc-dot-label">Màu chấm bi</span>
                         <label class="color-picker-box" id="ugc-dot-box" for="ugc-dot-color">
                           <input type="color" id="ugc-dot-color" value="#4ec5cb" aria-label="Chọn màu chấm bi">

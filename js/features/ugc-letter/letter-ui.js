@@ -319,24 +319,49 @@ export function renderColorControls() {
   const dotInput = $('#ugc-dot-color');
   const bgHex = $('#ugc-bg-hex');
   const dotHex = $('#ugc-dot-hex');
+  const bgLabel = $('#ugc-bg-label');
   const dotLabel = $('#ugc-dot-label');
+  const dotField = $('#ugc-dot-field');
   const presetList = $('#preset-list');
   const shuffleBtn = $('#btn-shuffle-stars');
+  const gradDirBtn = $('#btn-gradient-dir');
+  const swapBtn = $('#btn-swap-colors');
 
-  // Đồng bộ giao diện lựa chọn họa tiết (chấm bi / ngôi sao)
+  const GRADIENT_DIRS = [
+    { id: 'diagonal', label: 'Chéo ↘' },
+    { id: 'vertical', label: 'Dọc ↓' },
+    { id: 'horizontal', label: 'Ngang →' },
+    { id: 'radial', label: 'Tỏa tròn ✦' }
+  ];
+
+  const PATTERN_TOASTS = {
+    dots: ['Đã đổi sang nền chấm bi tròn', 'circle'],
+    stars: ['Đã đổi sang nền ngôi sao (xoay ngẫu hứng)', 'star'],
+    solid: ['Đã đổi sang nền màu trơn', 'square'],
+    gradient: ['Đã đổi sang nền màu Gradient', 'gradient']
+  };
+
+  // Đồng bộ giao diện lựa chọn họa tiết (chấm bi / ngôi sao / màu trơn / gradient)
   const syncPatternUI = () => {
-    const isStars = ugc.pattern === 'stars';
+    const mode = ugc.pattern || 'dots';
+    const isStars = mode === 'stars';
+    const isSolid = mode === 'solid';
+    const isGrad = mode === 'gradient';
+
     $$('#pane-colors [data-pattern]').forEach((btn) => {
-      const active = btn.dataset.pattern === (ugc.pattern || 'dots');
+      const active = btn.dataset.pattern === mode;
       btn.classList.toggle('is-active', active);
       btn.setAttribute('aria-checked', String(active));
     });
+
+    if (bgLabel) bgLabel.textContent = isGrad ? 'Màu bắt đầu' : 'Màu nền';
     if (dotLabel) {
-      dotLabel.textContent = isStars ? 'Màu ngôi sao' : 'Màu chấm bi';
+      dotLabel.textContent = isStars ? 'Màu ngôi sao' : isGrad ? 'Màu kết thúc' : 'Màu chấm bi';
     }
-    if (shuffleBtn) {
-      shuffleBtn.hidden = !isStars;
-    }
+    if (dotField) dotField.hidden = isSolid;
+    if (shuffleBtn) shuffleBtn.hidden = !isStars;
+    if (gradDirBtn) gradDirBtn.hidden = !isGrad;
+    if (swapBtn) swapBtn.hidden = isSolid;
   };
 
   syncPatternUI();
@@ -347,13 +372,8 @@ export function renderColorControls() {
       saveUgcSettings();
       syncPatternUI();
       drawCard();
-      toast(
-        ugc.pattern === 'stars'
-          ? 'Đã đổi sang nền ngôi sao (xoay ngẫu hứng)'
-          : 'Đã đổi sang nền chấm bi tròn',
-        'ok',
-        ugc.pattern === 'stars' ? 'star' : 'circle'
-      );
+      const [msg, icon] = PATTERN_TOASTS[ugc.pattern] || PATTERN_TOASTS.dots;
+      toast(msg, 'ok', icon);
     };
   });
 
@@ -363,6 +383,17 @@ export function renderColorControls() {
       saveUgcSettings();
       drawCard();
       toast('Đã đổi góc xoay ngẫu nhiên của các ngôi sao', 'ok', 'shuffle');
+    };
+  }
+
+  if (gradDirBtn) {
+    gradDirBtn.onclick = () => {
+      const idx = GRADIENT_DIRS.findIndex((d) => d.id === (ugc.gradientDir || 'diagonal'));
+      const next = GRADIENT_DIRS[(idx + 1) % GRADIENT_DIRS.length];
+      ugc.gradientDir = next.id;
+      saveUgcSettings();
+      drawCard();
+      toast(`Đã đổi hướng Gradient: ${next.label}`, 'ok', 'compass');
     };
   }
 
@@ -390,7 +421,6 @@ export function renderColorControls() {
     };
   }
 
-  const swapBtn = $('#btn-swap-colors');
   if (swapBtn) {
     swapBtn.onclick = () => {
       const tmp = ugc.bgColor;
@@ -406,7 +436,9 @@ export function renderColorControls() {
       toast(
         ugc.pattern === 'stars'
           ? 'Đã đảo màu nền và màu ngôi sao'
-          : 'Đã đảo màu nền và màu chấm bi',
+          : ugc.pattern === 'gradient'
+            ? 'Đã đảo 2 màu Gradient'
+            : 'Đã đảo màu nền và màu chấm bi',
         'ok',
         'arrows-left-right'
       );

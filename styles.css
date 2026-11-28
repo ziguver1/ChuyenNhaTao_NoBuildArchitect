@@ -3498,7 +3498,6 @@ body.has-dialog-open {
   .frame-tag {
     display: none;
   }
-  .pattern-selector,
   .color-pickers-row {
     grid-template-columns: 1fr;
     gap: 8px;

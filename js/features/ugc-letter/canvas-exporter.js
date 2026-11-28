@@ -246,8 +246,45 @@ export function drawStar(ctx, cx, cy, spikes = 5, outerRadius = 24, innerRadius 
   ctx.restore();
 }
 
-export function drawPolkaDotsBackground(ctx, W, H, bgColor, dotColor, tall, pattern = 'dots', starSeed = 42) {
-  ctx.fillStyle = bgColor || '#faeb77';
+export function drawPolkaDotsBackground(
+  ctx,
+  W,
+  H,
+  bgColor,
+  dotColor,
+  tall,
+  pattern = 'dots',
+  starSeed = 42,
+  gradientDir = 'diagonal'
+) {
+  const c1 = bgColor || '#faeb77';
+  const c2 = dotColor || '#4ec5cb';
+
+  if (pattern === 'solid') {
+    ctx.fillStyle = c1;
+    ctx.fillRect(0, 0, W, H);
+    return;
+  }
+
+  if (pattern === 'gradient') {
+    let grad;
+    if (gradientDir === 'vertical') {
+      grad = ctx.createLinearGradient(0, 0, 0, H);
+    } else if (gradientDir === 'horizontal') {
+      grad = ctx.createLinearGradient(0, 0, W, 0);
+    } else if (gradientDir === 'radial') {
+      grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.hypot(W, H) * 0.55);
+    } else {
+      grad = ctx.createLinearGradient(0, 0, W, H);
+    }
+    grad.addColorStop(0, c1);
+    grad.addColorStop(1, c2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+    return;
+  }
+
+  ctx.fillStyle = c1;
   ctx.fillRect(0, 0, W, H);
 
   // Cấu trúc chấm bi / ngôi sao so le chuẩn mực theo hình mẫu (Geometric Staggered Lattice)
@@ -364,10 +401,22 @@ export async function drawCard() {
   const ctx = cv.getContext('2d');
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
   const serif = (w, sz, it) => `${it ? 'italic ' : ''}${w} ${sz}px "EB Garamond", Georgia, serif`;
   const sans = (w, sz) => `${w} ${sz}px "Be Vietnam Pro", system-ui, sans-serif`;
 
-  drawPolkaDotsBackground(ctx, W, H, ugc.bgColor, ugc.dotColor, tall, ugc.pattern || 'dots', ugc.starSeed || 42);
+  drawPolkaDotsBackground(
+    ctx,
+    W,
+    H,
+    ugc.bgColor,
+    ugc.dotColor,
+    tall,
+    ugc.pattern || 'dots',
+    ugc.starSeed || 42,
+    ugc.gradientDir || 'diagonal'
+  );
 
   const ticketW = tall ? 980 : Math.round(920 * (2290 / 3090));
   const ticketH = tall ? Math.round(ticketW * (3090 / 2290)) : 920;

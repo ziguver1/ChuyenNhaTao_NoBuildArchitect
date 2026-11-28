@@ -18,6 +18,7 @@ export const ugc = Object.assign(
     dotColor: '#4ec5cb',
     pattern: 'dots',
     starSeed: 42,
+    gradientDir: 'diagonal',
     stickers: []
   },
   store.get('ugc_settings', {})
@@ -26,6 +27,7 @@ export const ugc = Object.assign(
 if (!Array.isArray(ugc.stickers)) ugc.stickers = [];
 if (!ugc.pattern) ugc.pattern = 'dots';
 if (!ugc.starSeed) ugc.starSeed = 42;
+if (!ugc.gradientDir) ugc.gradientDir = 'diagonal';
 
 export const saveUgcSettings = () =>
   store.set('ugc_settings', {
@@ -35,6 +37,7 @@ export const saveUgcSettings = () =>
     dotColor: ugc.dotColor,
     pattern: ugc.pattern,
     starSeed: ugc.starSeed,
+    gradientDir: ugc.gradientDir,
     caption: ugc.caption,
     stickers: ugc.stickers
   });
