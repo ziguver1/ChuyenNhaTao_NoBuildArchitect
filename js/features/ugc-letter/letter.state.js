@@ -2,7 +2,7 @@
  * Quản lý trạng thái tùy chỉnh của Chuyện Nhà Đêm 23 (UGC State)
  */
 import { store } from '../../core/storage.js';
-import { VALUES } from './values.data.js?v=3.9';
+import { VALUES } from './values.data.js?v=4.0';
 
 export const letter = Object.assign(
   { picks: [0, 0, 0, 0], custom: ['', '', '', ''] },

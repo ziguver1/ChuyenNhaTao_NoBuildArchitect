@@ -5,7 +5,7 @@ import { $, $$ } from '../../core/dom.js';
 import { toast } from '../../core/toast.js';
 import { track } from '../../analytics/tracker.js';
 import { plain, esc } from '../../core/dom.js';
-import { VALUES, FRAME_CONFIG, STICKER_CATALOG } from './values.data.js?v=3.9';
+import { VALUES, FRAME_CONFIG, STICKER_CATALOG } from './values.data.js?v=4.0';
 import { ugc, saveUgcSettings, lineOf } from './letter.state.js';
 import { getPass, moments, MOMENT_SLOTS, momentCount } from '../passport/passport.state.js';
 
@@ -444,7 +444,7 @@ export async function drawCard() {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = frameCfg.ink;
   ctx.font = serif(600, Math.round(48 * scale), true);
-  ctx.fillText(`Nhà của ${nick} kính gửi Táo`, ticketX + ticketW / 2, drawY + 520 * scale);
+  ctx.fillText(`Nhà của ${nick} kính gửi Táo`, ticketX + ticketW / 2, drawY + 534 * scale);
 
   const PHOTO_BOXES = [
     { slot: '1', name: 'Tôn Kính', x: 202, y: 580, w: 644, h: 558 },
