@@ -7,7 +7,7 @@ import { toast } from '../../core/toast.js';
 import { track } from '../../analytics/tracker.js';
 import { esc } from '../../core/dom.js';
 import { hasGsap, reduceMotion } from '../../core/motion.js';
-import { VALUES, FRAME_CONFIG, COLOR_PRESETS, STICKER_CATALOG, STICKER_DEFAULT_SLOTS } from './values.data.js?v=4.0';
+import { VALUES, FRAME_CONFIG, COLOR_PRESETS, STICKER_CATALOG, STICKER_DEFAULT_SLOTS } from './values.data.js?v=4.1';
 import { letter, ugc, saveUgcSettings, saveLetter, lineOf } from './letter.state.js';
 import { book } from '../storybook/storybook.state.js';
 import {
@@ -26,7 +26,7 @@ import {
   setSelectedSticker,
   setupCanvasStickerDrag,
   initCanvasExporter
-} from './canvas-exporter.js?v=4.0';
+} from './canvas-exporter.js?v=4.1';
 import { initShareButtons } from './share.js';
 
 let letterShown = false;

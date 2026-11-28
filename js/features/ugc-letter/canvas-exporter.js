@@ -5,7 +5,7 @@ import { $, $$ } from '../../core/dom.js';
 import { toast } from '../../core/toast.js';
 import { track } from '../../analytics/tracker.js';
 import { plain, esc } from '../../core/dom.js';
-import { VALUES, FRAME_CONFIG, STICKER_CATALOG } from './values.data.js?v=4.0';
+import { VALUES, FRAME_CONFIG, STICKER_CATALOG } from './values.data.js?v=4.1';
 import { ugc, saveUgcSettings, lineOf } from './letter.state.js';
 import { getPass, moments, MOMENT_SLOTS, momentCount } from '../passport/passport.state.js';
 

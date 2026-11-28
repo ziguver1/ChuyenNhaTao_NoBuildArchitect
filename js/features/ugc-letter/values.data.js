@@ -55,7 +55,7 @@ export const FRAME_CONFIG = {
     id: '1',
     name: 'Khung 1: Xanh Dương',
     tag: 'Pastel Sky',
-    src: 'images/chuyendem23/khungnoidung/1.webp?v=3',
+    src: 'images/chuyendem23/khungnoidung/1.webp?v=4',
     ink: '#1c3558',
     inkMuted: '#365784'
   },
@@ -63,7 +63,7 @@ export const FRAME_CONFIG = {
     id: '2',
     name: 'Khung 2: Xanh Cốm',
     tag: 'Pastel Mint',
-    src: 'images/chuyendem23/khungnoidung/2.webp?v=3',
+    src: 'images/chuyendem23/khungnoidung/2.webp?v=4',
     ink: '#163830',
     inkMuted: '#35675b'
   },
@@ -71,7 +71,7 @@ export const FRAME_CONFIG = {
     id: '3',
     name: 'Khung 3: Kem Cổ Điển',
     tag: 'Vintage Sepia',
-    src: 'images/chuyendem23/khungnoidung/3.webp?v=3',
+    src: 'images/chuyendem23/khungnoidung/3.webp?v=4',
     ink: '#422312',
     inkMuted: '#8b5035'
   },
@@ -79,7 +79,7 @@ export const FRAME_CONFIG = {
     id: '4',
     name: 'Khung 4: Tím Mộng Mơ',
     tag: 'Pastel Lavender',
-    src: 'images/chuyendem23/khungnoidung/4.webp?v=3',
+    src: 'images/chuyendem23/khungnoidung/4.webp?v=4',
     ink: '#2e1948',
     inkMuted: '#61417e'
   },
@@ -87,7 +87,7 @@ export const FRAME_CONFIG = {
     id: '5',
     name: 'Khung 5: Hồng Phấn',
     tag: 'Pastel Pink',
-    src: 'images/chuyendem23/khungnoidung/5.webp?v=3',
+    src: 'images/chuyendem23/khungnoidung/5.webp?v=4',
     ink: '#3b1232',
     inkMuted: '#642557'
   }
