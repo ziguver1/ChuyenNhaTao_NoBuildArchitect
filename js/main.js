@@ -42,7 +42,7 @@ import {
   initUgcUI,
   renderLetter,
   unlockTest
-} from './features/ugc-letter/letter-ui.js?v=3.8';
+} from './features/ugc-letter/letter-ui.js?v=3.9';
 import { initLaSoBackground } from './effects/gold-dust.js';
 import { initSceneCanvas } from './effects/scene-canvas.js';
 import { initBookPassportTransition } from './effects/transitions.js';
